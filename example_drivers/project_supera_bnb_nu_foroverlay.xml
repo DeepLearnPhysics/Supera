@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+
+<!-- Production Project -->
+
+<!DOCTYPE project [
+<!ENTITY release      "v06_37_00" >
+<!ENTITY file_type    "mc"        >
+<!ENTITY run_type     "physics"   >
+<!ENTITY name         "mcc8bnbnu">
+<!ENTITY dl_part      "p00"       >
+<!ENTITY username     "tmw"       >
+<!ENTITY projectout   "/pnfs/uboone/persistent/users/tmw/test">
+]>
+
+<job>
+
+<project name="&name;">
+
+  <!-- Project size -->
+  <numevents>1000</numevents>
+
+  <!-- Operating System -->
+  <os>SL6</os>
+
+  <!-- Larsoft information -->
+  <!-- Remember to make/update your larsoft tarball and point to it here -->
+  <larsoft>
+    <tag>&release;</tag>
+    <qual>e14:prof</qual>
+    <local>/uboone/app/users/tmw/dev/dev_dl2/larsoft.tar</local>
+  </larsoft>
+
+
+  <!-- Local FCL directory -->
+  <fcldir>/uboone/app/users/tmw/projects/meatslicer</fcldir>
+
+  <!-- Project stages -->
+  <stage name="supera">
+    <fcl>dlmc_bnb_nu_larlite_supera.fcl</fcl>
+    <outdir>&projectout;/&name;_&dl_part;/out/&release;</outdir>
+    <logdir>&projectout;/&name;_&dl_part;/log/&release;</logdir>
+    <workdir>&projectout;/&name;_&dl_part;/work/&release;</workdir>
+    <numjobs>1</numjobs>
+    <datatier>larlite</datatier>
+    <resource>DEDICATED,OPPORTUNISTIC</resource>
+    <jobsub>--expected-lifetime=medium</jobsub>
+  </stage>
+
+  <!-- file type -->
+  <filetype>&file_type;</filetype>
+
+  <!-- run type -->
+  <runtype>&run_type;</runtype>
+
+</project>
+
+</job>

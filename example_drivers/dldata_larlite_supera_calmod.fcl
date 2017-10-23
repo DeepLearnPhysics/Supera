@@ -1,0 +1,68 @@
+#include "dldata_fclbase_services.fcl"
+#include "dldata_fclbase_analyzers.fcl"
+#include "time_memory_tracker_microboone.fcl"
+
+BEGIN_PROLOG
+SuperaModule: {
+  module_type:     "LArSoftSuperaSriver"
+  supera_params: "supera_example_calmod.fcl"
+  out_filename:    "larcv.root"
+  unique_filename: false
+  stream:          "data"
+}
+VPlaneHandler: {
+  module_type: "VPlaneHandler"
+  ProducerLabel: "caldata"
+  Smooth: true
+  HandlePlateau: true
+  Shift: true
+}
+END_PROLOG
+
+process_name: LArLiteMeatSlicer
+
+services:
+{
+  scheduler:    { defaultExceptions: false }
+  TimeTracker:             @local::microboone_time_tracker
+  MemoryTracker:           @local::microboone_memory_tracker
+  message:                 @local::microboone_message_services_prod_debug
+  @table::dldata_services
+}
+
+services.TimeTracker.printSummary: true
+services.MemoryTracker.printSummaries: []
+services.MemoryTracker.includeMallocInfo: false
+services.MemoryTracker.dbOutput: {
+  filename: ""
+  overwrite: false
+}
+
+source_reprocess:
+{
+  module_type: RootInput
+  maxEvents:   100000     # Number of events to create
+}
+
+outputs:
+{
+}
+
+physics:
+{
+
+ # include this if you want to use the V-plane fix  (recommended)
+ producers: { calmod: @local::VPlaneHandler }
+ analyzers: { 
+   supera: @local::SuperaModule 
+   @table::dldata_analyzers
+ }
+
+ vplanefix: [ calmod ]
+ ana: [opdigit, opreco, reco2d, supera]
+
+ trigger_paths: [ vplanefix ]
+ end_paths: [ ana ]
+
+}
+

@@ -1,0 +1,61 @@
+ProcessDriver: {
+
+  Verbosity:    2
+  EnableFilter: false
+  RandomAccess: false
+  ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaOpDigit","SuperaChStatus","WireMask"]
+  ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaOpDigit","SuperaChStatus","WireMask"]
+
+  IOManager: {
+    Verbosity:   2
+    Name:        "IOManager"
+    IOMode:      1
+    OutFileName: "out_test.root"
+    InputFiles:  []
+    InputDirs:   []
+    StoreOnlyType: []
+    StoreOnlyName: []
+  }
+
+  ProcessList: {
+    SuperaMetaMaker: {
+      MetaConfig: {
+        MinTime:          2400
+        MinWire:          0
+        EventImageRows:   [1008,1008,1008]
+        EventImageCols:   [3456,3456,3456]
+        EventCompRows:    [6,6,6]
+        EventCompCols:    [1,1,1]
+      }
+    }
+    WireMask: {
+      ChStatusProducer: "wire"
+      ImageProducer: "wire"
+    }
+    SuperaChStatus: {
+      LArChStatusProducer: "chstatus"
+      OutChStatusLabel: "wire"
+    }
+    SuperaWire: {
+      Verbosity: 2
+      OutImageLabel:    "wire"
+      LArWireProducer:  "calmod"
+      TimeOffset:       2400
+    }
+    SuperaOpDigit: {
+      Verbosity: 0
+      OutImageLabel:      "pmt"
+      LArOpDigitProducer: "saturation OpdetBeamHighGain"
+      TimeOffset:         0
+      MetaConfig: {
+        MinTime:            0
+        MinWire:            0
+        EventImageRows:   [1500]
+        EventImageCols:   [32]
+        EventCompRows:    [1]
+        EventCompCols:    [1]
+      }
+    }
+  }
+}
+

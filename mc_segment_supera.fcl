@@ -1,0 +1,73 @@
+#include "dldata_fclbase_services.fcl"
+#include "dldata_fclbase_analyzers.fcl"
+#include "time_memory_tracker_microboone.fcl"
+
+BEGIN_PROLOG
+SuperaModule: {
+  module_type:     "LArSoftSuperaSriver"
+  supera_params:   "supera_segment.fcl"
+  out_filename:    "larcv.root"
+  unique_filename: true
+  stream:          "data"
+}
+END_PROLOG
+
+process_name: LArLite
+
+services:
+{
+  scheduler:    { defaultExceptions: false }
+  TFileService: { fileName: "mc_hist.root" }
+  TimeTracker:             @local::microboone_time_tracker
+  MemoryTracker:           @local::microboone_memory_tracker
+  message:                 @local::microboone_message_services_prod_debug
+  FileCatalogMetadata:     @local::art_file_catalog_mc
+  @table::dldata_services
+  LArCVMetaMaker: {Enable: true}
+}
+
+services.TimeTracker.printSummary: false
+services.TimeTracker.dbOutput: {}
+services.MemoryTracker.printSummaries: []
+services.MemoryTracker.includeMallocInfo: false
+services.MemoryTracker.filename: ""
+
+services.FileCatalogMetadata.applicationVersion: "develop"
+services.FileCatalogMetadata.fileType: "mc"
+services.FileCatalogMetadata.runType: "physics"
+services.FileCatalogMetadataMicroBooNE: {
+  FCLName: "data_supera.fcl"
+  FCLVersion: "develop"
+  ProjectName: "lite"
+  ProjectStage: "lite"
+  ProjectVersion: "develop"
+}
+
+source_reprocess:
+{
+  module_type: RootInput
+  maxEvents:   100000     # Number of events to create
+}
+
+physics:
+{
+ analyzers: { 
+        supera: @local::SuperaModule 
+        @table::dldata_analyzers
+        }
+ ana: [opdigit, opreco, reco2d, supera]
+ end_paths: [ana]
+ trigger_paths: []
+}
+
+outputs:
+{
+ out1:
+ {
+   module_type: RootOutput
+   fileName:    "larsoft.root" #default file name, can override from command line with -o or --output
+   dataTier:    "postreco"
+   compressionLevel: 1
+ }
+}
+

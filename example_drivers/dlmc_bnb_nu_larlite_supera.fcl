@@ -1,0 +1,125 @@
+BEGIN_PROLOG
+SuperaModule: {
+  module_type:     "LArSoftSuperaSriver"
+  supera_params: "supera_mcexample_calmod.fcl"
+  out_filename:    "larcv.root"
+  unique_filename: false
+  stream:          "mc"
+}
+VPlaneHandler: {
+  module_type: "VPlaneHandler"
+  ProducerLabel: "caldata"
+  Smooth: true
+  HandlePlateau: true
+  Shift: true
+}
+END_PROLOG
+
+#include "dlmc_fclbase_driver.fcl"
+
+process_name: BNBNuLArLiteSupera
+
+source: @local::source_gen
+
+services.TimeTracker.printSummary: true
+services.MemoryTracker.printSummaries: []
+services.MemoryTracker.includeMallocInfo: false
+services.MemoryTracker.dbOutput: {
+  filename: ""
+  overwrite: false
+}
+
+
+# rebuild producers table w/ vplanehandle
+physics.producers: {
+  @table::dlmc_producers
+  calmod: @local::VPlaneHandler
+} 
+
+# rebuild analyzers table w/ supera
+physics.analyzers: {
+  @table::dlmc_analyzers
+  supera: @local::SuperaModule
+} 
+
+physics.planefix: [ calmod ]
+physics.ana: [ @sequence::dlmc_analyze_all, supera ]
+physics.sim: [ @sequence::dlmc_process_all, calmod ]
+physics.end_paths:     [ ana ]
+physics.trigger_paths: [ sim ]
+
+# GENIE
+physics.producers.generator: @local::microboone_genie_simple
+physics.producers.generator.GlobalTimeOffset: 3125.
+physics.producers.generator.RandomTimeOffset: 1600.
+physics.producers.generator.TopVolume: "volTPCActive"
+physics.producers.generator.BeamName:  "booster"
+physics.producers.generator.FluxCopyMethod:   "IFDH"
+physics.producers.generator.MaxFluxFileMB:    2000
+
+# Filter output
+physics.analyzers.mcinfo.SelectEvents:  []
+physics.analyzers.simch.SelectEvents:   []
+physics.analyzers.opdigit.SelectEvents: []
+physics.analyzers.opreco.SelectEvents:  []
+physics.analyzers.wire.SelectEvents:    []
+physics.analyzers.reco2d.SelectEvents:  []
+
+services.UBOpticalChConfig.PedestalSpread: [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, # channels 0-35
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, # logic channels 36-47
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, # channels 100-135
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, # logic channels 136-147
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, # channels 200-236
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0] # channels 300-335
+
+services.UBOpticalChConfig.DarkRate:       [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, # channels 0-35
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, # logic channels 36-47
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, # channels 100-135
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, # logic channels 136-147
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, # channels 200-236
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0] # channels 300-335
+
