@@ -31,7 +31,7 @@ namespace supera {
       
       larcv::ImageMeta meta(image_cols[plane] * comp_cols[plane], image_rows[plane] * comp_rows[plane],
 			    image_rows[plane] * comp_rows[plane], image_cols[plane] * comp_cols[plane],
-			    min_wire, min_time + image_rows[plane] * comp_rows[plane],
+			    min_wire, min_time,
 			    (larcv::ProjectionID_t)plane,
           (larcv::DistanceUnit_t)(larcv::kUnitWireTime));
       

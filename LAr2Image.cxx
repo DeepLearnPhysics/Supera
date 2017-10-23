@@ -116,12 +116,12 @@ namespace supera {
           }
           LARCV_SDEBUG() << "Calling Image2D::copy..." << std::endl
                          << "      source wf : start index = " << range.begin_index() << " length = " << adcs.size() << std::endl
-                         << "      (row,col) : (" << (ymax - end_index) << "," << col << ")" << std::endl
+                         << "      (row,col) : (" << start_index << "," << col << ")" << std::endl
                          << "      nskip     : "  << nskip << std::endl
                          << "      nsample   : "  << nsample << std::endl;
           try {
             //img.reverse_copy(ymax - end_index,
-            img.copy(start_index,
+            img.copy(meta.row(start_index),
                      col,
                      adcs,
                      nsample);
@@ -132,7 +132,7 @@ namespace supera {
                               << "Called a reverse_copy..." << std::endl
                               << "      source wf : plane = " << wire_id.Plane << " wire = " << wire_id.Wire << std::endl
                               << "      timing    : start index = " << range.begin_index() << " length = " << adcs.size() << std::endl
-                              << "      (row,col) : (" << (ymax - end_index) << "," << col << ")" << std::endl
+                              << "      (row,col) : (" << start_index << "," << col << ")" << std::endl
                               << "      nskip     : "  << nskip << std::endl
                               << "Re-throwing an error:" << std::endl;
             throw err;
