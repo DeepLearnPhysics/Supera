@@ -121,7 +121,7 @@ namespace supera {
                          << "      nsample   : "  << nsample << std::endl;
           try {
             //img.reverse_copy(ymax - end_index,
-            img.copy(start_index,
+            img.copy((size_t)start_index,
                      col,
                      adcs,
                      nsample);
