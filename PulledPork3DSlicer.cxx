@@ -379,7 +379,8 @@ namespace supera {
 			  (size_t)(wire_range.second - wire_range.first + 1),
 			  (double)(wire_range.first),
 			  (double)(tick_end),
-			  (larcv::ProjectionID_t)(plane));
+			  (larcv::ProjectionID_t)(plane),
+        (larcv::DistanceUnit_t)(larcv::kUnitWireTime));
       LARCV_INFO() << "...done on plane " << plane << std::endl;
     }
     return meta_v;
