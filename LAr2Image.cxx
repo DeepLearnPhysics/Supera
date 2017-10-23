@@ -124,7 +124,6 @@ namespace supera {
             img.copy(start_index,
                      col,
                      adcs,
-                     nskip,
                      nsample);
           } catch (const ::larcv::larbys& err) {
             LARCV_SCRITICAL() << "Attempted to fill an image..." << std::endl
