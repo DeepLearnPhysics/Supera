@@ -9,12 +9,20 @@ else
 fi
 
 experiment=$1
-if [ ! -d "$SUPERA_DIR/experiments/$experiment" ]; then
-    echo "Could not locate $experiment directory... make sure that exists under experiments dir"
+if [ -z $experiment ]; then
+    echo "You must specify an experiment in the argument of setup.sh"
+    echo "Options: `ls $SUPERA_DIR/experiments`"
+    unset experiment;
+    unset SUPERA_DIR;
 else
-    export SUPERADIR=$SUPERA_DIR;
-    ln -sf $SUPERA_DIR/experiments/$experiment/FMWKInterface.* $SUPERA_DIR;
-    ln -sf $SUPERA_DIR/experiments/$experiment/CMakeLists.txt $SUPERA_DIR;
+    if [ ! -d "$SUPERA_DIR/experiments/$experiment" ]; then
+	echo "Could not locate $experiment directory... make sure that exists under experiments dir"
+    else
+	export SUPERADIR=$SUPERA_DIR;
+	ln -sf $SUPERA_DIR/experiments/$experiment/FMWKInterface.* $SUPERA_DIR;
+	ln -sf $SUPERA_DIR/experiments/$experiment/CMakeLists.txt $SUPERA_DIR;
+	echo "set up for $experiment"
+    fi
 fi
 
 
