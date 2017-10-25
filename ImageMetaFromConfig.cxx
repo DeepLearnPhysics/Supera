@@ -29,11 +29,11 @@ namespace supera {
     // construct meta
     for(size_t plane=0; plane<image_rows.size(); ++plane) {
       
-      larcv::ImageMeta meta(image_cols[plane] * comp_cols[plane], image_rows[plane] * comp_rows[plane],
-			    image_rows[plane] * comp_rows[plane], image_cols[plane] * comp_cols[plane],
-			    min_wire, min_time,
+      larcv::ImageMeta meta(min_wire, min_time, 
+			    min_wire + image_cols[plane] * comp_cols[plane], min_time + image_rows[plane] * comp_rows[plane],
+			    image_rows[plane], image_cols[plane],
 			    (larcv::ProjectionID_t)plane,
-          (larcv::DistanceUnit_t)(larcv::kUnitWireTime));
+			    (larcv::DistanceUnit_t)(larcv::kUnitWireTime));
       
       LARCV_INFO() << "Created meta " <<  meta.dump();
       

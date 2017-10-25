@@ -326,6 +326,30 @@ namespace supera {
     return WTRange2BB(wtrange_v);
   }
 
+  ::larcv::Particle MCParticleHelper::MakeParticle( const supera::LArMCTrack_t& mct,
+						    const std::vector<supera::LArSimCh_t>& sch_v,
+						    const int time_offset) const
+  {
+    auto res = MakeParticle(mct);
+    if(sch_v.empty())
+      res.boundingbox_2d(MakeBBox2D(mct,time_offset));
+    else
+      res.boundingbox_2d(MakeBBox2D(mct,sch_v,time_offset));
+    return res;
+  }
+
+  ::larcv::Particle MCParticleHelper::MakeParticle( const supera::LArMCShower_t& mcs,
+						    const std::vector<supera::LArSimCh_t>& sch_v,
+						    const int time_offset) const
+  {
+    auto res = MakeParticle(mcs);
+    if(sch_v.empty())
+      res.boundingbox_2d(MakeBBox2D(mcs,time_offset));
+    else
+      res.boundingbox_2d(MakeBBox2D(mcs,sch_v,time_offset));
+    return res;
+  }
+
   ::larcv::Particle MCParticleHelper::MakeParticle( const supera::LArMCTrack_t& mct) const
   {
     LARCV_DEBUG() << "start" << std::endl;

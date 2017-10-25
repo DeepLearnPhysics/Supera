@@ -91,7 +91,7 @@ namespace larcv {
       LARCV_CRITICAL() << "Output part could not be created!" << std::endl;
       throw larbys();
     }
-    if (!(ev_part->ParticleArray().empty())) {
+    if (!(ev_part->particle_array().empty())) {
       LARCV_CRITICAL() << "Output part array not empty!" << std::endl;
       throw larbys();
     }
@@ -148,6 +148,15 @@ namespace larcv {
       for (size_t daughter_idx = 0; daughter_idx < primary.daughter_v.size(); ++daughter_idx) {
 
         auto const& daughter = primary.daughter_v[daughter_idx];
+
+	if (_pass_origin && daughter.origin != _pass_origin) {
+	  LARCV_INFO() << "Skipping a daughter " << daughter_idx
+		       << " (origin type " << daughter.origin
+		       << " PDG " << daughter.pdg
+		       << ")"
+		       << std::endl;
+	  continue;
+	}
 
         if (!FilterNode(daughter)) {
           LARCV_INFO() << "Skipping a daughter " << daughter_idx
@@ -243,16 +252,13 @@ namespace larcv {
     if (_store_part)
       ev_part->Emplace(std::move(_part_v));
     */
-    ev_part->Emplace(std::move(_part_v))
+    ev_part->emplace(std::move(_part_v));
     return true;
   }
 
   bool SuperaMCParticle::FilterNode(const supera::MCNode & node) const
   {
-    if (node.source_type == supera::MCNode::SourceType_t::kMCTruth) {
-      if (_pass_origin && node.origin != _pass_origin)
-        return false;
-    } else if (node.source_type == supera::MCNode::SourceType_t::kMCTrack) {
+    if (node.source_type == supera::MCNode::SourceType_t::kMCTrack) {
       auto const& mctrack = LArData<supera::LArMCTrack_t>()[node.source_index];
       LARCV_DEBUG() << "MCTrack InitE " << mctrack.Start().E() << " ... DepE "
                     << (mctrack.size() > 1 ? mctrack.front().E() - mctrack.back().E() : 0) << std::endl;
@@ -272,7 +278,8 @@ namespace larcv {
           if ( (mctrack.front().E() - mctrack.back().E()) < filter_min_edep ) return false;
         }
       }
-    } else if (node.source_type == supera::MCNode::SourceType_t::kMCShower) {
+    } 
+    else if (node.source_type == supera::MCNode::SourceType_t::kMCShower) {
       auto const& mcshower = LArData<supera::LArMCShower_t>()[node.source_index];
       LARCV_DEBUG() << "MCShower InitE " << mcshower.Start().E() << " ... DepE "
                     << mcshower.DetProfile().E() << std::endl;
@@ -291,29 +298,25 @@ namespace larcv {
   }
 
   larcv::Particle SuperaMCParticle::MakeParticle(const supera::MCNode & node,
-      const std::vector<supera::LArSimCh_t>& sch_v) const
+						 const std::vector<supera::LArSimCh_t>& sch_v) const
   {
     larcv::Particle res;
-    if (node.source_type == supera::MCNode::SourceType_t::kMCTruth)
-      throw larbys("MCTruth type cannot make Particle using MCParticleMaker!");
-    else if (node.source_type == supera::MCNode::SourceType_t::kMCTrack) {
+    if (node.source_type == supera::MCNode::SourceType_t::kMCTrack) {
       auto const& mctrack = LArData<supera::LArMCTrack_t>().at(node.source_index);
-      if (sch_v.empty()) res = _mcpart_maker.Particle(mctrack, TimeOffset());
-      else res = _mcpart_maker.Particle(mctrack, sch_v, TimeOffset());
+      res = _mcpart_maker.MakeParticle(mctrack, sch_v, TimeOffset());
       res.mcst_index(node.source_index);
     }
     else if (node.source_type == supera::MCNode::SourceType_t::kMCShower) {
       auto const& mcshower = LArData<supera::LArMCShower_t>().at(node.source_index);
-      if (sch_v.empty()) res = _mcpart_maker.Particle(mcshower, TimeOffset());
-      else res = _mcpart_maker.Particle(mcshower, sch_v, TimeOffset());
+      res = _mcpart_maker.MakeParticle(mcshower, sch_v, TimeOffset());
       res.mcst_index(node.source_index);
     } else
       throw larbys("Unexpected SourceType_t!");
 
     // format Particle
-    std::vector<larcv::ImageMeta> bb_v;
-    for (size_t plane = 0; plane < res.BB().size(); ++plane) {
-      auto const& part_meta  = res.BB().at(plane);
+    std::vector<larcv::BBox2D> bb_v;
+    for (size_t plane = 0; plane < res.boundingbox_2d().size(); ++plane) {
+      auto const& part_meta  = res.boundingbox_2d().at(plane);
       auto const& event_meta = Meta().at(plane);
       bb_v.push_back(FormatMeta(part_meta, event_meta));
     }
@@ -382,8 +385,8 @@ namespace larcv {
                  << " Height=" << height
                  << " NRows=" << rows / modular_row
                  << " NCols=" << cols / modular_col
-                 << " Origin @ (" << min_x << "," << min_y << ")" << std::endl;
-    larcv::ImageMeta res(min_x, min_y, width, height,
+                 << " Origin @ (" << min_x << "," << max_y - height << ")" << std::endl;
+    larcv::ImageMeta res(min_x, max_y - height, min_x+width, max_y,
                          cols, rows,
                          part_image.id(), larcv::kUnitWireTime);
 
@@ -400,6 +403,6 @@ namespace larcv {
 
   void SuperaMCParticle::finalize()
   {}
-
+}
 
 #endif

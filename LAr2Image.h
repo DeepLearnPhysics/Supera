@@ -61,15 +61,13 @@ namespace supera {
   //
   // SimChannel => Pixel2DCluster
   //
-  /*
-  std::vector<std::vector<larcv::Pixel2DCluster> >
+
+  larcv::VoxelSetArray2D
   SimCh2Pixel2DCluster(const std::vector<larcv::ImageMeta>& meta_v,
-		       const std::vector<size_t>& row_compression_v,
-		       const std::vector<size_t>& col_compression_v,
 		       const std::vector<supera::LArSimCh_t>& sch_v,
-		       const std::vector<size_t>& trackid2cluster,
+		       const std::vector<int>& trackid2cluster,
 		       const int time_offset);
-  */
+
 }
 #endif
 //#endif

@@ -31,6 +31,8 @@ namespace larcv {
   */
   class SuperaMCParticle : public SuperaBase,
     public supera::ParamsROI,
+    public supera::ParamsPixel2D,
+    public supera::ParamsVoxel3D,
     public supera::ImageMetaMaker {
 
   public:
@@ -65,6 +67,8 @@ namespace larcv {
     //bool _store_part;
     //bool _store_g4_primary_part;
     //bool _store_g4_secondary_part;
+    bool _store_pixel2d;
+    bool _store_voxel3d;
     std::vector<larcv::Particle> _part_v;
     supera::MCParticleTree  _mcpt;
     supera::MCParticleHelper _mcpart_maker;

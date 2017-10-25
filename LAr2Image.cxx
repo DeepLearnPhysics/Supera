@@ -300,7 +300,7 @@ namespace supera {
     return res;
   }
   */
-  /*
+
   std::vector<std::vector<larcv::Pixel2DCluster> >
   SimCh2Pixel2DCluster(const std::vector<larcv::ImageMeta>& meta_v,
            const std::vector<size_t>& row_compression_v,
@@ -419,6 +419,6 @@ namespace supera {
     return res_vv;
   }
 
-  */
+
 }
 #endif

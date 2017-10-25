@@ -66,6 +66,14 @@ namespace supera {
 
     ::larcv::Particle MakeParticle( const supera::LArMCShower_t& mcs) const;
 
+    ::larcv::Particle MakeParticle( const supera::LArMCTrack_t& mct,
+				    const std::vector<supera::LArSimCh_t>& sch_v,
+				    const int time_offset ) const;
+
+    ::larcv::Particle MakeParticle( const supera::LArMCShower_t& mcs,
+				    const std::vector<supera::LArSimCh_t>& sch_v,
+				    const int time_offset ) const;
+
   private:
 
     std::vector<larcv::BBox2D> WTRange2BB(const WTRangeArray_t&) const;

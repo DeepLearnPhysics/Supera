@@ -60,11 +60,13 @@ namespace larcv {
       ptr->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());
     }
 
-    auto ev_pixel2d = (EventPixel2D*)(mgr.get_data(kProductPixel2D,OutPixel2DLabel()));
-    if(!ev_pixel2d) {
-      LARCV_CRITICAL() << "Failed to create Pixel2D output data container w/ label " << OutPixel2DLabel() << std::endl;
-      throw larbys();
-    }
+    auto& ev_pixel2d_pri_start = mgr.get_data<larcv::EventPixel2D>(Form("%s_primary_start",OutPixel2DLabel()));
+    auto& ev_pixel2d_pri_start = mgr.get_data<larcv::EventPixel2D>(Form("%s_secondary_start",OutPixel2DLabel()));
+    auto& ev_pixel2d_pri_start = mgr.get_data<larcv::EventPixel2D>(Form("%s_scattering",OutPixel2DLabel()));
+
+    auto& ev_pixel3d_pri_start = mgr.get_data<larcv::EventPixel2D>(Form("%s_primary_start",OutPixel2DLabel()));
+    auto& ev_pixel3d_pri_start = mgr.get_data<larcv::EventPixel2D>(Form("%s_secondary_start",OutPixel2DLabel()));
+    auto& ev_pixel3d_pri_start = mgr.get_data<larcv::EventPixel2D>(Form("%s_scattering",OutPixel2DLabel()));
 
     auto ev_roi = (EventROI*)(mgr.get_data(kProductROI,_in_roi_label));
     if(!ev_roi) {
@@ -172,7 +174,7 @@ namespace larcv {
     return true;
   }
 
-  std::vector<larcv::Pixel2DCluster>
+  larcv::VoxelSetArray2D
   SuperaKeyPointCluster::CreateCluster(const std::vector<larcv::ImageMeta>& meta_v,
 				       const std::set<larcv::Vertex>& pt_s,
 				       const unsigned short val,
@@ -180,8 +182,7 @@ namespace larcv {
   {
 
     double xyz[3];
-    std::vector<larcv::Pixel2DCluster> res_v;
-    res_v.resize(meta_v.size());
+    larcv::VoxelSetArray2D res;
 
     static std::vector<std::vector<unsigned short> > data_v;
     data_v.resize(meta_v.size());
@@ -221,6 +222,7 @@ namespace larcv {
       }
 
       auto& res = res_v[plane];
+
       for(size_t index=0; index<data.size(); ++index) {
 
 	if(data[index]<1) continue;
@@ -234,6 +236,7 @@ namespace larcv {
 	px2d.Intensity(data[index]);
 	res.emplace_back(std::move(px2d));
       }
+      res.emplace(std::move
 
       LARCV_INFO() << "Clustered " << res.size() << " points @ plane " << plane << std::endl;
     }
