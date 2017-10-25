@@ -333,7 +333,7 @@ namespace supera {
     double xyz[3] = {0.};
 
     ::larcv::Particle res;
-    res.Shape(::larcv::kShapeTrack);
+    res.shape(::larcv::kShapeTrack);
     //res.Type(::larcv::PdgCode2ROIType(mct.PdgCode()));
     if (mct.size())
       res.energy_deposit(mct.front().E() - mct.back().E());
@@ -365,14 +365,14 @@ namespace supera {
     }
     if (mct.size() > 1) {
       auto const& last_step = mct.back();
-      res.LastStep(last_step.X(), last_step.Y(), last_step.Z(), last_step.T());
+      res.last_step(last_step.X(), last_step.Y(), last_step.Z(), last_step.T());
       double length = 0;
       for (size_t step_idx = 1; step_idx < mct.size(); ++step_idx) {
         auto const& step1 = mct[step_idx - 1];
         auto const& step2 = mct[step_idx];
         length += sqrt(pow(step1.X() - step2.X(), 2) + pow(step1.Y() - step2.Y(), 2) + pow(step1.Z() - step2.Z(), 2));
       }
-      res.DistanceTravel(length);
+      res.distance_travel(length);
     }
     res.momentum(mct.Start().Px(), mct.Start().Py(), mct.Start().Pz());
     res.pdg_code(mct.PdgCode());
@@ -386,10 +386,11 @@ namespace supera {
     if (_apply_sce) ApplySCE(xyz);
 
     res.parent_position(xyz[0], xyz[1], xyz[2], mct.MotherStart().T());
-
+    /*
     res.parent_momentum(mct.MotherStart().Px(),
                         mct.MotherStart().Py(),
                         mct.MotherStart().Pz());
+    */
     LARCV_INFO() << res.dump();
     return res;
   }
@@ -402,7 +403,7 @@ namespace supera {
     double xyz[3] = {0.};
 
     ::larcv::Particle res;
-    res.Shape(::larcv::kShapeShower);
+    res.shape(::larcv::kShapeShower);
     //res.Type(::larcv::PdgCode2ROIType(mcs.PdgCode()));
     res.energy_deposit(mcs.DetProfile().E());
     //res.energy_deposit(0);
@@ -440,10 +441,11 @@ namespace supera {
     xyz[2] = mcs.MotherStart().Z();
     if (_apply_sce) ApplySCE(xyz);
     res.parent_position(xyz[0], xyz[1], xyz[2], mcs.MotherStart().T());
-
+    /*
     res.parent_momentum(mcs.MotherStart().Px(),
                         mcs.MotherStart().Py(),
                         mcs.MotherStart().Pz());
+    */
     LARCV_INFO() << res.dump();
     return res;
   }

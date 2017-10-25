@@ -229,7 +229,7 @@ namespace supera {
                      << " PDG " << mct.PdgCode() << " Origin " << mct.Origin()
                      << ") with primary (index " << primary_idx
                      //<< " PDG " << _primary_v[primary_idx].part.pdg_code()
-                     << " PDG " << _primary_v[primary_idx].part.pdg
+                     << " PDG " << _primary_v[primary_idx].pdg
                      << " Origin " << _primary_v[primary_idx].origin
                      << ")" << std::endl;
         _primary_v[primary_idx].daughter_v.emplace_back(std::move(node));
@@ -251,7 +251,7 @@ namespace supera {
                      << " PDG " << mcs.PdgCode() << " Origin " << mcs.Origin()
                      << ") with primary (index " << primary_idx
                      //<< " PDG " << _primary_v[primary_idx].part.pdg_code()
-                     << " PDG " << _primary_v[primary_idx].part.pdg
+                     << " PDG " << _primary_v[primary_idx].pdg
                      << " Origin " << _primary_v[primary_idx].origin
                      << ")" << std::endl;
         _primary_v[primary_idx].daughter_v.emplace_back(std::move(node));
@@ -309,7 +309,7 @@ namespace supera {
                    << " PDG " << track.PdgCode() << " Origin " << track.Origin()
                    << ") with primary (index " << primary_idx
                    //<< " PDG " << _primary_v[primary_idx].part.pdg_code()
-                   << " PDG " << _primary_v[primary_idx].part.pdg
+                   << " PDG " << _primary_v[primary_idx].pdg
                    << " Origin " << _primary_v[primary_idx].origin
                    << ")" << std::endl;
       _primary_v[primary_idx].daughter_v.emplace_back(std::move(node));
@@ -345,7 +345,7 @@ namespace supera {
                    << " PDG " << shower.PdgCode() << " Origin " << shower.Origin()
                    << ") with primary (index " << primary_idx
                    //<< " PDG " << _primary_v[primary_idx].part.pdg_code()
-                   << " PDG " << _primary_v[primary_idx].part.pdg
+                   << " PDG " << _primary_v[primary_idx].pdg
                    << " Origin " << _primary_v[primary_idx].origin
                    << ")" << std::endl;
       if (min_dt > _dt_max) continue;

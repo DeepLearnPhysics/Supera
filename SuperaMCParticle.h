@@ -18,7 +18,7 @@
 #include "SuperaBase.h"
 #include "FMWKInterface.h"
 #include "MCParticleTree.h"
-#include "MCROIMaker.h"
+#include "MCParticleHelper.h"
 #include "ImageMetaMaker.h"
 #include "ParamsROI.h"
 
@@ -65,9 +65,9 @@ namespace larcv {
     //bool _store_part;
     //bool _store_g4_primary_part;
     //bool _store_g4_secondary_part;
-    //std::vector<larcv::Particle> _part_v;
+    std::vector<larcv::Particle> _part_v;
     supera::MCParticleTree  _mcpt;
-    supera::MCParticleMaker _mcpart_maker;
+    supera::MCParticleHelper _mcpart_maker;
     //std::vector<std::vector<std::pair<size_t, size_t> > > _part2mcnode_vv;
 
     unsigned short _pass_origin;

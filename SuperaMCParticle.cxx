@@ -26,7 +26,7 @@ namespace larcv {
   void SuperaMCParticle::configure(const PSet& cfg)
   {
     SuperaBase::configure(cfg);
-    supera::ParamsParticle::configure(cfg);
+    supera::ParamsROI::configure(cfg);
     supera::ImageMetaMaker::configure(cfg);
     /*
     _store_part = cfg.get<bool>("StoreParticle", true);
@@ -86,7 +86,7 @@ namespace larcv {
       LARCV_CRITICAL() << "Meta not created!" << std::endl;
       throw larbys();
     }
-    auto ev_part = (EventParticle*)(mgr.get_data("part", OutParticleLabel()));
+    auto ev_part = (EventParticle*)(mgr.get_data("part", OutROILabel()));
     if (!ev_part) {
       LARCV_CRITICAL() << "Output part could not be created!" << std::endl;
       throw larbys();
@@ -138,7 +138,7 @@ namespace larcv {
       else
         pri_part = MakeParticle(primary, LArData<supera::LArSimCh_t>());
 
-      LARCV_INFO() << "Analyzing primary " << primary_idx << " PDG " << pri_part.PdgCode()
+      LARCV_INFO() << "Analyzing primary " << primary_idx << " PDG " << pri_part.pdg_code()
                    << " Origin " << primary.origin
                    << " PDG << " << primary.pdg
                    << " with " << primary.daughter_v.size() << " children" << std::endl;
@@ -171,9 +171,9 @@ namespace larcv {
         LARCV_INFO() << "Registering a daughter " << daughter_idx
                      << " (TrackID " << daughter.track_id
                      << " Origin " << daughter.origin
-                     << " PDG " << part.PdgCode() << ")" << std::endl;
-        sec_part.MCTIndex(pri_part.MCTIndex());
-        pri_part.EnergyDeposit(pri_part.EnergyDeposit() + sec_part.EnergyDeposit());
+                     << " PDG " << sec_part.pdg_code() << ")" << std::endl;
+        sec_part.mct_index(pri_part.mct_index());
+        pri_part.energy_deposit(pri_part.energy_deposit() + sec_part.energy_deposit());
         //sec_part_v.emplace_back(std::move(sec_part));
         //sec_idx_v.push_back(daughter_idx);
         _part_v.emplace_back(std::move(sec_part));
@@ -187,8 +187,8 @@ namespace larcv {
       //
       LARCV_INFO() << "Storing primary Particle (PDG " << primary.part.PdgCode()
                    << " Shape " << primary.part.Shape()
-                   << " MCTIndex " << primary.part.MCTIndex()
-                   << " MCSTIndex) " << primary.part.MCSTIndex()
+                   << " MCTIndex " << primary.part.mct_index()
+                   << " MCSTIndex) " << primary.part.mcst_index()
                    << std::endl;
 
       _part_v.push_back(primary.part);
@@ -208,8 +208,8 @@ namespace larcv {
         auto const& daughter_part = sec_part_v[daughter_idx];
         LARCV_INFO() << "    Associated secondary (PDG " << daughter_part.PdgCode()
                      << " Shape " << daughter_part.Shape()
-                     << " MCTIndex " << daughter_part.MCTIndex()
-                     << " MCSTIndex) " << daughter_part.MCSTIndex()
+                     << " MCTIndex " << daughter_part.mct_index()
+                     << " MCSTIndex) " << daughter_part.mcst_index()
                      << std::endl;
       }
       _part2mcnode_vv.emplace_back(std::move(part2mcnode_v));
@@ -228,8 +228,8 @@ namespace larcv {
         {
           LARCV_INFO() << "Storing secondary Particle (PDG " << secondary_part.PdgCode()
                        << " Shape " << secondary_part.Shape()
-                       << " MCTIndex " << secondary_part.MCTIndex()
-                       << " MCSTIndex) " << secondary_part.MCSTIndex()
+                       << " MCTIndex " << secondary_part.mct_index()
+                       << " MCSTIndex) " << secondary_part.mcst_index()
                        << std::endl;
           part2mcnode_v.clear();
           part2mcnode_v.emplace_back(primary_idx, secondary_idx);
@@ -299,13 +299,13 @@ namespace larcv {
       auto const& mctrack = LArData<supera::LArMCTrack_t>().at(node.source_index);
       if (sch_v.empty()) res = _mcpart_maker.Particle(mctrack, TimeOffset());
       else res = _mcpart_maker.Particle(mctrack, sch_v, TimeOffset());
-      res.MCSTIndex(node.source_index);
+      res.mcst_index(node.source_index);
     }
     else if (node.source_type == supera::MCNode::SourceType_t::kMCShower) {
       auto const& mcshower = LArData<supera::LArMCShower_t>().at(node.source_index);
       if (sch_v.empty()) res = _mcpart_maker.Particle(mcshower, TimeOffset());
       else res = _mcpart_maker.Particle(mcshower, sch_v, TimeOffset());
-      res.MCSTIndex(node.source_index);
+      res.mcst_index(node.source_index);
     } else
       throw larbys("Unexpected SourceType_t!");
 
@@ -316,7 +316,7 @@ namespace larcv {
       auto const& event_meta = Meta().at(plane);
       bb_v.push_back(FormatMeta(part_meta, event_meta));
     }
-    res.SetBB(bb_v);
+    res.boundingbox_2d(bb_v);
     return res;
   }
 
@@ -399,6 +399,6 @@ namespace larcv {
 
   void SuperaMCParticle::finalize()
   {}
-
-}
+  
+  }
 #endif
