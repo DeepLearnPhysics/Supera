@@ -5,9 +5,9 @@
 
 namespace supera {
 
-  void ParamsVoxel3D::configure(const supera::Config_t& cfg)
-  {
-    _out_voxel3d_producer  = cfg.get<std::string>("OutVoxel3DLabel",  "");
-  }  
+	void ParamsVoxel3D::configure(const supera::Config_t& cfg)
+	{
+		_out_voxel3d_producer  = cfg.get<std::string>("OutVoxel3DLabel",  "");
+	}
 }
 #endif

@@ -45,7 +45,7 @@ public:
 private:
 
   // Declare member data here.
-  std::map<supera::RSEID,std::array<double,3> > _event_m;
+  std::map<supera::RSEID, std::array<double, 3> > _event_m;
 };
 
 
@@ -57,7 +57,7 @@ RSEFilter::RSEFilter(fhicl::ParameterSet const & p)
   //cet::search_path finder("FHICL_FILE_PATH");
   cet::search_path finder("FW_SEARCH_PATH");
 
-  if( !finder.find_file(p.get<std::string>("CSVName"),runlist) )
+  if ( !finder.find_file(p.get<std::string>("CSVName"), runlist) )
     throw cet::exception("LArSoftSuperaSriver") << "Unable to find supera cfg in "  << finder.to_string() << "\n";
 
   supera::csvreader::read_constraint_file(runlist, _event_m);
@@ -69,7 +69,7 @@ bool RSEFilter::filter(art::Event & e)
   int subrun = e.id().subRun();
   int event = e.id().event();
 
-  supera::RSEID id(run,subrun,event);
+  supera::RSEID id(run, subrun, event);
   return _event_m.find(id) != _event_m.end();
 }
 

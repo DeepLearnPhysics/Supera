@@ -2,7 +2,7 @@
  * \file PulledPork3DSlicer.h
  *
  * \ingroup Package_Name
- * 
+ *
  * \brief Class def header for a class PulledPork3DSlicer
  *
  * @author kazuhiro
@@ -27,14 +27,14 @@ namespace supera {
   class PulledPork3DSlicer : public ImageMetaMakerBase {
 
   public:
-    
+
     /// Default constructor
     PulledPork3DSlicer() : ImageMetaMakerBase("PulledPork3DSlicer")
-			 , _slicer()
+      , _slicer()
     {}
-    
+
     /// Default destructor
-    ~PulledPork3DSlicer(){}
+    ~PulledPork3DSlicer() {}
 
     static bool Is(const ImageMetaMakerBase* ptr)
     { return (ptr && ptr->name() == "PulledPork3DSlicer"); }
@@ -49,12 +49,12 @@ namespace supera {
 
     void
     GenerateMeta(const std::vector<supera::LArSimCh_t>& simch_v,
-		 const int time_offset);
+                 const int time_offset);
 
     void
     GenerateMeta(const std::vector<supera::LArSimCh_t>& simch_v,
-		 const int time_offset,
-		 const std::vector<int>& trackid_v);
+                 const int time_offset,
+                 const std::vector<int>& trackid_v);
 
     void
     GenerateMeta(const int time_offset);
@@ -65,7 +65,7 @@ namespace supera {
 
     inline const std::vector<larcv::ImageMeta>& Meta() const
     { return _meta_v;}
-    
+
   private:
 
     unsigned short _origin;
@@ -78,16 +78,16 @@ namespace supera {
 
     std::vector<larcv::ImageMeta>
     DeriveMeta(const std::vector<supera::GridPoint3D>& point_v,
-	       const int time_offset ) const;
+               const int time_offset ) const;
 
     void
     GenerateMeta(const std::vector<supera::LArSimCh_t>& simch_v,
-		 const int time_offset,
-		 const std::vector<int>& trackid_v,
-		 const bool use_track_id);
+                 const int time_offset,
+                 const std::vector<int>& trackid_v,
+                 const bool use_track_id);
   };
 
 }
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 

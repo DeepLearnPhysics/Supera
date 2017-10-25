@@ -2,7 +2,7 @@
  * \file ParamsVoxel3D.h
  *
  * \ingroup Package_Name
- * 
+ *
  * \brief Class def header for a class ParamsVoxel3D
  *
  * @author kazuhiro
@@ -26,12 +26,12 @@ namespace supera {
   class ParamsVoxel3D {
 
   public:
-    
+
     /// Default constructor
     ParamsVoxel3D() {}
-    
+
     /// Default destructor
-    ~ParamsVoxel3D(){}
+    ~ParamsVoxel3D() {}
 
     void configure(const supera::Config_t&);
 
@@ -49,5 +49,5 @@ namespace supera {
 }
 
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 

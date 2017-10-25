@@ -2,7 +2,7 @@
  * \file MCParticleTree.h
  *
  * \ingroup MeatSlicer
- * 
+ *
  * \brief Class def header for a class MCParticleTree
  *
  * @author kazuhiro
@@ -28,17 +28,17 @@ namespace supera {
       kMCShower,
       kUnknown
     };
-    
+
   public:
     MCNode() : origin(0)
-	     , pdg(0)
-	     , track_id(larcv::kINVALID_SIZE)
-	     , start()
-	     , end()
-	     , source_index(larcv::kINVALID_SIZE)
-	     , source_type(SourceType_t::kUnknown)
-    {}    
-    ~MCNode(){}
+      , pdg(0)
+      , track_id(larcv::kINVALID_SIZE)
+      , start()
+      , end()
+      , source_index(larcv::kINVALID_SIZE)
+      , source_type(SourceType_t::kUnknown)
+    {}
+    ~MCNode() {}
 
     unsigned short origin;
     int    pdg;
@@ -51,15 +51,15 @@ namespace supera {
     std::string dump() const;
   };
 
-  class MCRoot : public MCNode{
+  class MCRoot : public MCNode {
   public:
     MCRoot() : MCNode()
-	     , daughter_v()
+      , daughter_v()
     {}
     MCRoot(const MCNode& node) : MCNode(node)
-			       , daughter_v()
+      , daughter_v()
     {}
-    ~MCRoot(){}
+    ~MCRoot() {}
     /// Check if supplied parent track id belongs to this tree
     bool is_daughter(const size_t& parent_id) const;
     /**
@@ -82,25 +82,25 @@ namespace supera {
      doxygen documentation!
   */
   class MCParticleTree : public larcv::larcv_base {
-    
+
   public:
-    
+
     /// Default constructor
     MCParticleTree() : larcv::larcv_base("MCParticleTree")
-		     , _origin_filter(0)
+      , _origin_filter(0)
     {}
-    
+
     /// Default destructor
-    ~MCParticleTree(){}
+    ~MCParticleTree() {}
 
     void configure(const Config_t& cfg)
     {
-      set_verbosity((::larcv::msg::Level_t)(cfg.get<unsigned short>("Verbosity",logger().level())));
+      set_verbosity((::larcv::msg::Level_t)(cfg.get<unsigned short>("Verbosity", logger().level())));
       _dt_max = cfg.get<double>("DTMax");
     }
 
     void Register(const std::vector<supera::LArMCTrack_t>&  mctrack_v,
-		  const std::vector<supera::LArMCShower_t>& mcshower_v);
+                  const std::vector<supera::LArMCShower_t>& mcshower_v);
 
     void FilterOrigin(unsigned short flag)
     { _origin_filter = flag; }
@@ -109,7 +109,7 @@ namespace supera {
     { return _primary_v; }
 
     void dump() const;
-    
+
   private:
 
     std::vector<supera::MCRoot> _primary_v;
@@ -123,23 +123,23 @@ namespace supera {
     MCNode FillNode(const supera::LArMCShower_t& mcs);
 
     size_t FindPrimary(const larcv::Vertex& start,
-		       const size_t parent_id,
-		       const size_t ancestor_id) const;
+                       const size_t parent_id,
+                       const size_t ancestor_id) const;
 
     size_t FindPrimary(const size_t parent_id,
-		       const size_t ancestor_id) const;
-  
+                       const size_t ancestor_id) const;
+
     void DefinePrimary(const std::vector<supera::LArMCTrack_t>& mctrack_v,
-		       const std::vector<supera::LArMCShower_t>& mcshower_v);
+                       const std::vector<supera::LArMCShower_t>& mcshower_v);
 
     void DefineSecondary(const std::vector<supera::LArMCTrack_t>&  mctrack_v,
-			 const std::vector<supera::LArMCShower_t>& mcshower_v);
-    
+                         const std::vector<supera::LArMCShower_t>& mcshower_v);
+
     void EstimateSecondary(const std::vector<supera::LArMCTrack_t>&  mctrack_v,
-			   const std::vector<supera::LArMCShower_t>& mcshower_v);
-    
+                           const std::vector<supera::LArMCShower_t>& mcshower_v);
+
   };
 }
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 

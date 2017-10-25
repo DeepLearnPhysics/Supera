@@ -5,9 +5,9 @@
 
 namespace supera {
 
-  void ParamsROI::configure(const supera::Config_t& cfg)
-  {
-    _out_roi_producer = cfg.get<std::string>("OutROILabel","");
-  }  
+	void ParamsROI::configure(const supera::Config_t& cfg)
+	{
+		_out_roi_producer = cfg.get<std::string>("OutROILabel", "");
+	}
 }
 #endif

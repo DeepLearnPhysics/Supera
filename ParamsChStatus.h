@@ -2,7 +2,7 @@
  * \file ParamsChStatus.h
  *
  * \ingroup Package_Name
- * 
+ *
  * \brief Class def header for a class ParamsChStatus
  *
  * @author kazuhiro
@@ -26,12 +26,12 @@ namespace supera {
   class ParamsChStatus {
 
   public:
-    
+
     /// Default constructor
     ParamsChStatus() {}
-    
+
     /// Default destructor
-    ~ParamsChStatus(){}
+    ~ParamsChStatus() {}
 
     void configure(const supera::Config_t&);
 
@@ -43,11 +43,11 @@ namespace supera {
   private:
 
     std::string _out_chstatus_producer;
-    
+
   };
 
 }
 
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 

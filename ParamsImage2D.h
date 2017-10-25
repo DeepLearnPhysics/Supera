@@ -2,7 +2,7 @@
  * \file ParamsImage2D.h
  *
  * \ingroup Package_Name
- * 
+ *
  * \brief Class def header for a class ParamsImage2D
  *
  * @author kazuhiro
@@ -26,12 +26,12 @@ namespace supera {
   class ParamsImage2D {
 
   public:
-    
+
     /// Default constructor
     ParamsImage2D() {}
-    
+
     /// Default destructor
-    ~ParamsImage2D(){}
+    ~ParamsImage2D() {}
 
     void configure(const supera::Config_t&);
 
@@ -48,5 +48,5 @@ namespace supera {
 }
 
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 

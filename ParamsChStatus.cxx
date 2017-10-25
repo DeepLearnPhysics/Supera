@@ -5,9 +5,9 @@
 
 namespace supera {
 
-  void ParamsChStatus::configure(const supera::Config_t& cfg)
-  {
-    _out_chstatus_producer = cfg.get<std::string>("OutChStatusLabel", "");
-  }  
+	void ParamsChStatus::configure(const supera::Config_t& cfg)
+	{
+		_out_chstatus_producer = cfg.get<std::string>("OutChStatusLabel", "");
+	}
 }
 #endif

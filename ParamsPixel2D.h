@@ -2,7 +2,7 @@
  * \file ParamsPixel2D.h
  *
  * \ingroup Package_Name
- * 
+ *
  * \brief Class def header for a class ParamsPixel2D
  *
  * @author kazuhiro
@@ -26,12 +26,12 @@ namespace supera {
   class ParamsPixel2D {
 
   public:
-    
+
     /// Default constructor
     ParamsPixel2D() {}
-    
+
     /// Default destructor
-    ~ParamsPixel2D(){}
+    ~ParamsPixel2D() {}
 
     void configure(const supera::Config_t&);
 
@@ -49,5 +49,5 @@ namespace supera {
 }
 
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 

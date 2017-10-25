@@ -5,9 +5,9 @@
 
 namespace supera {
 
-  void ParamsImage2D::configure(const supera::Config_t& cfg)
-  {
-    _out_image_producer = cfg.get<std::string>("OutImageLabel","");
-  }  
+	void ParamsImage2D::configure(const supera::Config_t& cfg)
+	{
+		_out_image_producer = cfg.get<std::string>("OutImageLabel", "");
+	}
 }
 #endif

@@ -42,13 +42,13 @@ namespace larcv {
 
     /// Enforced ctor. start must be less than end.
     Range(const T& start,
-	  const T& end)
-      : _window(start,end)
+          const T& end)
+      : _window(start, end)
       , _valid(true)
-    { if(start>end) throw std::runtime_error("Inserted invalid range: end before start."); }
+    { if (start > end) throw std::runtime_error("Inserted invalid range: end before start."); }
 
     /// Default dtor
-    ~Range(){}
+    ~Range() {}
 
     /// validity
     bool valid() const { return _valid; }
@@ -58,8 +58,8 @@ namespace larcv {
     const T& End()   const { return _window.second; }
     /// Setter
     void Set(const T& s, const T& e)
-    { 
-      if(s>e) throw std::runtime_error("Inserted invalid range: end before start."); 
+    {
+      if (s > e) throw std::runtime_error("Inserted invalid range: end before start.");
       _window.first  = s;
       _window.second = e;
       _valid = true;
@@ -82,7 +82,7 @@ namespace larcv {
     {return ( _window.first == rhs.Start() && _window.second == rhs.End() ); }
     inline bool operator!=(const Range& rhs) const
     {return !( (*this) == rhs ); }
-    
+
     //
     // Ordering w/ T
     //
@@ -96,7 +96,7 @@ namespace larcv {
     {
       Range<T> res(*this);
       res.Set(std::min( _window.first,  rhs.Start() ),
-	      std::max( _window.second, rhs.End()   ) );
+              std::max( _window.second, rhs.End()   ) );
       return res;
     }
     inline Range<T>& operator+= (const Range<T>& rhs)
@@ -120,7 +120,7 @@ namespace larcv {
       */
   protected:
     /// Protected to avoid user's illegal modification on first/second (sorry users!)
-    std::pair<T,T> _window;
+    std::pair<T, T> _window;
     /// For validity
     bool _valid;
   };

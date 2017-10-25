@@ -2,7 +2,7 @@
  * \file ParamsROI.h
  *
  * \ingroup Package_Name
- * 
+ *
  * \brief Class def header for a class ParamsROI
  *
  * @author kazuhiro
@@ -26,12 +26,12 @@ namespace supera {
   class ParamsROI {
 
   public:
-    
+
     /// Default constructor
     ParamsROI() {}
-    
+
     /// Default destructor
-    ~ParamsROI(){}
+    ~ParamsROI() {}
 
     void configure(const supera::Config_t&);
 
@@ -49,5 +49,5 @@ namespace supera {
 }
 
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 
