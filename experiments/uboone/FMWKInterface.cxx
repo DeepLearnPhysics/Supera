@@ -17,14 +17,14 @@ namespace supera {
       return geom->ChannelToWire(ch).front();
   }
 
-  ::geo::WireID ChannelToImageX(unsigned int ch)
+  double ChannelToImageX(unsigned int ch)
   {
-    return ChannelToWireID(ch).Wire;
+    return (double)(ChannelToWireID(ch).Wire);
   }
 
-  ::geo::WireID ChannelToProjectionID(unsigned int ch)
+  larcv::ProjectionID_t ChannelToProjectionID(unsigned int ch)
   {
-    return ChannelToWireID(ch).Plane;
+    return (larcv::ProjectionID_t)(ChannelToWireID(ch).Plane);
   }
   
   double DriftVelocity()

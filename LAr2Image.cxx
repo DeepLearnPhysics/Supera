@@ -20,12 +20,13 @@ namespace supera {
     LARCV_SINFO() << "(ymin,ymax) = (" << ymin << "," << ymax << ")" << std::endl;
 
     for (auto const& h : hits) {
-      auto const& wire_id = ::supera::ChannelToWireID(h.Channel());
+      auto const projection_id = ::supera::ChannelToProjectionID(h.Channel());
+      auto const image_x = ::supera::ChannelToImageX(h.Channel());
 
-      if ((int)(wire_id.Plane) != meta.id()) continue;
+      if (projection_id != meta.id()) continue;
 
       size_t col = 0;
-      try { col = meta.col(wire_id.Wire); }
+      try { col = meta.col(image_x); }
       catch (const larcv::larbys&) { continue; }
 
       int row = int(h.PeakTime() + 0.5) + time_offset;
@@ -64,14 +65,14 @@ namespace supera {
     LARCV_SINFO() << "(ymin,ymax) = (" << ymin << "," << ymax << ")" << std::endl;
 
     for (auto const& wire : wires) {
+      auto const projection_id = ::supera::ChannelToProjectionID(wire.Channel());
+      auto const image_x = ::supera::ChannelToImageX(wire.Channel());
 
-      auto const& wire_id = ::supera::ChannelToWireID(wire.Channel());
-
-      if ((int)(wire_id.Plane) != meta.id()) continue;
+      if (projection_id != meta.id()) continue;
 
       size_t col = 0;
       try {
-        col = meta.col(wire_id.Wire);
+        col = meta.col(image_x);
       } catch (const ::larcv::larbys&) {
         continue;
       }
@@ -130,7 +131,7 @@ namespace supera {
                               << meta.dump()
                               << "(ymin,ymax) = (" << ymin << "," << ymax << ")" << std::endl
                               << "Called a reverse_copy..." << std::endl
-                              << "      source wf : plane = " << wire_id.Plane << " wire = " << wire_id.Wire << std::endl
+                              << "      source wf : plane = " << projection_id << " wire = " << image_x << std::endl
                               << "      timing    : start index = " << range.begin_index() << " length = " << adcs.size() << std::endl
                               << "      (row,col) : (" << start_index << "," << col << ")" << std::endl
                               << "      nskip     : "  << nskip << std::endl
@@ -322,8 +323,8 @@ namespace supera {
     for(size_t i=0; i<meta_v.size(); ++i) {
       auto const& meta = meta_v[i];
       if(projection_id_to_meta_index.size() <= meta.id()) {
-        projection_id_to_meta_index.resize(meta.id()+1,larcv::kINVALID_SIZE)
-        voxel_vvv.resize(meta.id()+1);
+        projection_id_to_meta_index.resize(meta.id()+1,larcv::kINVALID_SIZE);
+	voxel_vvv.resize(meta.id()+1);
       }
       voxel_vvv[meta.id()].resize(num_clusters+1); // 1 bigger to contain "unknown"
       projection_id_to_meta_index[meta.id()] = i;
@@ -332,7 +333,7 @@ namespace supera {
     for (auto const& sch : sch_v) {
         auto ch = sch.Channel();
         // Figure out image-x-coordinate from channel
-        double x = ::supera::ChannelToImageX(ch).Wire;
+        double x = ::supera::ChannelToImageX(ch);
         // Figure out meta projection id
         larcv::ProjectionID_t projection_id = supera::ChannelToProjectionID(ch);
         // Get meta if found. else continue
@@ -364,13 +365,13 @@ namespace supera {
             // Fill voxel
             vox.set(vox.id(),edep.energy);
             auto& voxel_v = voxel_vv.writeable_voxel_set(cluster_id);
-            voel_v.Add(vox);
+            voxel_v.add(vox);
           }
         }
       }
     }
 
-    VoxelSetArray2D res;
+    larcv::VoxelSetArray2D res;
     for(auto const& meta : meta_v) {
       auto meta_copy = meta;
       res.emplace(std::move(voxel_vvv[meta_copy.id()]),std::move(meta_copy));

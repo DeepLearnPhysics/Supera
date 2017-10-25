@@ -5,6 +5,7 @@
 #include "larcore/Geometry/Geometry.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "larcv/core/Base/PSet.h"
+#include "larcv/core/DataFormat/DataFormatTypes.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Wire.h"
@@ -46,10 +47,10 @@ namespace supera {
   ::geo::WireID ChannelToWireID(unsigned int ch);
 
   /// Channel number to image column number
-  ::geo::WireID ChannelToImageX(unsigned int ch);
+  double ChannelToImageX(unsigned int ch);
 
   /// Channel number to projection ID
-  ::geo::WireID ChannelToProjectionID(unsigned int ch);
+  larcv::ProjectionID_t ChannelToProjectionID(unsigned int ch);
 
   /// Number of channels
   unsigned int Nchannels();
