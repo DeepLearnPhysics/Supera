@@ -54,14 +54,15 @@ namespace supera {
   SimCh2Voxel3DCluster(const larcv::Voxel3DMeta& meta,
                        const std::vector<supera::LArSimCh_t>& sch_v,
                        const std::vector<size_t>& trackid2cluster,
-                       const int time_offset);
+                       const int time_offset,
+                       const ProjectionID_t id = kINVALID_PROJECTIONID);
 
   larcv::VoxelSetArray
   SimCh2Voxel3D(const larcv::Voxel3DMeta& meta,
-		const std::vector<int>& track_v,
-		const std::vector<supera::LArSimCh_t>& sch_v,
+    const std::vector<supera::LArSimCh_t>& sch_v,
+		const std::vector<size_t>& track_v,
 		const int time_offset,
-		const size_t plane);
+		const ProjectionID_t id = kINVALID_PROJECTIONID);
 
   //
   // SimChannel => Pixel2DCluster

@@ -250,54 +250,61 @@ namespace supera {
   }
   */
 
-  larcv::Voxel3DSet
+  larcv::VoxelSetArray
   SimCh2Voxel3D(const larcv::Voxel3DMeta& meta,
-    const std::vector<int>& track_v,
-    const std::vector<supera::LArSimCh_t>& sch_v,
-    const int time_offset,
-    const size_t plane)
+                const std::vector<supera::LArSimCh_t>& sch_v,
+                const std::vector<size_t>& track_v,
+                const int time_offset,
+                const ProjectionID_t id)
   {
     LARCV_SINFO() << "Filling Voxel3D ground truth volume..." << std::endl;
-    larcv::Voxel3DSet res(meta);
+    larcv::VoxelSetArray res;
+    res.resize(1);
+    auto& voxel_set = res.writeable_voxel_set(0);
     //double x, y, z, x_tick;
     double y, z, x_tick;
+    bool filter_track_id = !(track_v.empty());
     //std::cout << "x_offset " << x_offset << std::endl;
     for (auto const& sch : sch_v) {
       auto ch = sch.Channel();
-
-      auto const& wid = ::supera::ChannelToWireID(ch);
-      if( plane != (size_t)(wid.Plane) ) continue;
+      // Only use specified projection id, if specified
+      if(id != larcv::kINVALID_PROJECTIONID && id != ::supera::ChannelToProjectionID(ch))
+        continue;
 
       for (auto const tick_ides : sch.TDCIDEMap()) {
 
-  x_tick = (supera::TPCTDC2Tick(tick_ides.first) + time_offset) * supera::TPCTickPeriod()  * supera::DriftVelocity();
+        x_tick = (supera::TPCTDC2Tick(tick_ides.first) + time_offset) * supera::TPCTickPeriod()  * supera::DriftVelocity();
 
-  //std::cout << tick_ides.first << " : " << supera::TPCTDC2Tick(tick_ides.first) << " : " << time_offset << " : " << x_tick << std::flush;
-  //std::cout << (supera::TPCTDC2Tick(tick_ides.first) + time_offset) << std::endl
-  //<< (supera::TPCTDC2Tick(tick_ides.first) + time_offset) * supera::TPCTickPeriod() << std::endl
-  //<< (supera::TPCTDC2Tick(tick_ides.first) + time_offset) * supera::TPCTickPeriod() * supera::DriftVelocity() << std::endl
-  //<< std::endl;
+        //std::cout << tick_ides.first << " : " << supera::TPCTDC2Tick(tick_ides.first) << " : " << time_offset << " : " << x_tick << std::flush;
+        //std::cout << (supera::TPCTDC2Tick(tick_ides.first) + time_offset) << std::endl
+        //<< (supera::TPCTDC2Tick(tick_ides.first) + time_offset) * supera::TPCTickPeriod() << std::endl
+        //<< (supera::TPCTDC2Tick(tick_ides.first) + time_offset) * supera::TPCTickPeriod() * supera::DriftVelocity() << std::endl
+        //<< std::endl;
 
-  for (auto const& edep : tick_ides.second) {
+        for (auto const& edep : tick_ides.second) {
 
-    if (std::abs(edep.trackID) >= (int)(track_v.size())) continue;
+          if (filter_track_id && std::abs(edep.trackID) >= (int)(track_v.size())) continue;
 
-    if (track_v[std::abs(edep.trackID)]<=0) continue;
+          if (filter_track_id && track_v[std::abs(edep.trackID)] == kINVALID_SIZE) continue;
 
-    //x = edep.x;
-    y = edep.y;
-    z = edep.z;
-    //supera::ApplySCE(x,y,z);
-    //std::cout << " ... " << x << std::endl;
-    // Now use tick-based position for x
-    auto vid = meta.ID(x_tick,y,z);
-    if(vid == larcv::kINVALID_VOXEL3DID) continue;
+          //x = edep.x;
+          y = edep.y;
+          z = edep.z;
+          //supera::ApplySCE(x,y,z);
+          //std::cout << " ... " << x << std::endl;
+          // Now use tick-based position for x
+          auto vid = meta.ID(x_tick, y, z);
+          if (vid == larcv::kINVALID_VOXEL3DID) continue;
 
-    larcv::Voxel3D vx(vid,edep.energy);
-    res.Emplace(std::move(vx));
-  }
+          larcv::Voxel vx(vid, edep.energy);
+          voxel_set.emplace(std::move(vx));
+        }
       }
     }
+
+    // Now, if projection id was not specified, divide each voxel by 3
+    if( id == larcv::kINVALID_PROJECTIONID)
+      res.writeable_voxel_set(0) /= 3.;
     return res;
   }
 
@@ -305,7 +312,8 @@ namespace supera {
   SimCh2Voxel3DCluster(const larcv::Voxel3DMeta& meta,
                        const std::vector<supera::LArSimCh_t>& sch_v,
                        const std::vector<size_t>& trackid2cluster,
-                       const int time_offset)
+                       const int time_offset,
+                       const larcv::ProjectionID_t id)
   {
 
     // Create the data component of VoxelSetArray2D
@@ -318,33 +326,41 @@ namespace supera {
       if (cidx == larcv::kINVALID_SIZE) continue;
       if (cidx >= num_clusters) num_clusters = cidx + 1;
     }
-    voxel_vv.resize(num_clusters+1);
+    voxel_vv.resize(num_clusters + 1);
 
     // Loop over sim channels
     for (auto const& sch : sch_v) {
       auto ch = sch.Channel();
+      // Only use specified projection id, if specified
+      if(id != larcv::kINVALID_PROJECTIONID && id != ::supera::ChannelToProjectionID(ch))
+        continue;
       // Loop over ticks
       for (auto const tick_ides : sch.TDCIDEMap()) {
-	larcv::Voxel vox;
-	// Loop over energy deps!
-	for (auto const& edep : tick_ides.second) {
-	  if(edep.energy <= 0) continue;
-	  // figure out cluster id
-	  size_t vox_id = meta.id(edep.x,edep.y,edep.z);
-	  if(vox_id == kINVALID_VOXELID) continue;
-	  size_t trackid = std::abs(edep.trackID);
-	  size_t cluster_id = num_clusters;
-	  if (trackid < trackid2cluster.size() && 
-	      trackid2cluster[trackid] != larcv::kINVALID_SIZE)
-	    cluster_id = trackid2cluster[trackid];
-	  // Fill voxel
-	  vox.set(vox_id,edep.energy);
-	  auto& voxel_v = voxel_vv.writeable_voxel_set(cluster_id);
-	  voxel_v.add(vox);
-	}
+        larcv::Voxel vox;
+        // Loop over energy deps!
+        for (auto const& edep : tick_ides.second) {
+          if (edep.energy <= 0) continue;
+          // figure out cluster id
+          size_t vox_id = meta.id(edep.x, edep.y, edep.z);
+          if (vox_id == kINVALID_VOXELID) continue;
+          size_t trackid = std::abs(edep.trackID);
+          size_t cluster_id = num_clusters;
+          if (trackid < trackid2cluster.size() &&
+              trackid2cluster[trackid] != larcv::kINVALID_SIZE)
+            cluster_id = trackid2cluster[trackid];
+          // Fill voxel
+          vox.set(vox_id, edep.energy);
+          auto& voxel_v = voxel_vv.writeable_voxel_set(cluster_id);
+          voxel_v.add(vox);
+        }
       }
     }
-  
+
+    // Now, if projection id was not specified, divide each voxel by 3
+    if( id == larcv::kINVALID_PROJECTIONID) {
+      for(size_t id=0; id < res.size(); ++id)
+        voxel_vv.writeable_voxel_set(id) /= 3.;
+    }
     return voxel_vv;
   }
 
@@ -366,13 +382,13 @@ namespace supera {
     }
     // Create projection id => meta mapping, also set size of clusters-per-plane in voxel_vvv
     std::vector<size_t> projection_id_to_meta_index;
-    for(size_t i=0; i<meta_v.size(); ++i) {
+    for (size_t i = 0; i < meta_v.size(); ++i) {
       auto const& meta = meta_v[i];
-      if(projection_id_to_meta_index.size() <= meta.id()) {
-        projection_id_to_meta_index.resize(meta.id()+1,larcv::kINVALID_SIZE);
-	voxel_vvv.resize(meta.id()+1);
+      if (projection_id_to_meta_index.size() <= meta.id()) {
+        projection_id_to_meta_index.resize(meta.id() + 1, larcv::kINVALID_SIZE);
+        voxel_vvv.resize(meta.id() + 1);
       }
-      voxel_vvv[meta.id()].resize(num_clusters+1); // 1 bigger to contain "unknown"
+      voxel_vvv[meta.id()].resize(num_clusters + 1); // 1 bigger to contain "unknown"
       projection_id_to_meta_index[meta.id()] = i;
     }
     // Loop over sim channels
@@ -383,43 +399,43 @@ namespace supera {
       // Figure out meta projection id
       larcv::ProjectionID_t projection_id = supera::ChannelToProjectionID(ch);
       // Get meta if found. else continue
-      if(projection_id_to_meta_index.size() <= projection_id) continue;
-      if(projection_id_to_meta_index[projection_id] == larcv::kINVALID_SIZE) continue;
+      if (projection_id_to_meta_index.size() <= projection_id) continue;
+      if (projection_id_to_meta_index[projection_id] == larcv::kINVALID_SIZE) continue;
       auto const& meta = meta_v[projection_id_to_meta_index[projection_id]];
       // Figure out column
-      if(x < meta.min_x() || meta.max_x() <= x) continue;
+      if (x < meta.min_x() || meta.max_x() <= x) continue;
       size_t col = meta.col(x);
       // Get VoxelSetArray of this projection
       auto& voxel_vv = voxel_vvv[projection_id];
       // Loop over ticks
       for (auto const tick_ides : sch.TDCIDEMap()) {
-	// Apply time offset, continue if out-of-range of image meta
-	double tick = supera::TPCTDC2Tick((double)(tick_ides.first)) + time_offset;
-	if (tick < meta.min_y() || meta.max_y() <= tick) continue;
-	size_t row = meta.row(tick);
-	// Create temporary voxel
-	larcv::Voxel vox(meta.index(row,col), 0.);
-	// Loop over energy deps!
-	for (auto const& edep : tick_ides.second) {
-	  if(edep.energy <= 0) continue;
-	  // figure out cluster id
-	  size_t trackid = std::abs(edep.trackID);
-	  size_t cluster_id = num_clusters;
-	  if (trackid < trackid2cluster.size() && 
-	      trackid2cluster[trackid] != larcv::kINVALID_SIZE)
-	    cluster_id = trackid2cluster[trackid];
-	  // Fill voxel
-	  vox.set(vox.id(),edep.energy);
-	  auto& voxel_v = voxel_vv.writeable_voxel_set(cluster_id);
-	  voxel_v.add(vox);
-	}
+        // Apply time offset, continue if out-of-range of image meta
+        double tick = supera::TPCTDC2Tick((double)(tick_ides.first)) + time_offset;
+        if (tick < meta.min_y() || meta.max_y() <= tick) continue;
+        size_t row = meta.row(tick);
+        // Create temporary voxel
+        larcv::Voxel vox(meta.index(row, col), 0.);
+        // Loop over energy deps!
+        for (auto const& edep : tick_ides.second) {
+          if (edep.energy <= 0) continue;
+          // figure out cluster id
+          size_t trackid = std::abs(edep.trackID);
+          size_t cluster_id = num_clusters;
+          if (trackid < trackid2cluster.size() &&
+              trackid2cluster[trackid] != larcv::kINVALID_SIZE)
+            cluster_id = trackid2cluster[trackid];
+          // Fill voxel
+          vox.set(vox.id(), edep.energy);
+          auto& voxel_v = voxel_vv.writeable_voxel_set(cluster_id);
+          voxel_v.add(vox);
+        }
       }
     }
-  
+
     larcv::VoxelSetArray2D res;
-    for(auto const& meta : meta_v) {
+    for (auto const& meta : meta_v) {
       auto meta_copy = meta;
-      res.emplace(std::move(voxel_vvv[meta_copy.id()]),std::move(meta_copy));
+      res.emplace(std::move(voxel_vvv[meta_copy.id()]), std::move(meta_copy));
     }
     return res;
   }
