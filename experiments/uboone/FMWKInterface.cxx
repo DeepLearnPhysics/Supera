@@ -16,6 +16,16 @@ namespace supera {
       auto const* geom = ::lar::providerFrom<geo::Geometry>();
       return geom->ChannelToWire(ch).front();
   }
+
+  ::geo::WireID ChannelToImageX(unsigned int ch)
+  {
+    return ChannelToWireID(ch).Wire;
+  }
+
+  ::geo::WireID ChannelToProjectionID(unsigned int ch)
+  {
+    return ChannelToWireID(ch).Plane;
+  }
   
   double DriftVelocity()
   { 

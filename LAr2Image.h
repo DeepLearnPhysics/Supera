@@ -65,7 +65,7 @@ namespace supera {
   larcv::VoxelSetArray2D
   SimCh2Pixel2DCluster(const std::vector<larcv::ImageMeta>& meta_v,
 		       const std::vector<supera::LArSimCh_t>& sch_v,
-		       const std::vector<int>& trackid2cluster,
+		       const std::vector<size_t>& trackid2cluster,
 		       const int time_offset);
 
 }

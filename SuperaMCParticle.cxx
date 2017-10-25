@@ -149,14 +149,14 @@ namespace larcv {
 
         auto const& daughter = primary.daughter_v[daughter_idx];
 
-	if (_pass_origin && daughter.origin != _pass_origin) {
-	  LARCV_INFO() << "Skipping a daughter " << daughter_idx
-		       << " (origin type " << daughter.origin
-		       << " PDG " << daughter.pdg
-		       << ")"
-		       << std::endl;
-	  continue;
-	}
+        if (_pass_origin && daughter.origin != _pass_origin) {
+          LARCV_INFO() << "Skipping a daughter " << daughter_idx
+                       << " (origin type " << daughter.origin
+                       << " PDG " << daughter.pdg
+                       << ")"
+                       << std::endl;
+          continue;
+        }
 
         if (!FilterNode(daughter)) {
           LARCV_INFO() << "Skipping a daughter " << daughter_idx
@@ -278,7 +278,7 @@ namespace larcv {
           if ( (mctrack.front().E() - mctrack.back().E()) < filter_min_edep ) return false;
         }
       }
-    } 
+    }
     else if (node.source_type == supera::MCNode::SourceType_t::kMCShower) {
       auto const& mcshower = LArData<supera::LArMCShower_t>()[node.source_index];
       LARCV_DEBUG() << "MCShower InitE " << mcshower.Start().E() << " ... DepE "
@@ -298,7 +298,7 @@ namespace larcv {
   }
 
   larcv::Particle SuperaMCParticle::MakeParticle(const supera::MCNode & node,
-						 const std::vector<supera::LArSimCh_t>& sch_v) const
+      const std::vector<supera::LArSimCh_t>& sch_v) const
   {
     larcv::Particle res;
     if (node.source_type == supera::MCNode::SourceType_t::kMCTrack) {
@@ -386,7 +386,7 @@ namespace larcv {
                  << " NRows=" << rows / modular_row
                  << " NCols=" << cols / modular_col
                  << " Origin @ (" << min_x << "," << max_y - height << ")" << std::endl;
-    larcv::ImageMeta res(min_x, max_y - height, min_x+width, max_y,
+    larcv::ImageMeta res(min_x, max_y - height, min_x + width, max_y,
                          cols, rows,
                          part_image.id(), larcv::kUnitWireTime);
 

@@ -45,6 +45,12 @@ namespace supera {
   /// Channel number to wire ID
   ::geo::WireID ChannelToWireID(unsigned int ch);
 
+  /// Channel number to image column number
+  ::geo::WireID ChannelToImageX(unsigned int ch);
+
+  /// Channel number to projection ID
+  ::geo::WireID ChannelToProjectionID(unsigned int ch);
+
   /// Number of channels
   unsigned int Nchannels();
   
