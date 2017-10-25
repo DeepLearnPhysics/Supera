@@ -2,7 +2,7 @@
  * \file SuperaMCParticle.h
  *
  * \ingroup Package_Name
- * 
+ *
  * \brief Class def header for a class SuperaMCParticle
  *
  * @author kazuhiro
@@ -30,16 +30,16 @@ namespace larcv {
      doxygen documentation!
   */
   class SuperaMCParticle : public SuperaBase,
-			   public supera::ParamsROI,
-			   public supera::ImageMetaMaker {
+    public supera::ParamsROI,
+    public supera::ImageMetaMaker {
 
   public:
-    
+
     /// Default constructor
-    SuperaMCParticle(const std::string name="SuperaMCParticle");
-    
+    SuperaMCParticle(const std::string name = "SuperaMCParticle");
+
     /// Default destructor
-    ~SuperaMCParticle(){}
+    ~SuperaMCParticle() {}
 
     void configure(const PSet&);
 
@@ -49,26 +49,26 @@ namespace larcv {
 
     void finalize();
 
-    bool StoreG4SecondaryROI() const { return _store_g4_secondary_roi; }
-    
-    bool StoreG4PrimaryROI() const { return _store_g4_primary_roi; }
+    //bool StoreG4SecondaryROI() const { return _store_g4_secondary_roi; }
 
-    const std::vector<std::pair<size_t,size_t> >& Particle2MCNode(int roi_index) const;
+    //bool StoreG4PrimaryROI() const { return _store_g4_primary_roi; }
 
-    const std::vector<std::vector<std::pair<size_t,size_t> > >&
-    Particle2MCNode() const { return _roi2mcnode_vv; }
-    
+    //const std::vector<std::pair<size_t, size_t> >& Particle2MCNode(int roi_index) const;
+
+    //const std::vector<std::vector<std::pair<size_t, size_t> > >&
+    //Particle2MCNode() const { return _roi2mcnode_vv; }
+
     const supera::MCParticleTree& ParticleTree() const { return _mcpt; }
-    
+
   private:
 
-    bool _store_part;
-    bool _store_g4_primary_part;
-    bool _store_g4_secondary_part;
-    std::vector<larcv::Particle> _part_v;
-    supera::MCParticleTree _mcpt;
-    supera::MCParticleMaker     _mcpart_maker;
-    std::vector<std::vector<std::pair<size_t,size_t> > > _part2mcnode_vv;
+    //bool _store_part;
+    //bool _store_g4_primary_part;
+    //bool _store_g4_secondary_part;
+    //std::vector<larcv::Particle> _part_v;
+    supera::MCParticleTree  _mcpt;
+    supera::MCParticleMaker _mcpart_maker;
+    //std::vector<std::vector<std::pair<size_t, size_t> > > _part2mcnode_vv;
 
     unsigned short _pass_origin;
     std::vector<int> _filter_pdg;
@@ -77,19 +77,17 @@ namespace larcv {
 
     double _shower_min_einit;
     double _shower_min_edep;
-    
+
     double _track_min_einit;
     double _track_min_edep;
 
-    size_t _filter_min_cols;
-    size_t _filter_min_rows;
+    //size_t _filter_min_cols;
+    //size_t _filter_min_rows;
 
     bool FilterNode(const supera::MCNode& node) const;
     larcv::ImageMeta FormatMeta(const larcv::ImageMeta& part_image,
-				const larcv::ImageMeta& event_image) const;
-    larcv::Particle MakeParticle(const supera::MCNode& node,const std::vector<supera::LArSimCh_t>& sch_v) const;
-    void UpdatePrimaryParticle(larcv::Particle& pri_part,
-			       std::vector<larcv::Particle>& sec_part_v) const;
+                                const larcv::ImageMeta& event_image) const;
+    larcv::Particle MakeParticle(const supera::MCNode& node, const std::vector<supera::LArSimCh_t>& sch_v) const;
   };
 
   /**
@@ -99,7 +97,7 @@ namespace larcv {
   class SuperaMCParticleProcessFactory : public ProcessFactoryBase {
   public:
     /// ctor
-    SuperaMCParticleProcessFactory() { ProcessFactory::get().add_factory("SuperaMCParticle",this); }
+    SuperaMCParticleProcessFactory() { ProcessFactory::get().add_factory("SuperaMCParticle", this); }
     /// dtor
     ~SuperaMCParticleProcessFactory() {}
     /// creation method
@@ -110,5 +108,5 @@ namespace larcv {
 //#endif
 //#endif
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 

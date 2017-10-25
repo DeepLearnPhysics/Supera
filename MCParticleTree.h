@@ -72,7 +72,7 @@ namespace supera {
     double dt(const MCNode& node) const;
 
     std::vector<supera::MCNode> daughter_v;
-    ::larcv::Particle part;
+    //::larcv::Particle part;
 
   };
 

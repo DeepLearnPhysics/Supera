@@ -54,8 +54,8 @@ namespace supera {
     for (size_t idx = 0; idx < primary_v.size(); ++idx) {
       auto const& primary = primary_v[idx];
       std::cout << "Primary " << idx << std::endl
-                << primary.part.dump() << std::endl
-                << "... or as MCNode: " << ((MCNode)primary).dump().c_str() << std::endl;
+                //<< primary.part.dump() << std::endl
+                << " as MCNode: " << ((MCNode)primary).dump().c_str() << std::endl;
       std::cout << "Dumping secondaries..." << std::endl;
       for (auto const& secondary : primary.daughter_v)
         std::cout << "    " << secondary.dump();
@@ -228,7 +228,8 @@ namespace supera {
         LARCV_INFO() << "Associating MCTrack (index " << track_idx
                      << " PDG " << mct.PdgCode() << " Origin " << mct.Origin()
                      << ") with primary (index " << primary_idx
-                     << " PDG " << _primary_v[primary_idx].part.pdg_code()
+                     //<< " PDG " << _primary_v[primary_idx].part.pdg_code()
+                     << " PDG " << _primary_v[primary_idx].part.pdg
                      << " Origin " << _primary_v[primary_idx].origin
                      << ")" << std::endl;
         _primary_v[primary_idx].daughter_v.emplace_back(std::move(node));
@@ -249,7 +250,8 @@ namespace supera {
         LARCV_INFO() << "Associating MCShower (index " << shower_idx
                      << " PDG " << mcs.PdgCode() << " Origin " << mcs.Origin()
                      << ") with primary (index " << primary_idx
-                     << " PDG " << _primary_v[primary_idx].part.pdg_code()
+                     //<< " PDG " << _primary_v[primary_idx].part.pdg_code()
+                     << " PDG " << _primary_v[primary_idx].part.pdg
                      << " Origin " << _primary_v[primary_idx].origin
                      << ")" << std::endl;
         _primary_v[primary_idx].daughter_v.emplace_back(std::move(node));
@@ -306,7 +308,8 @@ namespace supera {
       LARCV_INFO() << "Associating (time-approx) MCTrack (index " << track_idx
                    << " PDG " << track.PdgCode() << " Origin " << track.Origin()
                    << ") with primary (index " << primary_idx
-                   << " PDG " << _primary_v[primary_idx].part.pdg_code()
+                   //<< " PDG " << _primary_v[primary_idx].part.pdg_code()
+                   << " PDG " << _primary_v[primary_idx].part.pdg
                    << " Origin " << _primary_v[primary_idx].origin
                    << ")" << std::endl;
       _primary_v[primary_idx].daughter_v.emplace_back(std::move(node));
@@ -341,7 +344,8 @@ namespace supera {
       LARCV_INFO() << "Associating (time-approx) MCShower (index " << shower_idx
                    << " PDG " << shower.PdgCode() << " Origin " << shower.Origin()
                    << ") with primary (index " << primary_idx
-                   << " PDG " << _primary_v[primary_idx].part.pdg_code()
+                   //<< " PDG " << _primary_v[primary_idx].part.pdg_code()
+                   << " PDG " << _primary_v[primary_idx].part.pdg
                    << " Origin " << _primary_v[primary_idx].origin
                    << ")" << std::endl;
       if (min_dt > _dt_max) continue;
