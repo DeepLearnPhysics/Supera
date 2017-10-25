@@ -30,10 +30,8 @@ namespace larcv {
      doxygen documentation!
   */
   class SuperaMCParticle : public SuperaBase,
-    public supera::ParamsROI,
-    public supera::ParamsPixel2D,
-    public supera::ParamsVoxel3D,
-    public supera::ImageMetaMaker {
+			   public supera::ParamsROI,
+			   public supera::ImageMetaMaker {
 
   public:
 

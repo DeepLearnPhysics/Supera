@@ -373,12 +373,12 @@ namespace supera {
                    << " NRows=" << (size_t)(tick_end - tick_start + 1)
                    << " NCols=" << (size_t)(wire_range.second - wire_range.first + 1)
                    << " Origin @ (" << (double)(wire_range.first) << "," << (double)(tick_end) << ")" << std::endl;
-      meta_v.emplace_back((double)(wire_range.second - wire_range.first + 1),
-                          (double)(tick_end - tick_start + 1),
+      meta_v.emplace_back((double)(wire_range.first),
+                          (double)(tick_start),
+			  (double)(wire_range.second),
+			  (double)(tick_end),
                           (size_t)(tick_end - tick_start + 1),
                           (size_t)(wire_range.second - wire_range.first + 1),
-                          (double)(wire_range.first),
-                          (double)(tick_start),
                           (larcv::ProjectionID_t)(plane),
                           (larcv::DistanceUnit_t)(larcv::kUnitWireTime));
       LARCV_INFO() << "...done on plane " << plane << std::endl;
