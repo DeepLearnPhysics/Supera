@@ -61,7 +61,7 @@ namespace larcv {
     /*
     _filter_min_cols = cfg.get<size_t>("FilterParticleMinCols");
     _filter_min_rows = cfg.get<size_t>("FilterParticleMinRows");
-  */
+    */
   }
 
   void SuperaMCParticle::initialize()
@@ -130,7 +130,7 @@ namespace larcv {
         continue;
       }
       // at this point we decided to store primary. create one
-      _part_v.resize(_part_v.size()+1);
+      _part_v.resize(_part_v.size() + 1);
       auto& pri_part = _part_v.back();
 
       if (LArDataLabel(supera::LArDataType_t::kLArSimCh_t).empty())
@@ -237,8 +237,9 @@ namespace larcv {
           _part2mcnode_vv.emplace_back(std::move(part2mcnode_v));
         }
       }
+      */
     }
-
+    /*
     if (_store_part)
       ev_part->Emplace(std::move(_part_v));
     */
@@ -246,7 +247,7 @@ namespace larcv {
     return true;
   }
 
-  bool SuperaMCParticle::FilterNode(const supera::MCNode& node) const
+  bool SuperaMCParticle::FilterNode(const supera::MCNode & node) const
   {
     if (node.source_type == supera::MCNode::SourceType_t::kMCTruth) {
       if (_pass_origin && node.origin != _pass_origin)
@@ -289,7 +290,7 @@ namespace larcv {
     return true;
   }
 
-  larcv::Particle SuperaMCParticle::MakeParticle(const supera::MCNode& node,
+  larcv::Particle SuperaMCParticle::MakeParticle(const supera::MCNode & node,
       const std::vector<supera::LArSimCh_t>& sch_v) const
   {
     larcv::Particle res;
@@ -320,8 +321,8 @@ namespace larcv {
     return res;
   }
 
-  larcv::ImageMeta SuperaMCParticle::FormatMeta(const larcv::ImageMeta& part_image,
-      const larcv::ImageMeta& event_image) const
+  larcv::ImageMeta SuperaMCParticle::FormatMeta(const larcv::ImageMeta & part_image,
+      const larcv::ImageMeta & event_image) const
   {
 
     LARCV_DEBUG() << "Before format  " << part_image.dump();
@@ -382,8 +383,8 @@ namespace larcv {
                  << " NRows=" << rows / modular_row
                  << " NCols=" << cols / modular_col
                  << " Origin @ (" << min_x << "," << min_y << ")" << std::endl;
-    larcv::ImageMeta res(min_x, min_y, width, height, 
-                         cols, rows, 
+    larcv::ImageMeta res(min_x, min_y, width, height,
+                         cols, rows,
                          part_image.id(), larcv::kUnitWireTime);
 
     LARCV_DEBUG() << "Event image   " << event_image.dump();
@@ -399,6 +400,6 @@ namespace larcv {
 
   void SuperaMCParticle::finalize()
   {}
-  
-  }
+
+
 #endif
