@@ -34,15 +34,15 @@ namespace supera {
     double min_dt = -1;
     double dt=0;
 
-    dt = node.start.T() - start.T();
+    dt = node.start.t() - start.t();
     if(dt>0 && (min_dt<0 || dt < min_dt)) min_dt = dt;
-    dt = node.start.T() - end.T();
+    dt = node.start.t() - end.t();
     if(dt>0 && (min_dt<0 || dt < min_dt)) min_dt = dt;
 
     for(auto const& daughter : daughter_v) {
-      dt = node.start.T() - daughter.start.T();
+      dt = node.start.t() - daughter.start.t();
       if(dt>0 && (min_dt<0 || dt < min_dt)) min_dt = dt;
-      dt = node.start.T() - daughter.end.T();
+      dt = node.start.t() - daughter.end.t();
       if(dt>0 && (min_dt<0 || dt < min_dt)) min_dt = dt;
     }
     return min_dt;
@@ -176,8 +176,8 @@ namespace supera {
   MCNode MCParticleTree::FillNode(const supera::LArMCTrack_t& mct)
   {
     MCNode node;
-    node.start.Reset(mct.Start().X(),mct.Start().Y(),mct.Start().Z(),mct.Start().T());
-    node.end.Reset(mct.End().X(),mct.End().Y(),mct.End().Z(),mct.End().T());
+    node.start.reset(mct.Start().X(),mct.Start().Y(),mct.Start().Z(),mct.Start().T());
+    node.end.reset(mct.End().X(),mct.End().Y(),mct.End().Z(),mct.End().T());
     node.track_id = mct.TrackID();
     node.source_type  = MCNode::SourceType_t::kMCTrack;
     node.origin = (unsigned short)(mct.Origin());
@@ -188,8 +188,8 @@ namespace supera {
   MCNode MCParticleTree::FillNode(const supera::LArMCShower_t& mcs)
   {
     MCNode node;
-    node.start.Reset(mcs.Start().X(),mcs.Start().Y(),mcs.Start().Z(),mcs.Start().T());
-    node.end.Reset(mcs.End().X(),mcs.End().Y(),mcs.End().Z(),mcs.End().T());
+    node.start.reset(mcs.Start().X(),mcs.Start().Y(),mcs.Start().Z(),mcs.Start().T());
+    node.end.reset(mcs.End().X(),mcs.End().Y(),mcs.End().Z(),mcs.End().T());
     node.track_id = mcs.TrackID();
     node.source_type  = MCNode::SourceType_t::kMCShower;
     node.origin = (unsigned short)(mcs.Origin());
@@ -228,7 +228,7 @@ namespace supera {
 	LARCV_INFO() << "Associating MCTrack (index " << track_idx
 		     << " PDG " << mct.PdgCode() << " Origin " << mct.Origin()
 		     << ") with primary (index " << primary_idx
-		     << " PDG " << _primary_v[primary_idx].part.PdgCode()
+		     << " PDG " << _primary_v[primary_idx].part.pdg_code()
 		     << " Origin " << _primary_v[primary_idx].origin
 		     << ")" << std::endl;
 	_primary_v[primary_idx].daughter_v.emplace_back(std::move(node));
@@ -249,7 +249,7 @@ namespace supera {
 	LARCV_INFO() << "Associating MCShower (index " << shower_idx
 		     << " PDG " << mcs.PdgCode() << " Origin " << mcs.Origin()
 		     << ") with primary (index " << primary_idx
-		     << " PDG " << _primary_v[primary_idx].part.PdgCode()
+		     << " PDG " << _primary_v[primary_idx].part.pdg_code()
 		     << " Origin " << _primary_v[primary_idx].origin
 		     << ")" << std::endl;
 	_primary_v[primary_idx].daughter_v.emplace_back(std::move(node));
@@ -273,8 +273,8 @@ namespace supera {
     double primary_min_time = 1.e20;
     double primary_max_time = 0.;
     for(auto const& primary : _primary_v) {
-      if(primary.start.T() < primary_min_time) primary_min_time = primary.start.T();
-      if(primary.end.T() > primary_max_time) primary_max_time = primary.end.T();
+      if(primary.start.t() < primary_min_time) primary_min_time = primary.start.t();
+      if(primary.end.t() > primary_max_time) primary_max_time = primary.end.t();
     }
 
     for(size_t track_idx=0; track_idx<mctrack_v.size(); ++track_idx) {
@@ -283,10 +283,10 @@ namespace supera {
       if(_origin_filter && track.Origin() != _origin_filter) continue;
       auto node = FillNode(track);
       node.source_index = track_idx;
-      if(node.start.T() < primary_min_time) {
+      if(node.start.t() < primary_min_time) {
 	LARCV_INFO() << "Ignoring MCTrack (track id " << node.track_id << ", pdg " << track.PdgCode()
 		     << ") as it comes before any primary in time "
-		     << " (this time " << node.start.T() << " ... primary " << primary_min_time
+		     << " (this time " << node.start.t() << " ... primary " << primary_min_time
 		     << " => " << primary_max_time << ")"
 		     << std::endl;
 	continue;
@@ -306,7 +306,7 @@ namespace supera {
       LARCV_INFO() << "Associating (time-approx) MCTrack (index " << track_idx
 		   << " PDG " << track.PdgCode() << " Origin " << track.Origin()
 		   << ") with primary (index " << primary_idx
-		   << " PDG " << _primary_v[primary_idx].part.PdgCode()
+		   << " PDG " << _primary_v[primary_idx].part.pdg_code()
 		   << " Origin " << _primary_v[primary_idx].origin
 		   << ")" << std::endl;
       _primary_v[primary_idx].daughter_v.emplace_back(std::move(node));
@@ -319,10 +319,10 @@ namespace supera {
       if(_origin_filter && shower.Origin() != _origin_filter) continue;
       auto node = FillNode(shower);
       node.source_index = shower_idx;
-      if(node.start.T() < primary_min_time) {
+      if(node.start.t() < primary_min_time) {
 	LARCV_INFO() << "Ignoring MCShower (track id " << node.track_id << ", pdg " << shower.PdgCode()
 		     << ") as it comes before any primary in time "
-		     << " (this time " << node.start.T() << " ... primary " << primary_min_time
+		     << " (this time " << node.start.t() << " ... primary " << primary_min_time
 		     << " => " << primary_max_time << ")"
 		     << std::endl;
 	continue;
@@ -341,7 +341,7 @@ namespace supera {
       LARCV_INFO() << "Associating (time-approx) MCShower (index " << shower_idx
 		   << " PDG " << shower.PdgCode() << " Origin " << shower.Origin()
 		   << ") with primary (index " << primary_idx
-		   << " PDG " << _primary_v[primary_idx].part.PdgCode()
+		   << " PDG " << _primary_v[primary_idx].part.pdg_code()
 		   << " Origin " << _primary_v[primary_idx].origin
 		   << ")" << std::endl;
       if(min_dt > _dt_max) continue;
