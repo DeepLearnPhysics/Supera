@@ -101,7 +101,7 @@ namespace supera {
   /// TPC TDC to Tick
   double TPCTDC2Tick(double tdc);
 
-  /// Trigger tick
+  /// Trigger time [us] offset
   double TriggerOffsetTPC();
 
   /// TPC sampling period

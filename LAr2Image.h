@@ -3,9 +3,10 @@
 //#ifndef __CINT__
 //#ifndef __CLING__
 #include "FMWKInterface.h"
+#include "larcv/core/DataFormat/DataFormatTypes.h"
 #include "larcv/core/DataFormat/Image2D.h"
 #include "larcv/core/DataFormat/Voxel.h"
-//#include "larcv/core/DataFormat/Voxel3D.h"
+#include "larcv/core/DataFormat/Voxel3DMeta.h"
 
 namespace supera {
 
@@ -55,14 +56,14 @@ namespace supera {
                        const std::vector<supera::LArSimCh_t>& sch_v,
                        const std::vector<size_t>& trackid2cluster,
                        const int time_offset,
-                       const ProjectionID_t id = kINVALID_PROJECTIONID);
+                       const larcv::ProjectionID_t id = larcv::kINVALID_PROJECTIONID);
 
   larcv::VoxelSetArray
   SimCh2Voxel3D(const larcv::Voxel3DMeta& meta,
-    const std::vector<supera::LArSimCh_t>& sch_v,
+		const std::vector<supera::LArSimCh_t>& sch_v,
 		const std::vector<size_t>& track_v,
 		const int time_offset,
-		const ProjectionID_t id = kINVALID_PROJECTIONID);
+		const larcv::ProjectionID_t id = larcv::kINVALID_PROJECTIONID);
 
   //
   // SimChannel => Pixel2DCluster

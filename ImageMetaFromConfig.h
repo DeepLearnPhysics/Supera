@@ -40,10 +40,13 @@ namespace supera {
     const std::vector<larcv::ImageMeta>& Meta() const
     { return _meta_v; }
 
+    const larcv::Voxel3DMeta& Meta3D() const
+    { return _meta3d; }
+
   private:
 
     std::vector<larcv::ImageMeta> _meta_v;
-
+    larcv::Voxel3DMeta _meta3d;
   };
 
 }

@@ -66,6 +66,9 @@ namespace supera {
     inline const std::vector<larcv::ImageMeta>& Meta() const
     { return _meta_v;}
 
+    inline const larcv::Voxel3DMeta& Meta3D() const
+    { return _meta3d; }
+
   private:
 
     unsigned short _origin;
@@ -75,10 +78,12 @@ namespace supera {
     size_t _time_pixel;
     double _t0_g4ns;
     std::vector<larcv::ImageMeta> _meta_v;
+    larcv::Voxel3DMeta _meta3d;
 
-    std::vector<larcv::ImageMeta>
-    DeriveMeta(const std::vector<supera::GridPoint3D>& point_v,
-               const int time_offset ) const;
+    void DeriveMeta(std::vector<larcv::ImageMeta>& meta_v,
+		    larcv::Voxel3DMeta& meta3d,
+		    const std::vector<supera::GridPoint3D>& point_v,
+		    const int time_offset ) const;
 
     void
     GenerateMeta(const std::vector<supera::LArSimCh_t>& simch_v,

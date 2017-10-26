@@ -22,6 +22,16 @@ namespace supera {
     std::cerr << "MetaMaker does not exist!" << std::endl;
     throw std::exception();
   }
+
+  const larcv::Voxel3DMeta& ImageMetaMaker::Meta3D() const
+  {
+    if(_meta_maker) return _meta_maker->Meta3D();
+    auto sptr = SharedMetaMaker();
+    if(sptr) return sptr->Meta3D();
+
+    std::cerr << "MetaMaker does not exist!" << std::endl;
+    throw std::exception();
+  }
   
   const std::vector<size_t>& ImageMetaMaker::RowCompressionFactor() const
   {

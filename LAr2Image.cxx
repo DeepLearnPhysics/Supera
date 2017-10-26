@@ -255,7 +255,7 @@ namespace supera {
                 const std::vector<supera::LArSimCh_t>& sch_v,
                 const std::vector<size_t>& track_v,
                 const int time_offset,
-                const ProjectionID_t id)
+                const larcv::ProjectionID_t id)
   {
     LARCV_SINFO() << "Filling Voxel3D ground truth volume..." << std::endl;
     larcv::VoxelSetArray res;
@@ -285,7 +285,7 @@ namespace supera {
 
           if (filter_track_id && std::abs(edep.trackID) >= (int)(track_v.size())) continue;
 
-          if (filter_track_id && track_v[std::abs(edep.trackID)] == kINVALID_SIZE) continue;
+          if (filter_track_id && track_v[std::abs(edep.trackID)] == larcv::kINVALID_SIZE) continue;
 
           //x = edep.x;
           y = edep.y;
@@ -293,8 +293,8 @@ namespace supera {
           //supera::ApplySCE(x,y,z);
           //std::cout << " ... " << x << std::endl;
           // Now use tick-based position for x
-          auto vid = meta.ID(x_tick, y, z);
-          if (vid == larcv::kINVALID_VOXEL3DID) continue;
+          auto vid = meta.id(x_tick, y, z);
+          if (vid == larcv::kINVALID_VOXELID) continue;
 
           larcv::Voxel vx(vid, edep.energy);
           voxel_set.emplace(std::move(vx));
@@ -319,7 +319,6 @@ namespace supera {
     // Create the data component of VoxelSetArray2D
     // Note: voxel_vv is VoxelSet (particle) array
     larcv::VoxelSetArray voxel_vv;
-    voxel_vv.meta(meta);
     // figure out # of clusters to be made
     size_t num_clusters = 0;
     for (auto const& cidx : trackid2cluster) {
@@ -341,8 +340,9 @@ namespace supera {
         for (auto const& edep : tick_ides.second) {
           if (edep.energy <= 0) continue;
           // figure out cluster id
-          size_t vox_id = meta.id(edep.x, edep.y, edep.z);
-          if (vox_id == kINVALID_VOXELID) continue;
+	  double x_tick = (supera::TPCTDC2Tick(tick_ides.first) + time_offset) * supera::TPCTickPeriod()  * supera::DriftVelocity();
+          size_t vox_id = meta.id(x_tick, edep.y, edep.z);
+          if (vox_id == larcv::kINVALID_VOXELID) continue;
           size_t trackid = std::abs(edep.trackID);
           size_t cluster_id = num_clusters;
           if (trackid < trackid2cluster.size() &&
@@ -358,7 +358,7 @@ namespace supera {
 
     // Now, if projection id was not specified, divide each voxel by 3
     if( id == larcv::kINVALID_PROJECTIONID) {
-      for(size_t id=0; id < res.size(); ++id)
+      for(size_t id=0; id < voxel_vv.size(); ++id)
         voxel_vv.writeable_voxel_set(id) /= 3.;
     }
     return voxel_vv;

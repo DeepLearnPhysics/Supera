@@ -17,8 +17,10 @@
 #include "FMWKInterface.h"
 #include "ImageMetaMaker.h"
 #include "ParamsPixel2D.h"
-#include "DataFormat/EventPixel2D.h"
-#include "DataFormat/Vertex.h"
+#include "ParamsVoxel3D.h"
+#include "larcv/core/DataFormat/EventPixel2D.h"
+#include "larcv/core/DataFormat/EventVoxel3D.h"
+#include "larcv/core/DataFormat/Vertex.h"
 
 namespace larcv {
 
@@ -29,6 +31,7 @@ namespace larcv {
   */
   class SuperaKeyPointCluster : public SuperaBase,
 				public supera::ParamsPixel2D,
+				public supera::ParamsVoxel3D,
 				public supera::ImageMetaMaker {
 
   public:
@@ -51,11 +54,18 @@ namespace larcv {
 
     larcv::Vertex GetPoint(const supera::LArMCStep_t& step);
 	
-    std::vector<larcv::Pixel2DCluster>
-    CreateCluster(const std::vector<larcv::ImageMeta>& meta_v,
-		  const std::set<larcv::Vertex>& pt_s,
-		  const unsigned short val,
-		  const int time_offset);
+    
+    void CreateCluster2D(larcv::VoxelSetArray& res,
+			 const larcv::ImageMeta& meta_v,
+			 const std::set<larcv::Vertex>& pt_s,
+			 const unsigned short val,
+			 const int time_offset);
+
+    void CreateCluster3D(larcv::VoxelSetArray& res,
+			 const larcv::Voxel3DMeta& meta,
+			 const std::set<larcv::Vertex>& pt_s,
+			 const unsigned short val,
+			 const int time_offset);
 
     std::string _in_roi_label;
     bool   _apply_sce;
@@ -64,7 +74,7 @@ namespace larcv {
     bool _cluster_primary_start;
     bool _cluster_secondary_start;
     bool _cluster_scattering;
-
+    size_t _pad3d_x, _pad3d_y, _pad3d_z;
   };
 
   /**

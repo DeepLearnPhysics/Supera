@@ -1,9 +1,9 @@
 /**
- * \file SuperaMCPCluster2D.h
+ * \file SuperaMCPCluster.h
  *
  * \ingroup Package_Name
  * 
- * \brief Class def header for a class SuperaMCPCluster2D
+ * \brief Class def header for a class SuperaMCPCluster
  *
  * @author kazuhiro
  */
@@ -13,28 +13,32 @@
     @{*/
 #ifndef __SUPERAMCPCLUSTER_H__
 #define __SUPERAMCPCLUSTER_H__
-#include "SuperaMCParticleTree.h"
+#include "SuperaBase.h"
+#include "FMWKInterface.h"
+#include "MCParticleTree.h"
 #include "ParamsPixel2D.h"
+#include "ParamsVoxel3D.h"
 #include "ImageMetaMaker.h"
 
 namespace larcv {
 
   /**
      \class ProcessBase
-     User defined class SuperaMCPCluster2D ... these comments are used to generate
+     User defined class SuperaMCPCluster ... these comments are used to generate
      doxygen documentation!
   */
-  class SuperaMCPCluster2D : public supera::SuperaBase,
-			     public supera::ImageMetaMaker,
-			     public supera::ParamsPixel2D {
+  class SuperaMCPCluster : public SuperaBase,
+			   public supera::ImageMetaMaker,
+			   public supera::ParamsPixel2D,
+			   public supera::ParamsVoxel3D {
     
   public:
     
     /// Default constructor
-    SuperaMCPCluster2D(const std::string name="SuperaMCPCluster2D");
+    SuperaMCPCluster(const std::string name="SuperaMCPCluster");
     
     /// Default destructor
-    ~SuperaMCPCluster2D(){}
+    ~SuperaMCPCluster(){}
 
     void configure(const PSet&);
 
@@ -46,22 +50,23 @@ namespace larcv {
 
   private:
     std::string _part_producer;
-    MCParticleTree _mcpt;
+    ProjectionID_t _target_projection;
+    supera::MCParticleTree _mcpt;
 
   };
 
   /**
-     \class larcv::SuperaMCPCluster2DFactory
-     \brief A concrete factory class for larcv::SuperaMCPCluster2D
+     \class larcv::SuperaMCPClusterFactory
+     \brief A concrete factory class for larcv::SuperaMCPCluster
   */
-  class SuperaMCPCluster2DProcessFactory : public ProcessFactoryBase {
+  class SuperaMCPClusterProcessFactory : public ProcessFactoryBase {
   public:
     /// ctor
-    SuperaMCPCluster2DProcessFactory() { ProcessFactory::get().add_factory("SuperaMCPCluster2D",this); }
+    SuperaMCPClusterProcessFactory() { ProcessFactory::get().add_factory("SuperaMCPCluster",this); }
     /// dtor
-    ~SuperaMCPCluster2DProcessFactory() {}
+    ~SuperaMCPClusterProcessFactory() {}
     /// creation method
-    ProcessBase* create(const std::string instance_name) { return new SuperaMCPCluster2D(instance_name); }
+    ProcessBase* create(const std::string instance_name) { return new SuperaMCPCluster(instance_name); }
   };
 
 }

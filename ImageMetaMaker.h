@@ -44,6 +44,8 @@ namespace supera {
     
     const std::vector<larcv::ImageMeta>& Meta() const;
 
+    const larcv::Voxel3DMeta& Meta3D() const;
+
     const std::vector<size_t>& RowCompressionFactor() const;
 
     const std::vector<size_t>& ColCompressionFactor() const;

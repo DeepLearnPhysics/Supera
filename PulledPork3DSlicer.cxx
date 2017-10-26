@@ -137,7 +137,9 @@ namespace supera {
   {
     // Test by adding fake points @ middle
     std::vector<supera::GridPoint3D> points_v;
-    auto meta_v = DeriveMeta(points_v, 0);
+    std::vector<larcv::ImageMeta> meta_v;
+    larcv::Voxel3DMeta meta3d;
+    DeriveMeta(meta_v, meta3d, points_v, 0);
 
     if (meta_v.size() != supera::Nplanes())
       LARCV_CRITICAL() << "Failed on test meta generation!" << std::endl;
@@ -266,23 +268,31 @@ namespace supera {
     point_v.reserve(point_s.size());
     for (auto const& pt : point_s) point_v.push_back(pt);
 
-    _meta_v = DeriveMeta(point_v, time_offset);
+    DeriveMeta(_meta_v, _meta3d, point_v, time_offset);
   }
 
   void PulledPork3DSlicer::GenerateMeta(const int time_offset)
   {
     LARCV_INFO() << _slicer.PrintConfig() << std::flush;
     std::vector<supera::GridPoint3D> point_v;
-    _meta_v = DeriveMeta(point_v, time_offset);
+    DeriveMeta(_meta_v, _meta3d, point_v, time_offset);
   }
 
-  std::vector<larcv::ImageMeta>
-  PulledPork3DSlicer::DeriveMeta(const std::vector<supera::GridPoint3D>& point_v,
+  void
+  PulledPork3DSlicer::DeriveMeta(std::vector<larcv::ImageMeta>& meta_v,
+				 larcv::Voxel3DMeta& meta3d,
+				 const std::vector<supera::GridPoint3D>& point_v,
                                  const int time_offset) const {
-
     supera::GridPoint3D min_pt;
     supera::GridPoint3D max_pt;
     _slicer.DeriveRange(point_v, min_pt, max_pt);
+
+    meta3d.set(min_pt.x * _slicer.GridSizeX(), min_pt.y * _slicer.GridSizeY(), min_pt.z * _slicer.GridSizeZ(),
+	       max_pt.x * _slicer.GridSizeX(), max_pt.y * _slicer.GridSizeY(), max_pt.z * _slicer.GridSizeZ(),
+	       (size_t)((max_pt.x - min_pt.x) * _slicer.GridSizeX()) + 1,
+	       (size_t)((max_pt.y - min_pt.y) * _slicer.GridSizeY()) + 1,
+	       (size_t)((max_pt.z - min_pt.z) * _slicer.GridSizeZ()) + 1,
+	       larcv::kUnitCM);
 
     std::vector<std::vector<double> > edge_v(4, std::vector<double>(3, 0.));
     edge_v[0][1] = min_pt.y * _slicer.GridSizeY();
@@ -365,7 +375,7 @@ namespace supera {
     if ( tick_count_offset > 0 ) tick_end -= tick_count_offset;
     if ( tick_count_offset < 0 ) tick_end += tick_count_offset;
 
-    std::vector<larcv::ImageMeta> meta_v;
+    meta_v.clear();
     for (size_t plane = 0; plane < supera::Nplanes(); ++plane) {
       auto const& wire_range = wire_range_v[plane];
       LARCV_INFO() << "Creating ImageMeta Width=" << (double)(wire_range.second - wire_range.first + 1)
@@ -383,7 +393,7 @@ namespace supera {
                           (larcv::DistanceUnit_t)(larcv::kUnitWireTime));
       LARCV_INFO() << "...done on plane " << plane << std::endl;
     }
-    return meta_v;
+
   }
 
 }

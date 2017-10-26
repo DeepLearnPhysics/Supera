@@ -16,6 +16,7 @@
 
 #include "larcv/core/Base/larcv_base.h"
 #include "larcv/core/DataFormat/ImageMeta.h"
+#include "larcv/core/DataFormat/Voxel3DMeta.h"
 #include "FMWKInterface.h"
 
 namespace supera {
@@ -40,6 +41,7 @@ namespace supera {
     virtual void configure(const supera::Config_t&);
 
     virtual const std::vector<larcv::ImageMeta>& Meta() const = 0;
+    virtual const larcv::Voxel3DMeta& Meta3D() const = 0;
     const std::vector<size_t>& RowCompressionFactor() const { return _comp_rows; }
     const std::vector<size_t>& ColCompressionFactor() const { return _comp_cols; }
 
