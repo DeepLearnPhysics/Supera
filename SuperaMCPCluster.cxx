@@ -4,7 +4,7 @@
 #include "SuperaMCPCluster.h"
 #include "PulledPork3DSlicer.h"
 #include "larcv/core/DataFormat/EventParticle.h"
-#include "larcv/core/DataFormat/EventPixel2D.h"
+#include "larcv/core/DataFormat/EventVoxel2D.h"
 #include "larcv/core/DataFormat/EventVoxel3D.h"
 #include "LAr2Image.h"
 
@@ -39,7 +39,7 @@ namespace larcv {
       ptr->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());
     }
 
-    auto const& part_v = mgr.get_data<larcv::EventParticle>(_part_producer).particle_array();
+    auto const& part_v = mgr.get_data<larcv::EventParticle>(_part_producer).as_vector();
 
     // create trackid=>clusterid mapping as a 1d array
     std::vector<size_t> trackid2cluster(1000, larcv::kINVALID_SIZE); // initialize to size 1000, cuz why not (cheaper than doing resize many times)
@@ -71,21 +71,21 @@ namespace larcv {
     // Is pixel2d cluster requested? shit
     //                                                                                                                                                                              
     if(!(OutPixel2DLabel().empty())) {
-      auto& ev_pixel2d  = mgr.get_data<larcv::EventPixel2D>(OutPixel2DLabel());
-      auto res = supera::SimCh2Pixel2DCluster(meta_v, LArData<supera::LArSimCh_t>(), 
+      auto& ev_pixel2d  = mgr.get_data<larcv::EventClusterPixel2D>(OutPixel2DLabel());
+      auto res = supera::SimCh2ClusterPixel2D(meta_v, LArData<supera::LArSimCh_t>(), 
 					      trackid2cluster, TimeOffset());
-      ev_pixel2d.emplace(std::move(res));
+      for(size_t i=0; i<res.size(); ++i)
+	ev_pixel2d.emplace(std::move(res[i]));
     }
     //
     // Is voxel3d cluster requested? dipshit
     //
     if(!(OutVoxel3DLabel().empty())) {
       auto meta3d = Meta3D();
-      auto& ev_voxel3d = mgr.get_data<larcv::EventVoxel3D>(OutVoxel3DLabel());
+      auto& ev_voxel3d = mgr.get_data<larcv::EventClusterVoxel3D>(OutVoxel3DLabel());
       ev_voxel3d.meta(meta3d);
-      auto res = supera::SimCh2Voxel3DCluster(meta3d, LArData<supera::LArSimCh_t>(), 
-					      trackid2cluster, TimeOffset(), _target_projection);
-      ev_voxel3d.emplace(std::move(res));
+      supera::SimCh2ClusterVoxel3D(ev_voxel3d, LArData<supera::LArSimCh_t>(), 
+				   trackid2cluster, TimeOffset(), _target_projection);
     }
 
     return true;

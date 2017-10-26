@@ -5,8 +5,8 @@
 #include "FMWKInterface.h"
 #include "larcv/core/DataFormat/DataFormatTypes.h"
 #include "larcv/core/DataFormat/Image2D.h"
-#include "larcv/core/DataFormat/Voxel.h"
-#include "larcv/core/DataFormat/Voxel3DMeta.h"
+#include "larcv/core/DataFormat/Voxel2D.h"
+#include "larcv/core/DataFormat/Voxel3D.h"
 
 namespace supera {
 
@@ -51,25 +51,25 @@ namespace supera {
   //
   // SimChannel => Voxel3D
   //
-  larcv::VoxelSetArray
-  SimCh2Voxel3DCluster(const larcv::Voxel3DMeta& meta,
+  void
+  SimCh2ClusterVoxel3D(larcv::ClusterVoxel3D& res,
                        const std::vector<supera::LArSimCh_t>& sch_v,
                        const std::vector<size_t>& trackid2cluster,
                        const int time_offset,
                        const larcv::ProjectionID_t id = larcv::kINVALID_PROJECTIONID);
 
-  larcv::VoxelSetArray
-  SimCh2Voxel3D(const larcv::Voxel3DMeta& meta,
-		const std::vector<supera::LArSimCh_t>& sch_v,
-		const std::vector<size_t>& track_v,
-		const int time_offset,
-		const larcv::ProjectionID_t id = larcv::kINVALID_PROJECTIONID);
+  void
+  SimCh2SparseTensor3D(larcv::SparseTensor3D& res,
+		       const std::vector<supera::LArSimCh_t>& sch_v,
+		       const std::vector<size_t>& track_v,
+		       const int time_offset,
+		       const larcv::ProjectionID_t id = larcv::kINVALID_PROJECTIONID);
 
   //
   // SimChannel => Pixel2DCluster
   //
-  larcv::VoxelSetArray2D
-  SimCh2Pixel2DCluster(const std::vector<larcv::ImageMeta>& meta_v,
+  std::vector<larcv::ClusterPixel2D>
+  SimCh2ClusterPixel2D(const std::vector<larcv::ImageMeta>& meta_v,
 		       const std::vector<supera::LArSimCh_t>& sch_v,
 		       const std::vector<size_t>& trackid2cluster,
 		       const int time_offset);

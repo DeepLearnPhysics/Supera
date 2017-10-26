@@ -143,50 +143,50 @@ namespace larcv {
     const unsigned short scattering_val      = 1;
 
     if(!(OutPixel2DLabel().empty())) {
-      auto& ev_pixel2d = mgr.get_data<larcv::EventPixel2D>(OutPixel2DLabel());
+      auto& ev_pixel2d = mgr.get_data<larcv::EventClusterPixel2D>(OutPixel2DLabel());
 
       for(auto const& meta : meta_v) {
-	auto temp_meta = meta;
-	larcv::VoxelSetArray voxel_vv;
+	larcv::ClusterPixel2D res;
+	res.meta(meta);
 
-	LARCV_INFO() << "Creating cluster for primary start from " << primary_start_s.size() << " 3D points on ProjectionID_t " << temp_meta.id() << std::endl;
-	CreateCluster2D(voxel_vv, temp_meta, primary_start_s, primary_start_val, TimeOffset() );
+	LARCV_INFO() << "Creating cluster for primary start from " << primary_start_s.size() << " 3D points on ProjectionID_t " << meta.id() << std::endl;
+	CreateCluster2D(res, primary_start_s, primary_start_val, TimeOffset() );
 
-	LARCV_INFO() << "Creating cluster for secondary start from " << secondary_start_s.size() << " 3D points on ProjectionID_t " << temp_meta.id() << std::endl;
-	CreateCluster2D(voxel_vv, temp_meta, secondary_start_s, secondary_start_val, TimeOffset() );
+	LARCV_INFO() << "Creating cluster for secondary start from " << secondary_start_s.size() << " 3D points on ProjectionID_t " << meta.id() << std::endl;
+	CreateCluster2D(res, secondary_start_s, secondary_start_val, TimeOffset() );
 
-	LARCV_INFO() << "Creating cluster for scattering points from " << scattering_s.size() << " 3D points on ProjectionID_t " << temp_meta.id() << std::endl;
-	CreateCluster2D(voxel_vv, temp_meta, scattering_s, scattering_val, TimeOffset() );
+	LARCV_INFO() << "Creating cluster for scattering points from " << scattering_s.size() << " 3D points on ProjectionID_t " << meta.id() << std::endl;
+	CreateCluster2D(res, scattering_s, scattering_val, TimeOffset() );
 
-	ev_pixel2d.emplace(std::move(voxel_vv),std::move(temp_meta));
+	ev_pixel2d.emplace(std::move(res));
       }
     }
 
     auto meta3d = Meta3D();
     if(!(OutVoxel3DLabel().empty())) {
-      auto& ev_voxel3d = mgr.get_data<larcv::EventVoxel3D>(OutVoxel3DLabel());
+      auto& ev_voxel3d = mgr.get_data<larcv::EventClusterVoxel3D>(OutVoxel3DLabel());
       ev_voxel3d.meta(meta3d);
 
       LARCV_INFO() << "Creating cluster for primary start from " << primary_start_s.size() << " 3D points" << std::endl;
-      CreateCluster3D(ev_voxel3d, ev_voxel3d.meta(), primary_start_s, primary_start_val, TimeOffset() );
+      CreateCluster3D(ev_voxel3d, primary_start_s, primary_start_val, TimeOffset() );
       
       LARCV_INFO() << "Creating cluster for secondary start from " << secondary_start_s.size() << " 3D points" << std::endl;
-      CreateCluster3D(ev_voxel3d, ev_voxel3d.meta(), secondary_start_s, secondary_start_val, TimeOffset() );
+      CreateCluster3D(ev_voxel3d, secondary_start_s, secondary_start_val, TimeOffset() );
 
       LARCV_INFO() << "Creating cluster for scattering points from " << scattering_s.size() << " 3D points" << std::endl;
-      CreateCluster3D(ev_voxel3d, ev_voxel3d.meta(), scattering_s, scattering_val, TimeOffset() );
+      CreateCluster3D(ev_voxel3d, scattering_s, scattering_val, TimeOffset() );
     }
     
     return true;
   }
 
   void
-  SuperaKeyPointCluster::CreateCluster3D(larcv::VoxelSetArray& res,
-					 const larcv::Voxel3DMeta& meta,
+  SuperaKeyPointCluster::CreateCluster3D(larcv::ClusterVoxel3D& res,
 					 const std::set<larcv::Vertex>& pt_s,
 					 const unsigned short val,
 					 const int time_offset)
   {
+    auto const& meta = res.meta();
     std::vector<larcv::Point3D> pt_v;
     for(auto const& pt : pt_s) {
       double x = (double)(::supera::TPCG4Time2Tick(pt.t()) + time_offset + 0.5) * supera::TPCTickPeriod();
@@ -236,15 +236,14 @@ namespace larcv {
   }
 
   void
-  SuperaKeyPointCluster::CreateCluster2D(larcv::VoxelSetArray& res,
-					 const larcv::ImageMeta& meta,
+  SuperaKeyPointCluster::CreateCluster2D(larcv::ClusterPixel2D& res,
 					 const std::set<larcv::Vertex>& pt_s,
 					 const unsigned short val,
 					 const int time_offset)
   {
 
     double xyz[3];
-
+    auto const& meta = res.meta();
     LARCV_DEBUG() << "Clustering ProjectionID_t " << meta.id() << std::endl;
     std::vector<std::pair<int,int> > wire_tick_v;
 

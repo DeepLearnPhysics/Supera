@@ -18,7 +18,7 @@
 #include "ImageMetaMaker.h"
 #include "ParamsPixel2D.h"
 #include "ParamsVoxel3D.h"
-#include "larcv/core/DataFormat/EventPixel2D.h"
+#include "larcv/core/DataFormat/EventVoxel2D.h"
 #include "larcv/core/DataFormat/EventVoxel3D.h"
 #include "larcv/core/DataFormat/Vertex.h"
 
@@ -55,14 +55,12 @@ namespace larcv {
     larcv::Vertex GetPoint(const supera::LArMCStep_t& step);
 	
     
-    void CreateCluster2D(larcv::VoxelSetArray& res,
-			 const larcv::ImageMeta& meta_v,
+    void CreateCluster2D(larcv::ClusterPixel2D& res,
 			 const std::set<larcv::Vertex>& pt_s,
 			 const unsigned short val,
 			 const int time_offset);
 
-    void CreateCluster3D(larcv::VoxelSetArray& res,
-			 const larcv::Voxel3DMeta& meta,
+    void CreateCluster3D(larcv::ClusterVoxel3D& res,
 			 const std::set<larcv::Vertex>& pt_s,
 			 const unsigned short val,
 			 const int time_offset);

@@ -91,7 +91,7 @@ namespace larcv {
       LARCV_CRITICAL() << "Output part could not be created!" << std::endl;
       throw larbys();
     }
-    if (!(ev_part->particle_array().empty())) {
+    if (!(ev_part->as_vector().empty())) {
       LARCV_CRITICAL() << "Output part array not empty!" << std::endl;
       throw larbys();
     }
