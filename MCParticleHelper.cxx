@@ -1,5 +1,5 @@
-#ifndef __SUPERA_MCROIMAKER_CXX__
-#define __SUPERA_MCROIMAKER_CXX__
+#ifndef __SUPERA_MCPARTICLEHELPER_CXX__
+#define __SUPERA_MCPARTICLEHELPER_CXX__
 
 #include "MCParticleHelper.h"
 #include "larcv/core/Base/larbys.h"

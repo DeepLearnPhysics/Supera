@@ -26,7 +26,7 @@ namespace larcv {
   void SuperaMCParticle::configure(const PSet& cfg)
   {
     SuperaBase::configure(cfg);
-    supera::ParamsROI::configure(cfg);
+    supera::ParamsParticle::configure(cfg);
     supera::ImageMetaMaker::configure(cfg);
     /*
     _store_part = cfg.get<bool>("StoreParticle", true);
@@ -86,7 +86,7 @@ namespace larcv {
       LARCV_CRITICAL() << "Meta not created!" << std::endl;
       throw larbys();
     }
-    auto ev_part = (EventParticle*)(mgr.get_data("part", OutROILabel()));
+    auto ev_part = (EventParticle*)(mgr.get_data("part", OutParticleLabel()));
     if (!ev_part) {
       LARCV_CRITICAL() << "Output part could not be created!" << std::endl;
       throw larbys();

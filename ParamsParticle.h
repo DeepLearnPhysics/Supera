@@ -1,9 +1,9 @@
 /**
- * \file ParamsROI.h
+ * \file ParamsParticle.h
  *
  * \ingroup Package_Name
  *
- * \brief Class def header for a class ParamsROI
+ * \brief Class def header for a class ParamsParticle
  *
  * @author kazuhiro
  */
@@ -11,34 +11,34 @@
 /** \addtogroup Package_Name
 
     @{*/
-#ifndef __SUPERAPARAMSROI_H__
-#define __SUPERAPARAMSROI_H__
+#ifndef __SUPERAPARAMSParticle_H__
+#define __SUPERAPARAMSParticle_H__
 
 #include "FMWKInterface.h"
 
 namespace supera {
 
   /**
-     \class ParamsROI
-     User defined class ParamsROI ... these comments are used to generate
+     \class ParamsParticle
+     User defined class ParamsParticle ... these comments are used to generate
      doxygen documentation!
   */
-  class ParamsROI {
+  class ParamsParticle {
 
   public:
 
     /// Default constructor
-    ParamsROI() {}
+    ParamsParticle() {}
 
     /// Default destructor
-    ~ParamsROI() {}
+    ~ParamsParticle() {}
 
     void configure(const supera::Config_t&);
 
     //
     // Getter
     //
-    const std::string& OutROILabel()      const { return _out_roi_producer;      }
+    const std::string& OutParticleLabel()      const { return _out_roi_producer;      }
 
   private:
 

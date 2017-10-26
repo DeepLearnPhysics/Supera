@@ -20,7 +20,7 @@
 #include "MCParticleTree.h"
 #include "MCParticleHelper.h"
 #include "ImageMetaMaker.h"
-#include "ParamsROI.h"
+#include "ParamsParticle.h"
 
 namespace larcv {
 
@@ -30,7 +30,7 @@ namespace larcv {
      doxygen documentation!
   */
   class SuperaMCParticle : public SuperaBase,
-			   public supera::ParamsROI,
+			   public supera::ParamsParticle,
 			   public supera::ImageMetaMaker {
 
   public:
@@ -49,9 +49,9 @@ namespace larcv {
 
     void finalize();
 
-    //bool StoreG4SecondaryROI() const { return _store_g4_secondary_roi; }
+    //bool StoreG4SecondaryParticle() const { return _store_g4_secondary_roi; }
 
-    //bool StoreG4PrimaryROI() const { return _store_g4_primary_roi; }
+    //bool StoreG4PrimaryParticle() const { return _store_g4_primary_roi; }
 
     //const std::vector<std::pair<size_t, size_t> >& Particle2MCNode(int roi_index) const;
 
