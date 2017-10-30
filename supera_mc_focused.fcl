@@ -3,8 +3,10 @@ ProcessDriver: {
   Verbosity:    2
   EnableFilter: false
   RandomAccess: false
-  ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaSimCh","SuperaChStatus","SuperaMCROI","WireMask","WireMask"]
-  ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaSimCh","SuperaChStatus","SuperaMCROI","WireMaskWire","WireMaskSegment"]
+  #ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaSimCh","SuperaChStatus","SuperaMCROI","SuperaMCPCluster","SuperaKeyPointCluster","ImageFromPixel2D","ImageFromPixel2D","WireMask","WireMask","WireMask","WireMask"]
+  #ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaSimCh","SuperaChStatus","SuperaMCROI","SuperaMCPCluster","SuperaKeyPointCluster","ImagePCluster","ImageKeyPointCluster","WireMaskWire","WireMaskSegment","WireMaskISeg","WireMaskKeyPoint"]
+  ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaChStatus","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","WireMask","SuperaMCTruth"]
+  ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaChStatus","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","WireMaskWire","SuperaMCTruth"]
 
   IOManager: {
     Verbosity:   2
@@ -43,9 +45,13 @@ ProcessDriver: {
       ChStatusProducer: "wire"
       ImageProducer: "wire"
     }
-    WireMaskSegment: {
+    WireMaskISeg: {
       ChStatusProducer: "wire"
-      ImageProducer: "segment"
+      ImageProducer: "iseg"
+    }
+    WireMaskKeyPoint: {
+      ChStatusProducer: "wire"
+      ImageProducer: "keypt"
     }
     SuperaChStatus: {
       LArChStatusProducer: "chstatus"
@@ -57,37 +63,39 @@ ProcessDriver: {
       LArWireProducer:  "caldata"
       TimeOffset:       2400
     }
-    SuperaSimCh: {
+    SuperaKeyPointCluster: {
       Verbosity: 2
-      OutImageLabel:       "segment"
-      OutROILabel:         "segment"
-      LArMCTruthProducer:  "generator"
+      OutClusterPixel2DLabel: "keypt"
+      OutClusterVoxel2DLabel: "keypt"
       LArMCTrackProducer:  "mcreco"
       LArMCShowerProducer: "mcreco"
-      LArSimChProducer:    "largeant"
-      Origin: 0
       TimeOffset:       2400
+      ApplySCE:      true
+      RowPad:        4
+      ColPad:        4
+      UsePrimaryStart:   true
+      UseSecondaryStart: true
+      UseScattering:     false
+      XPad: 4
+      YPad: 4
+      ZPad: 4
     }
-    SuperaMCROI: {
-      Verbosity: 1
-      OutROILabel:         "segment"
+    SuperaMCParticle: {
+      Verbosity: 0
+      OutParticleLabel:    "mcst"
       LArMCTruthProducer:  "generator"
       LArMCTrackProducer:  "mcreco"
       LArMCShowerProducer: "mcreco"
       LArSimChProducer:    "largeant"
       TimeOffset:       2400
       Origin: 0
-      StoreG4SecondaryROI:  false
-      StoreG4PrimaryROI:    true
       FilterTargetPDG:      []
       FilterTargetInitEMin: []
       FilterTargetDepEMin:  []
-      ShowerInitEMin: 0
-      ShowerDepEMin:  10
       TrackInitEMin:  0
       TrackDepEMin:   10
-      FilterROIMinRows: 0
-      FilterROIMinCols: 0
+      ShowerInitEMin: 0
+      ShowerDepEMin:  10
       MetaConfig: {
         MinTime:          2400
         MinWire:          0
@@ -98,17 +106,34 @@ ProcessDriver: {
       }
       MCParticleTree: {
         Verbosity:    2
-        UseG4Primary: true
+        UseG4Primary: false
 	DTMax:        10000
       }
-      MCROIMaker: {
+      MCParticleMaker: {
         Verbosity:    1
    	MaxTimeTick:  8448
-        TimePadding:  10
-        WirePadding:  10
-        MinWidth:     2
-        MinHeight:    2
+        TimePadding:  0
+        WirePadding:  0
 	ApplySCE:     true
+      }
+    }
+    SuperaMCTruth: {
+      LArMCTruthProducer: "generator"
+      OutParticleLabel: "mctruth"
+      Origin: 0
+    }
+    SuperaMCPCluster: {
+      Verbosity: 2
+      LArMCShowerProducer: "mcreco"
+      LArSimChProducer: "largeant"
+      OutClusterPixel2DLabel: "mcst"
+      OutClusterVoxel3DLabel: "mcst"
+      ParticleProducer:       "mcst"
+      TimeOffset: 0
+      MCParticleTree: {
+        Verbosity:    2
+        UseG4Primary: false
+        DTMax:        10000
       }
     }
   }

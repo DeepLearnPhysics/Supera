@@ -7,7 +7,7 @@ namespace supera {
 
 	void ParamsPixel2D::configure(const supera::Config_t& cfg)
 	{
-		_out_pixel2d_producer = cfg.get<std::string>("OutPixel2DLabel", "");
+		_out_pixel2d_producer = cfg.get<std::string>("OutClusterPixel2DLabel", "");
 	}
 }
 #endif

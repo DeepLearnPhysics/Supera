@@ -21,7 +21,7 @@ namespace larcv {
     SuperaBase::configure(cfg);
     supera::ParamsPixel2D::configure(cfg);
     supera::ParamsVoxel3D::configure(cfg);
-    _mcpt.configure(cfg.get<supera::Config_t>("MCParticleTree"));
+    //_mcpt.configure(cfg.get<supera::Config_t>("MCParticleTree"));
     _part_producer = cfg.get<std::string>("ParticleProducer");
     _target_projection = cfg.get<size_t>("TargetProjection",larcv::kINVALID_SIZE);
   }
@@ -44,6 +44,8 @@ namespace larcv {
     // create trackid=>clusterid mapping as a 1d array
     std::vector<size_t> trackid2cluster(1000, larcv::kINVALID_SIZE); // initialize to size 1000, cuz why not (cheaper than doing resize many times)
     for (auto const& part : part_v) {
+      LARCV_INFO() << "Clustering particle (cluster id, track id, pdg) = (" 
+		   << part.id() << "," << part.track_id() << "," << part.pdg_code() << ")" << std::endl;
       auto track_id = part.track_id();
       auto cluster_id = part.id();
       if (trackid2cluster.size() <= track_id) trackid2cluster.resize(track_id + 1, larcv::kINVALID_SIZE);

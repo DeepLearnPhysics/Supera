@@ -86,7 +86,7 @@ namespace larcv {
       LARCV_CRITICAL() << "Meta not created!" << std::endl;
       throw larbys();
     }
-    auto ev_part = (EventParticle*)(mgr.get_data("part", OutParticleLabel()));
+    auto ev_part = (EventParticle*)(mgr.get_data("particle", OutParticleLabel()));
     if (!ev_part) {
       LARCV_CRITICAL() << "Output part could not be created!" << std::endl;
       throw larbys();

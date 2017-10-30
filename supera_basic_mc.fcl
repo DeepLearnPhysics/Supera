@@ -3,8 +3,8 @@ ProcessDriver: {
   Verbosity:    2
   EnableFilter: false
   RandomAccess: false
-  ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaSimCh","SuperaChStatus","SuperaMCROI","WireMask","WireMask","MaskImage"]
-  ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaSimCh","SuperaChStatus","SuperaMCROI","WireMaskWire","WireMaskSegment","MaskSegment"]
+  ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaChStatus","SuperaMCParticle","WireMask"]
+  ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaChStatus","SuperaMCParticle","WireMaskWire"]
 
   IOManager: {
     Verbosity:   2
@@ -32,17 +32,6 @@ ProcessDriver: {
       ChStatusProducer: "wire"
       ImageProducer: "wire"
     }
-    WireMaskSegment: {
-      ChStatusProducer: "wire"
-      ImageProducer: "segment"
-    }
-    MaskSegment: {
-      Verbosity: 2
-      MinPIThreshold: 2
-      MaskValue: 0
-      ReferenceProducer: "wire"
-      TargetProducer: "segment"
-    }
     SuperaChStatus: {
       LArChStatusProducer: "chstatus"
       OutChStatusLabel: "wire"
@@ -53,28 +42,14 @@ ProcessDriver: {
       LArWireProducer:  "caldata"
       TimeOffset:       2400
     }
-    SuperaSimCh: {
+    SuperaMCParticle: {
       Verbosity: 2
-      OutImageLabel:       "segment"
-      OutROILabel:         "segment"
-      LArMCTruthProducer:  "generator"
-      LArMCTrackProducer:  "mcreco"
-      LArMCShowerProducer: "mcreco"
-      LArSimChProducer:    "largeant"
-      Origin: 1
-      TimeOffset:       2400
-    }
-    SuperaMCROI: {
-      Verbosity: 2
-      OutROILabel:         "segment"
-      LArMCTruthProducer:  "generator"
+      OutParticleLabel:    "segment"
       LArMCTrackProducer:  "mcreco"
       LArMCShowerProducer: "mcreco"
       LArSimChProducer:    "largeant"
       TimeOffset:       2400
       Origin: 0
-      StoreG4SecondaryROI:  false
-      StoreG4PrimaryROI:    true
       FilterTargetPDG:      []
       FilterTargetInitEMin: []
       FilterTargetDepEMin:  []
@@ -82,20 +57,16 @@ ProcessDriver: {
       ShowerDepEMin:  20
       TrackInitEMin:  0
       TrackDepEMin:   20
-      FilterROIMinRows: 0
-      FilterROIMinCols: 0
       MCParticleTree: {
         Verbosity:    2
         UseG4Primary: false
 	DTMax:        10000
       }
-      MCROIMaker: {
+      MCParticleMaker: {
         Verbosity:    2
    	MaxTimeTick:  8448
         TimePadding:  10
         WirePadding:  10
-        MinWidth:     2
-        MinHeight:    2
 	ApplySCE:     true
       }
     }

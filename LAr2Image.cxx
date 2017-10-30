@@ -307,17 +307,13 @@ namespace supera {
                        const int time_offset,
                        const larcv::ProjectionID_t id)
   {
-    // Create the data component of VoxelSetArray2D
-    // Note: voxel_vv is VoxelSet (particle) array
-    larcv::VoxelSetArray voxel_vv;
     // figure out # of clusters to be made
     size_t num_clusters = 0;
     for (auto const& cidx : trackid2cluster) {
       if (cidx == larcv::kINVALID_SIZE) continue;
       if (cidx >= num_clusters) num_clusters = cidx + 1;
     }
-    ((larcv::VoxelSetArray)res).resize(num_clusters + 1);
-
+    res.resize(num_clusters+1);
     // Loop over sim channels
     for (auto const& sch : sch_v) {
       auto ch = sch.Channel();
@@ -331,9 +327,20 @@ namespace supera {
         for (auto const& edep : tick_ides.second) {
           if (edep.energy <= 0) continue;
           // figure out cluster id
-	  double x_tick = (supera::TPCTDC2Tick(tick_ides.first) + time_offset) * supera::TPCTickPeriod()  * supera::DriftVelocity();
+	  double x_tick = (supera::TPCTDC2Tick(tick_ides.first) * supera::TPCTickPeriod() + supera::TriggerOffsetTPC())  * supera::DriftVelocity();
           size_t vox_id = res.meta().id(x_tick, edep.y, edep.z);
-          if (vox_id == larcv::kINVALID_VOXELID) continue;
+
+	  std::cout<< "TDC " << tick_ides.first 
+		   << " => Tick " << supera::TPCTDC2Tick(tick_ides.first)
+		   << " Time " << supera::TPCTDC2Tick(tick_ides.first) * supera::TPCTickPeriod() + supera::TriggerOffsetTPC()
+		   << " X-pos " << x_tick << std::endl;
+	  std::cout<< "Charge deposition @ (x,y,z) = ("<< x_tick <<","<<edep.y<<","<<x_tick<<") ... G4 x @ " << edep.x;
+
+          if (vox_id == larcv::kINVALID_VOXELID) {
+	    std::cout<<" skipping" << std::endl;
+	    continue;
+	  }
+	  std::cout<<" recording" << std::endl;
           size_t trackid = std::abs(edep.trackID);
           size_t cluster_id = num_clusters;
           if (trackid < trackid2cluster.size() &&
@@ -341,7 +348,7 @@ namespace supera {
             cluster_id = trackid2cluster[trackid];
           // Fill voxel
           vox.set(vox_id, edep.energy);
-          auto& voxel_v = ((larcv::VoxelSetArray)res).writeable_voxel_set(cluster_id);
+          auto& voxel_v = res.writeable_voxel_set(cluster_id);
           voxel_v.add(vox);
         }
       }
@@ -350,7 +357,7 @@ namespace supera {
     // Now, if projection id was not specified, divide each voxel by 3
     if( id == larcv::kINVALID_PROJECTIONID) {
       for(size_t id=0; id < ((larcv::VoxelSetArray)res).size(); ++id)
-        ((larcv::VoxelSetArray)res).writeable_voxel_set(id) /= 3.;
+        res.writeable_voxel_set(id) /= 3.;
     }
   }
 

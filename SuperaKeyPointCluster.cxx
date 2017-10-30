@@ -17,6 +17,7 @@ namespace larcv {
   {
     SuperaBase::configure(cfg);
     supera::ParamsPixel2D::configure(cfg);
+    supera::ParamsVoxel3D::configure(cfg);
     supera::ImageMetaMaker::configure(cfg);
 
     _apply_sce    = cfg.get<bool>("ApplySCE");
