@@ -4,6 +4,7 @@
 #include "SuperaKeyPointCluster.h"
 #include "ImageMetaMakerFactory.h"
 #include "PulledPork3DSlicer.h"
+#include "Voxel3DSlicer.h"
 
 namespace larcv {
 
@@ -58,6 +59,11 @@ namespace larcv {
       ptr->ClearEventData();
       ptr->AddConstraint(LArData<supera::LArMCTruth_t>());
       ptr->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());
+    }else if(supera::Voxel3DSlicer::Is(supera::ImageMetaMaker::MetaMakerPtr())) {
+      auto ptr = (supera::Voxel3DSlicer*)(supera::ImageMetaMaker::MetaMakerPtr());
+      ptr->ClearEventData();
+      ptr->AddConstraint(LArData<supera::LArMCTruth_t>());
+      ptr->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());      
     }
 
     std::set<larcv::Vertex> primary_start_s;
@@ -122,6 +128,7 @@ namespace larcv {
       if(_cluster_secondary_start) {
 	if(mcshower.Start().T() != mcshower.DetProfile().T()) {
 	  auto pt = GetPoint(mcshower.DetProfile());
+	  if(pt == start) continue;
 	  LARCV_INFO() << "DetProfile @ ("
 		       << pt.x() << "," << pt.y() << "," << pt.z() << ")"
 		       << " @ G4 Time = " << pt.t() << " [ns]" << std::endl;
@@ -188,13 +195,16 @@ namespace larcv {
 					 const int time_offset)
   {
     auto const& meta = res.meta();
+    LARCV_INFO() << "Using Voxel3DMeta " << std::endl << meta.dump();
     std::vector<larcv::Point3D> pt_v;
     for(auto const& pt : pt_s) {
       double x = (double)(::supera::TPCG4Time2Tick(pt.t()) + time_offset + 0.5) * supera::TPCTickPeriod();
       x += supera::TriggerOffsetTPC();
-      x /= ::supera::DriftVelocity();
-      
-      if(meta.id(x, pt.y(), pt.z()) == larcv::kINVALID_VOXELID) continue;
+      x *= ::supera::DriftVelocity();
+      LARCV_INFO() << "Inspecting point (" << x << "," << pt.y() << "," << pt.z() << ")" 
+		   << " ... Voxel ID: " << meta.id(x,pt.y(),pt.z()) << std::endl;
+      if(meta.id(x, pt.y(), pt.z()) == larcv::kINVALID_VOXELID) 
+	continue;
       larcv::Point3D xyz;
       xyz.x = x; xyz.y = pt.y(); xyz.z = pt.z();
       pt_v.emplace_back(std::move(xyz));
@@ -227,7 +237,7 @@ namespace larcv {
 	    
 	    larcv::Voxel vox(voxel_id, (float)val);
 	    
-	    cluster.emplace(std::move(vox));
+	    cluster.emplace(std::move(vox),true);
 
 	  }
 	}
@@ -282,7 +292,7 @@ namespace larcv {
 	  LARCV_DEBUG() << "    Registering (row,col) = (" << row << "," << col << ") w/ value " << val << std::endl;
 	  auto voxel_id = meta.index((size_t)row,(size_t)col);
 	  larcv::Voxel vox(voxel_id,(float)val);
-	  cluster.emplace(std::move(vox));
+	  cluster.emplace(std::move(vox),true);
 	}
       }
     }

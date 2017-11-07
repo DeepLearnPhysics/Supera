@@ -41,7 +41,7 @@ namespace supera {
                                           const int time_offset)
   {
     std::vector<larcv::Image2D> res_v;
-    for (size_t p = 0; p < ::supera::Nplanes(); ++p) {
+    for (size_t p = 0; p < ::supera::NProjections(); ++p) {
       auto const& meta = meta_v.at(p);
       res_v.emplace_back(std::move(Hit2Image2D(meta, hits, time_offset)));
       res_v.back().index(res_v.size() - 1);
@@ -150,7 +150,7 @@ namespace supera {
                const int time_offset)
   {
     std::vector<larcv::Image2D> res_v;
-    for (size_t p = 0; p < ::supera::Nplanes(); ++p) {
+    for (size_t p = 0; p < ::supera::NProjections(); ++p) {
       auto const& meta = meta_v.at(p);
       res_v.emplace_back(std::move(Wire2Image2D(meta, wires, time_offset)));
       res_v.back().index(res_v.size() - 1);
@@ -329,18 +329,18 @@ namespace supera {
           // figure out cluster id
 	  double x_tick = (supera::TPCTDC2Tick(tick_ides.first) * supera::TPCTickPeriod() + supera::TriggerOffsetTPC())  * supera::DriftVelocity();
           size_t vox_id = res.meta().id(x_tick, edep.y, edep.z);
-
+	  /*
 	  std::cout<< "TDC " << tick_ides.first 
 		   << " => Tick " << supera::TPCTDC2Tick(tick_ides.first)
 		   << " Time " << supera::TPCTDC2Tick(tick_ides.first) * supera::TPCTickPeriod() + supera::TriggerOffsetTPC()
 		   << " X-pos " << x_tick << std::endl;
 	  std::cout<< "Charge deposition @ (x,y,z) = ("<< x_tick <<","<<edep.y<<","<<x_tick<<") ... G4 x @ " << edep.x;
-
+	  */
           if (vox_id == larcv::kINVALID_VOXELID) {
-	    std::cout<<" skipping" << std::endl;
+	    //std::cout<<" skipping" << std::endl;
 	    continue;
 	  }
-	  std::cout<<" recording" << std::endl;
+	  //std::cout<<" recording" << std::endl;
           size_t trackid = std::abs(edep.trackID);
           size_t cluster_id = num_clusters;
           if (trackid < trackid2cluster.size() &&

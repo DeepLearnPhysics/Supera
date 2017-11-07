@@ -1,16 +1,15 @@
 #ifndef __PULLEDPORK3DSLICER_CXX__
 #define __PULLEDPORK3DSLICER_CXX__
 
-#include "PulledPork3DSlicer.h"
+#include "Voxel3DSlicer.h"
 #include "LAr2Image.h"
 #include "larcv/core/DataFormat/EventImage2D.h"
 #include "larcv/core/Base/larbys.h"
-//#include "larcv/core/DataFormat/DataFormatUtil.h"
 #include <cmath>
 
 namespace supera {
 
-  void PulledPork3DSlicer::configure(const supera::Config_t& cfg)
+  void Voxel3DSlicer::configure(const supera::Config_t& cfg)
   {
     set_verbosity((larcv::msg::Level_t)(cfg.get<unsigned short>("Verbosity", logger().level())));
     _slicer.Verbosity((unsigned int)(logger().level()));
@@ -23,40 +22,18 @@ namespace supera {
     LARCV_INFO() << std::endl;
     // See if the user specified 3D grid size
     std::vector<double> grid_size_v;
-    grid_size_v = cfg.get<std::vector<double> >("ForceGridSize",grid_size_v);
-    if(grid_size_v.empty()) {
-      // Set the grid size by minimum wire spacing
-      double grid_size_ymin = std::numeric_limits<double>::max();
-      double grid_size_zmin = std::numeric_limits<double>::max();
-      for (size_t projection = 0; projection < supera::NProjections(); ++projection) {
-	int angle = std::abs((int)(supera::WireAngleToVertical(projection) / M_PI * 180));
-	angle = std::min(angle, 180 - angle);
-	double grid_size_y = std::numeric_limits<double>::max();
-	double grid_size_z = std::numeric_limits<double>::max();
-	if (angle == 0) {
-	  grid_size_y = supera::WirePitch(projection);
-	} else if (angle == 90) {
-	  grid_size_z = supera::WirePitch(projection);
-	} else {
-	  grid_size_y = std::fabs(supera::WirePitch(projection) / cos((double)(angle) / 180. * M_PI));
-	  grid_size_z = std::fabs(grid_size_y / tan((double)(angle) / 180. * M_PI));
-	}
-	if (grid_size_y < grid_size_ymin) grid_size_ymin = grid_size_y;
-	if (grid_size_z < grid_size_zmin) grid_size_zmin = grid_size_z;
-      }
-      _slicer.SetGridSize(supera::DriftVelocity()*supera::TPCTickPeriod(), grid_size_ymin, grid_size_zmin);
-    }else{
-      if(grid_size_v.size()!=3) {
-	LARCV_CRITICAL() << "ForceGridSize argument must be length 3 array" << std::endl;
-	throw larcv::larbys();
-      }
-      for(auto const& v : grid_size_v) {
-	if(v>0) continue;
-	LARCV_CRITICAL() << "ForceGridSize argument must be positive value!" << std::endl;
-	throw larcv::larbys();
-      }
-      _slicer.SetGridSize(grid_size_v[0],grid_size_v[1],grid_size_v[2]);
+    grid_size_v = cfg.get<std::vector<double> >("GridSize",grid_size_v);
+    if(grid_size_v.size()!=3) {
+      LARCV_CRITICAL() << "ForceGridSize argument must be length 3 array" << std::endl;
+      throw larcv::larbys();
     }
+    for(auto const& v : grid_size_v) {
+      if(v>0) continue;
+      LARCV_CRITICAL() << "ForceGridSize argument must be positive value!" << std::endl;
+      throw larcv::larbys();
+    }
+    _slicer.SetGridSize(grid_size_v[0],grid_size_v[1],grid_size_v[2]);
+
     // Target volume size
     auto width_v = cfg.get<std::vector<double> >("WidthArray");
     if (width_v.size() != 3) {
@@ -120,16 +97,6 @@ namespace supera {
                             constraint_yv[i],
                             constraint_zv[i]);
 
-    // Target time pixels
-    _time_pixel = cfg.get<size_t>("TimePixels");
-
-    // Target wire pixels
-    _wire_pixel_v = cfg.get<std::vector<size_t> >("WirePixels");
-    if (_wire_pixel_v.size() != supera::NProjections()) {
-      LARCV_CRITICAL() << "WirePixels parameter array length != # projections..." << std::endl;
-      throw std::exception();
-    }
-
     // Apply SCE
     _apply_sce = cfg.get<bool>("ApplySCE");
 
@@ -150,7 +117,7 @@ namespace supera {
 
   }
 
-  bool PulledPork3DSlicer::Test() const
+  bool Voxel3DSlicer::Test() const
   {
     // Test by adding fake points @ middle
     std::vector<supera::GridPoint3D> points_v;
@@ -168,15 +135,15 @@ namespace supera {
     return (meta_v.size() == supera::NProjections());
   }
 
-  void PulledPork3DSlicer::AddConstraint(double x, double y, double z)
+  void Voxel3DSlicer::AddConstraint(double x, double y, double z)
   { _slicer.AddConstraint(x, y, z); }
 
-  void PulledPork3DSlicer::AddConstraint(const std::vector<supera::LArMCTruth_t>& mctruth_v) {
+  void Voxel3DSlicer::AddConstraint(const std::vector<supera::LArMCTruth_t>& mctruth_v) {
     for (auto const& mct : mctruth_v)
       this->AddConstraint(mct);
   }
 
-  void PulledPork3DSlicer::AddConstraint(const supera::LArMCTruth_t& mctruth) {
+  void Voxel3DSlicer::AddConstraint(const supera::LArMCTruth_t& mctruth) {
 
     if (_origin > 0 && mctruth.Origin() != _origin) {
       LARCV_INFO() << "Skipping to add a constraint for origin " << mctruth.Origin()
@@ -216,25 +183,25 @@ namespace supera {
     }
   }
 
-  void PulledPork3DSlicer::ClearEventData()
+  void Voxel3DSlicer::ClearEventData()
   {
     _slicer.Clear();
     _meta_v.clear();
   }
 
-  void PulledPork3DSlicer::GenerateMeta(const std::vector<supera::LArSimCh_t>& simch_v,
+  void Voxel3DSlicer::GenerateMeta(const std::vector<supera::LArSimCh_t>& simch_v,
                                         const int time_offset)
   {
     std::vector<int> trackid_v;
     GenerateMeta(simch_v, time_offset, trackid_v, false);
   }
 
-  void PulledPork3DSlicer::GenerateMeta(const std::vector<supera::LArSimCh_t>& simch_v,
+  void Voxel3DSlicer::GenerateMeta(const std::vector<supera::LArSimCh_t>& simch_v,
                                         const int  time_offset,
                                         const std::vector<int>& trackid_v)
   { GenerateMeta(simch_v, time_offset, trackid_v, true); }
 
-  void PulledPork3DSlicer::GenerateMeta(const std::vector<supera::LArSimCh_t>& simch_v,
+  void Voxel3DSlicer::GenerateMeta(const std::vector<supera::LArSimCh_t>& simch_v,
                                         const int time_offset,
                                         const std::vector<int>& trackid_v,
                                         const bool use_track_id)
@@ -288,7 +255,7 @@ namespace supera {
     DeriveMeta(_meta_v, _meta3d, point_v, time_offset);
   }
 
-  void PulledPork3DSlicer::GenerateMeta(const int time_offset)
+  void Voxel3DSlicer::GenerateMeta(const int time_offset)
   {
     LARCV_INFO() << _slicer.PrintConfig() << std::flush;
     std::vector<supera::GridPoint3D> point_v;
@@ -296,19 +263,19 @@ namespace supera {
   }
 
   void
-  PulledPork3DSlicer::DeriveMeta(std::vector<larcv::ImageMeta>& meta_v,
-				 larcv::Voxel3DMeta& meta3d,
-				 const std::vector<supera::GridPoint3D>& point_v,
-                                 const int time_offset) const {
+  Voxel3DSlicer::DeriveMeta(std::vector<larcv::ImageMeta>& meta_v,
+			    larcv::Voxel3DMeta& meta3d,
+			    const std::vector<supera::GridPoint3D>& point_v,
+			    const int time_offset) const {
     supera::GridPoint3D min_pt;
     supera::GridPoint3D max_pt;
     _slicer.DeriveRange(point_v, min_pt, max_pt);
 
     meta3d.set(min_pt.x * _slicer.GridSizeX(), min_pt.y * _slicer.GridSizeY(), min_pt.z * _slicer.GridSizeZ(),
-	       max_pt.x * _slicer.GridSizeX(), max_pt.y * _slicer.GridSizeY(), max_pt.z * _slicer.GridSizeZ(),
-	       (size_t)((max_pt.x - min_pt.x) * _slicer.GridSizeX()) + 1,
-	       (size_t)((max_pt.y - min_pt.y) * _slicer.GridSizeY()) + 1,
-	       (size_t)((max_pt.z - min_pt.z) * _slicer.GridSizeZ()) + 1,
+	       (max_pt.x+1) * _slicer.GridSizeX(), (max_pt.y+1) * _slicer.GridSizeY(), (max_pt.z+1) * _slicer.GridSizeZ(),
+	       (size_t)((max_pt.x - min_pt.x)) + 1,
+	       (size_t)((max_pt.y - min_pt.y)) + 1,
+	       (size_t)((max_pt.z - min_pt.z)) + 1,
 	       larcv::kUnitCM);
 
     std::vector<std::vector<double> > edge_v(4, std::vector<double>(3, 0.));
@@ -335,62 +302,14 @@ namespace supera {
         if (wire > wire_range.second) wire_range.second = wire;
       }
     }
-    // Clean up edge effects
-    for (size_t projection = 0; projection < supera::NProjections(); ++projection) {
-      auto& wire_range = wire_range_v[projection];
-      auto const& pixel_count = _wire_pixel_v[projection];
-      // Check if target pixel is within 1 tick
-      int pixel_count_raw = wire_range.second - wire_range.first + 1;
-      int pixel_count_offset = (int)(pixel_count) - pixel_count_raw;
-      if (std::abs(pixel_count_offset) < 1) {
-        LARCV_INFO() << "Projection " << projection
-                     << " wire range " << wire_range.first
-                     << " => " << wire_range.second
-                     << " good match for expected pixel count " << pixel_count
-                     << std::endl;
-      } else {
-        LARCV_WARNING() << "Projection " << projection
-                        << " wire range " << wire_range.first
-                        << " => " << wire_range.second
-                        << " does not match exactly for expected pixel count " << pixel_count
-                        << std::endl;
-      }
-      // If pixel count does not match exactly, extend
-      if (pixel_count_offset > 0) {
-        bool extend_to_lower = ( wire_range.first > ((int)(supera::Nwires(projection)) - wire_range.second) );
-        if (extend_to_lower)
-          wire_range.first -= pixel_count_offset;
-        else
-          wire_range.second += pixel_count_offset;
-      }
-      if (pixel_count_offset < 0) {
-        bool shrink_from_lower = ( wire_range.first > ((int)(supera::Nwires(projection)) - wire_range.second) );
-        if (shrink_from_lower)
-          wire_range.first -= pixel_count_offset;
-        else
-          wire_range.second += pixel_count_offset;
-      }
-    }
-
     // Tick conversion from X
-    //int tick_start = (int)((min_pt.x / supera::DriftVelocity() - supera::TriggerOffsetTPC()) / supera::TPCTickPeriod() + 0.5) + time_offset;
-    //int tick_end   = (int)((max_pt.x / supera::DriftVelocity() - supera::TriggerOffsetTPC()) / supera::TPCTickPeriod() + 0.5) + time_offset;
-    int tick_start = min_pt.x + time_offset - supera::TriggerOffsetTPC() / supera::TPCTickPeriod();
-    int tick_end   = max_pt.x + time_offset - supera::TriggerOffsetTPC() / supera::TPCTickPeriod();
+    int tick_start = (int)((min_pt.x / supera::DriftVelocity() - supera::TriggerOffsetTPC()) / supera::TPCTickPeriod() + 0.5) + time_offset;
+    int tick_end   = (int)((max_pt.x / supera::DriftVelocity() - supera::TriggerOffsetTPC()) / supera::TPCTickPeriod() + 0.5) + time_offset;
+    //int tick_start = min_pt.x + time_offset - supera::TriggerOffsetTPC() / supera::TPCTickPeriod();
+    //int tick_end   = max_pt.x + time_offset - supera::TriggerOffsetTPC() / supera::TPCTickPeriod();
 
     LARCV_INFO() << "X range: " << min_pt.x << " => " << max_pt.x
                  << " converted to " << tick_start << " => " << tick_end << std::endl;
-
-    // Clean up edge effect
-    int tick_count_offset = _time_pixel - (tick_end - tick_start + 1);
-    if ( std::abs(tick_count_offset) > 1 ) {
-      LARCV_CRITICAL() << "Time tick range " << tick_start
-                       << " => " << tick_end
-                       << " does not match expected pixel count " << _time_pixel << std::endl;
-      throw std::exception();
-    }
-    if ( tick_count_offset > 0 ) tick_end -= tick_count_offset;
-    if ( tick_count_offset < 0 ) tick_end += tick_count_offset;
 
     meta_v.clear();
     for (size_t projection = 0; projection < supera::NProjections(); ++projection) {

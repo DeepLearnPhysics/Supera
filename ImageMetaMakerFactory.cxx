@@ -5,6 +5,7 @@
 #include "ImageMetaMakerFactory.h"
 #include "ImageMetaFromConfig.h"
 #include "PulledPork3DSlicer.h"
+#include "Voxel3DSlicer.h"
 
 namespace supera {
   
@@ -27,6 +28,17 @@ namespace supera {
 	maker = new PulledPork3DSlicer();
 	maker->configure(meta_cfg);
 	LARCV_SINFO() << "Successfully made supera::PulledPork3DSlicer! " << std::endl;
+      }catch(...){
+	if(maker) delete maker;
+      }
+    }
+    if(!maker) {
+      try{
+	LARCV_SINFO() << "Attempting to construct supera::Voxel3DSlicer..." << std::endl;
+	auto const& meta_cfg = cfg.get<supera::Config_t>("Voxel3DSlicer");
+	maker = new Voxel3DSlicer();
+	maker->configure(meta_cfg);
+	LARCV_SINFO() << "Successfully made supera::Voxel3DSlicer! " << std::endl;
       }catch(...){
 	if(maker) delete maker;
       }

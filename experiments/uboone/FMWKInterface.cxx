@@ -51,6 +51,12 @@ namespace supera {
     auto const* geom = ::lar::providerFrom<geo::Geometry>();
     return geom->Nplanes();
   }
+
+  unsigned int NProjections()
+  { 
+    auto const* geom = ::lar::providerFrom<geo::Geometry>();
+    return geom->Nplanes();
+  }
   
   unsigned int Nwires(unsigned int plane)
   { 

@@ -55,8 +55,11 @@ namespace supera {
   /// Number of channels
   unsigned int Nchannels();
   
-  /// Number of planes
+  /// Number of planes (deprecated)
   unsigned int Nplanes();
+
+  /// Number of projections
+  unsigned int NProjections();
   
   /// Number of wires
   unsigned int Nwires(unsigned int plane);

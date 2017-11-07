@@ -25,13 +25,14 @@ namespace supera {
       const std::vector<supera::LArSimCh_t>& sch_v) const
   {
     LARCV_DEBUG() << "start" << std::endl;
-    // result is N planes' wire boundary + time boundary (N+1 elements)
-    WTRangeArray_t result(supera::Nplanes() + 1);
+    // result is N projections' wire boundary + time boundary (N+1 elements)
+    WTRangeArray_t result(supera::NProjections() + 1);
 
     for (auto const& sch : sch_v) {
 
+      auto const projection = ChannelToProjectionID(sch.Channel());
       auto const wire = ChannelToWireID(sch.Channel());
-      auto& wrange = result[wire.Plane];
+      auto& wrange = result[projection];
       auto& trange = result.back();
 
       for (auto const& tdc_ide_v : sch.TDCIDEMap()) {
@@ -60,10 +61,10 @@ namespace supera {
 
     for (auto& r : result) if (!r.valid()) r.Set(0, 0);
 
-    for (size_t plane = 0; plane <= supera::Nplanes(); ++plane)
+    for (size_t projection = 0; projection <= supera::NProjections(); ++projection)
 
-      LARCV_INFO() << "Single MCShower ... Plane " << plane
-                   << " bound " << result[plane].Start() << " => " << result[plane].End() << std::endl;
+      LARCV_INFO() << "Single MCShower ... Projection " << projection
+                   << " bound " << result[projection].Start() << " => " << result[projection].End() << std::endl;
 
     return result;
   }
@@ -73,12 +74,12 @@ namespace supera {
     LARCV_DEBUG() << "start" << std::endl;
     const double drift_velocity = ::supera::DriftVelocity() * 1.0e-3; // make it cm/ns
     //const int tick_max = ::supera::NumberTimeSamples();
-    const double plane_tick_offset = PlaneTickOffset(0, 1); // plane 1 as a reference
+    const double projection_tick_offset = PlaneTickOffset(0, 1); // projection 1 as a reference
     const int tick_max = _max_time_tick;
     TVector3 xyz; xyz[0] = xyz[1] = xyz[2] = 0.;
 
-    // result is N planes' wire boundary + time boundary (N+1 elements)
-    WTRangeArray_t result(::supera::Nplanes() + 1);
+    // result is N projections' wire boundary + time boundary (N+1 elements)
+    WTRangeArray_t result(::supera::NProjections() + 1);
 
     for (auto& step : mct) {
 
@@ -88,7 +89,7 @@ namespace supera {
       if (_apply_sce) ApplySCE(xyz);
 
       // Figure out time
-      int tick = (int)(::supera::TPCG4Time2Tick(step.T() + (xyz[0]  / drift_velocity)) + plane_tick_offset + 0.5);
+      int tick = (int)(::supera::TPCG4Time2Tick(step.T() + (xyz[0]  / drift_velocity)) + projection_tick_offset + 0.5);
 
       if (tick < 0 || tick >= tick_max) {
         LARCV_DEBUG() << "tick out of time: " << tick << std::endl;
@@ -99,13 +100,13 @@ namespace supera {
       if (!trange.valid()) trange.Set((unsigned int)tick, (unsigned int)tick); // 1st time: "set" it
       else trange += (unsigned int)tick; // >1st time: "add (include)" it
 
-      // Figure out wire per plane
+      // Figure out wire per projection
       LARCV_DEBUG() << "(x,t,v) = (" << xyz[0] << "," << step.T() << "," << drift_velocity << ") ... tick = " << tick << std::endl;
-      for (size_t plane = 0; plane < supera::Nplanes(); ++plane) {
+      for (size_t projection = 0; projection < supera::NProjections(); ++projection) {
 
-        auto wire_id = ::supera::NearestWire(xyz, plane);
-        auto& wrange = result[plane];
-        LARCV_DEBUG() << "(y,z) = (" << xyz[1] << "," << xyz[2] << ") ... @ plane " << plane << " wire = " << wire_id
+        auto wire_id = ::supera::NearestWire(xyz, projection);
+        auto& wrange = result[projection];
+        LARCV_DEBUG() << "(y,z) = (" << xyz[1] << "," << xyz[2] << ") ... @ projection " << projection << " wire = " << wire_id
                       << (wrange.valid() ? " updating wire-range" : " setting wire-range") << std::endl;
         if (!wrange.valid()) wrange.Set((unsigned int)wire_id, (unsigned int)wire_id);
         else wrange += (unsigned int)wire_id;
@@ -116,10 +117,10 @@ namespace supera {
     for (auto& r : result) if (!r.valid()) r.Set(0, 0);
     //if(!r.valid() || (r.End() - r.Start()) < 2) r.Set(0,0);
 
-    for (size_t plane = 0; plane <= supera::Nplanes(); ++plane)
+    for (size_t projection = 0; projection <= supera::NProjections(); ++projection)
 
-      LARCV_INFO() << "Single MCTrack ... Plane " << plane
-                   << " bound " << result[plane].Start() << " => " << result[plane].End() << std::endl;
+      LARCV_INFO() << "Single MCTrack ... Projection " << projection
+                   << " bound " << result[projection].Start() << " => " << result[projection].End() << std::endl;
 
     return result;
   }
@@ -132,8 +133,8 @@ namespace supera {
     const int tick_max = _max_time_tick;
     double xyz[3] = {0.};
 
-    // result is N planes' wire boundary + time boundary (N+1 elements)
-    WTRangeArray_t result(::supera::Nplanes() + 1);
+    // result is N projections' wire boundary + time boundary (N+1 elements)
+    WTRangeArray_t result(::supera::NProjections() + 1);
 
     auto const& detprofile = mcs.DetProfile();
     double energy = detprofile.E();
@@ -143,7 +144,7 @@ namespace supera {
     //double showerlength = 100.0;
     double detprofnorm = sqrt( detprofile.Px() * detprofile.Px() + detprofile.Py() * detprofile.Py() + detprofile.Pz() * detprofile.Pz() );
     TLorentzVector showerend;
-    const double plane_tick_offset = PlaneTickOffset(0, 1); // plane 1 as a reference
+    const double projection_tick_offset = PlaneTickOffset(0, 1); // projection 1 as a reference
     showerend[0] = detprofile.X() + showerlength * (detprofile.Px() / detprofnorm);
     showerend[1] = detprofile.Y() + showerlength * (detprofile.Py() / detprofnorm);
     showerend[2] = detprofile.Z() + showerlength * (detprofile.Pz() / detprofnorm);
@@ -161,7 +162,7 @@ namespace supera {
       if (_apply_sce) ApplySCE(xyz);
 
       // Figure out time
-      int tick = (int)(::supera::TPCG4Time2Tick(step.T() + (xyz[0]  / drift_velocity)) + plane_tick_offset + 0.5);
+      int tick = (int)(::supera::TPCG4Time2Tick(step.T() + (xyz[0]  / drift_velocity)) + projection_tick_offset + 0.5);
 
       if (tick < 0 || tick >= tick_max) continue;
 
@@ -169,12 +170,12 @@ namespace supera {
       if (!trange.valid()) trange.Set((unsigned int)tick, (unsigned int)tick);
       else trange += (unsigned int)tick;
 
-      // Figure out wire per plane
-      for (size_t plane = 0; plane < supera::Nplanes(); ++plane) {
+      // Figure out wire per projection
+      for (size_t projection = 0; projection < supera::NProjections(); ++projection) {
 
-        auto wire_id = ::supera::NearestWire(xyz, plane);
+        auto wire_id = ::supera::NearestWire(xyz, projection);
 
-        auto& wrange = result[plane];
+        auto& wrange = result[projection];
         if (!wrange.valid()) wrange.Set((unsigned int)wire_id, (unsigned int)wire_id);
         else wrange += (unsigned int)wire_id;
       }
@@ -184,10 +185,10 @@ namespace supera {
 
     for (auto& r : result) if (!r.valid()) r.Set(0, 0);
 
-    for (size_t plane = 0; plane <= supera::Nplanes(); ++plane)
+    for (size_t projection = 0; projection <= supera::NProjections(); ++projection)
 
-      LARCV_INFO() << "Single MCShower ... Plane " << plane
-                   << " bound " << result[plane].Start() << " => " << result[plane].End() << std::endl;
+      LARCV_INFO() << "Single MCShower ... Projection " << projection
+                   << " bound " << result[projection].Start() << " => " << result[projection].End() << std::endl;
 
     return result;
   }
@@ -196,8 +197,8 @@ namespace supera {
       const std::vector<supera::LArSimCh_t>& sch_v) const
   {
     LARCV_DEBUG() << "start" << std::endl;
-    // result is N planes' wire boundary + time boundary (N+1 elements)
-    WTRangeArray_t result(::supera::Nplanes() + 1);
+    // result is N projections' wire boundary + time boundary (N+1 elements)
+    WTRangeArray_t result(::supera::NProjections() + 1);
 
     std::set<unsigned int> daughters;
     for (auto const& trackid : mcs.DaughterTrackID()) daughters.insert(trackid);
@@ -205,8 +206,9 @@ namespace supera {
 
     for (auto const& sch : sch_v) {
 
+      auto const projection = ChannelToProjectionID(sch.Channel());
       auto const wire = ChannelToWireID(sch.Channel());
-      auto& wrange = result[wire.Plane];
+      auto& wrange = result[projection];
       auto& trange = result.back();
 
       for (auto const& tdc_ide_v : sch.TDCIDEMap()) {
@@ -235,10 +237,10 @@ namespace supera {
 
     for (auto& r : result) if (!r.valid()) r.Set(0, 0);
 
-    for (size_t plane = 0; plane <= supera::Nplanes(); ++plane)
+    for (size_t projection = 0; projection <= supera::NProjections(); ++projection)
 
-      LARCV_INFO() << "Single MCShower ... Plane " << plane
-                   << " bound " << result[plane].Start() << " => " << result[plane].End() << std::endl;
+      LARCV_INFO() << "Single MCShower ... Projection " << projection
+                   << " bound " << result[projection].Start() << " => " << result[projection].End() << std::endl;
 
     return result;
   }
@@ -255,7 +257,7 @@ namespace supera {
       auto const& trange = wtrange_v.back();
 
       if (!wrange.valid() || !trange.valid()) {
-        LARCV_INFO() << "Invalid WTRange_t for Plane " << i << std::endl
+        LARCV_INFO() << "Invalid WTRange_t for Projection " << i << std::endl
                      << "     W: " << wrange.Start() << " => " << wrange.End() << (wrange.valid() ? " good" : " bad")
                      << " ... T: " << trange.Start() << " => " << trange.End() << (trange.valid() ? " good" : " bad") << std::endl;
         bb_v.push_back(larcv::BBox2D());
@@ -281,7 +283,7 @@ namespace supera {
         origin_y = (int)(trange.Start()) - (int)(_time_padding);
       }
 
-      LARCV_INFO() << "Constructing BBox2D from WTRange_t for Plane " << i
+      LARCV_INFO() << "Constructing BBox2D from WTRange_t for Projection " << i
                    << " w/ padding (w,t) = (" << _wire_padding << "," << _time_padding << ")" << std::endl
                    << "      W: " << wrange.Start() << " => " << wrange.End() << (wrange.valid() ? " good" : " bad")
                    << " ... T: " << trange.Start() << " => " << trange.End() << (trange.valid() ? " good" : " bad") << std::endl

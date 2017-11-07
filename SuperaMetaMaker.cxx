@@ -7,6 +7,7 @@
 #include "ImageMetaMakerFactory.h"
 #include "ImageMetaMaker.h"
 #include "PulledPork3DSlicer.h"
+#include "Voxel3DSlicer.h"
 #include "larcv/core/DataFormat/EventImage2D.h"
 
 namespace larcv {
@@ -61,6 +62,28 @@ namespace larcv {
 	((supera::PulledPork3DSlicer*)(_meta_maker))->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());
       else
 	((supera::PulledPork3DSlicer*)(_meta_maker))->GenerateMeta(TimeOffset());
+    }
+    else if(supera::Voxel3DSlicer::Is(_meta_maker)) {
+      ((supera::Voxel3DSlicer*)(_meta_maker))->ClearEventData();
+      if(!LArDataLabel(supera::LArDataType_t::kLArMCTruth_t).empty())
+	((supera::Voxel3DSlicer*)(_meta_maker))->AddConstraint(LArData<supera::LArMCTruth_t>());
+      if(!CSV().empty() && _constraint_m.empty()) {
+	_constraint_m.clear();
+	supera::csvreader::read_constraint_file(CSV(),_constraint_m);
+	LARCV_NORMAL() << "Loaded constraint points for " << _constraint_m.size() << " events..." << std::endl;
+      }
+      if(_constraint_m.size()) {
+	auto const& larcv_event_id = mgr.event_id();
+	//supera::RSEID supera_event_id(larcv_event_id.run(),larcv_event_id.subrun(),larcv_event_id.event());
+	supera::RSEID supera_event_id(larcv_event_id.run(),larcv_event_id.event());
+	auto iter = _constraint_m.find(supera_event_id);
+	if(iter!=_constraint_m.end()) 
+	  ((supera::Voxel3DSlicer*)(_meta_maker))->AddConstraint((*iter).second[0],(*iter).second[1],(*iter).second[2]);
+      }
+      if(!LArDataLabel(supera::LArDataType_t::kLArSimCh_t).empty())
+	((supera::Voxel3DSlicer*)(_meta_maker))->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());
+      else
+	((supera::Voxel3DSlicer*)(_meta_maker))->GenerateMeta(TimeOffset());
     }
     
     return true;

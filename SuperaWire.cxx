@@ -5,6 +5,7 @@
 #include "LAr2Image.h"
 #include "ImageMetaMakerFactory.h"
 #include "PulledPork3DSlicer.h"
+#include "Voxel3DSlicer.h"
 #include "larcv/core/DataFormat/EventImage2D.h"
 
 namespace larcv {
@@ -34,6 +35,11 @@ namespace larcv {
       ptr->ClearEventData();
       ptr->AddConstraint(LArData<supera::LArMCTruth_t>());
       ptr->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());
+    }else if(supera::Voxel3DSlicer::Is(supera::ImageMetaMaker::MetaMakerPtr())) {
+      auto ptr = (supera::Voxel3DSlicer*)(supera::ImageMetaMaker::MetaMakerPtr());
+      ptr->ClearEventData();
+      ptr->AddConstraint(LArData<supera::LArMCTruth_t>());
+      ptr->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());      
     }
 	
     auto const& meta_v = Meta();

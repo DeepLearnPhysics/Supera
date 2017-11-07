@@ -4,6 +4,7 @@
 #include "SuperaMCTruth.h"
 #include "ImageMetaMakerFactory.h"
 #include "PulledPork3DSlicer.h"
+#include "Voxel3DSlicer.h"
 #include "larcv/core/DataFormat/EventParticle.h"
 #include "LAr2Image.h"
 
@@ -48,17 +49,16 @@ namespace larcv {
   {
     SuperaBase::process(mgr);
 
-    if (supera::PulledPork3DSlicer::Is(supera::ImageMetaMaker::MetaMakerPtr())) {
+    if(supera::PulledPork3DSlicer::Is(supera::ImageMetaMaker::MetaMakerPtr())) {
       auto ptr = (supera::PulledPork3DSlicer*)(supera::ImageMetaMaker::MetaMakerPtr());
       ptr->ClearEventData();
       ptr->AddConstraint(LArData<supera::LArMCTruth_t>());
-      ptr->GenerateMeta(LArData<supera::LArSimCh_t>(), TimeOffset());
-    }
-    
-    auto const& meta_v = Meta();
-    if (meta_v.empty()) {
-      LARCV_CRITICAL() << "Meta not created!" << std::endl;
-      throw larbys();
+      ptr->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());
+    }else if(supera::Voxel3DSlicer::Is(supera::ImageMetaMaker::MetaMakerPtr())) {
+      auto ptr = (supera::Voxel3DSlicer*)(supera::ImageMetaMaker::MetaMakerPtr());
+      ptr->ClearEventData();
+      ptr->AddConstraint(LArData<supera::LArMCTruth_t>());
+      ptr->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());      
     }
 
     auto& ev_part = mgr.get_data<larcv::EventParticle>(OutParticleLabel());

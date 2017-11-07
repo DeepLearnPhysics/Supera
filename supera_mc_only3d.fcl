@@ -3,8 +3,8 @@ ProcessDriver: {
   Verbosity:    2
   EnableFilter: false
   RandomAccess: false
-  ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaChStatus","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","WireMask","SuperaMCTruth"]
-  ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaChStatus","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","WireMaskWire","SuperaMCTruth"]
+  ProcessType:  ["SuperaMetaMaker","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth"]
+  ProcessName:  ["SuperaMetaMaker","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth"]
 
   IOManager: {
     Verbosity:   2
@@ -21,16 +21,15 @@ ProcessDriver: {
     SuperaMetaMaker: {
       LArSimChProducer: "largeant"
       LArMCTruthProducer: "generator"
-      PulledPork: {
+      Voxel3DSlicer: {
         Verbosity: 2
         Origin: 0
-        WidthArray:    [171.16552,88.681001347526518,153.6]
+        GridSize:      [0.5,0.5,0.5]
+        WidthArray:    [130.,130.,130.]
         MinCoordinate: [0.,-116.5,0.]
         MaxCoordinate: [256.35,116.5,1036.8]
-        Padding: [10,10,10]
-        TimePixels: 3072
-        WirePixels: [512,512,512]
-        EventCompRows: [6,6,6]
+        Padding: [5,5,5]
+        EventCompRows: [1,1,1]
         EventCompCols: [1,1,1]
         ApplySCE: true
         T0G4ns: 0
@@ -39,22 +38,6 @@ ProcessDriver: {
         ConstraintZ: []
       }
     }
-    WireMaskWire: {
-      ChStatusProducer: "wire"
-      ImageProducer: "wire"
-    }
-    WireMaskISeg: {
-      ChStatusProducer: "wire"
-      ImageProducer: "iseg"
-    }
-    WireMaskKeyPoint: {
-      ChStatusProducer: "wire"
-      ImageProducer: "keypt"
-    }
-    SuperaChStatus: {
-      LArChStatusProducer: "chstatus"
-      OutChStatusLabel: "wire"
-    }
     SuperaWire: {
       Verbosity: 2
       OutImageLabel:    "wire"
@@ -62,21 +45,21 @@ ProcessDriver: {
       TimeOffset:       2400
     }
     SuperaKeyPointCluster: {
-      Verbosity: 2
-      OutClusterPixel2DLabel: "keypt"
-      OutClusterVoxel2DLabel: "keypt"
+      Verbosity: 1
+      OutClusterPixel2DLabel: ""
+      OutClusterVoxel3DLabel: "keypt"
       LArMCTrackProducer:  "mcreco"
       LArMCShowerProducer: "mcreco"
-      TimeOffset:       2400
+      TimeOffset:    0
       ApplySCE:      true
       RowPad:        4
       ColPad:        4
       UsePrimaryStart:   true
-      UseSecondaryStart: true
+      UseSecondaryStart: false
       UseScattering:     false
-      XPad: 4
-      YPad: 4
-      ZPad: 4
+      XPad: 2
+      YPad: 2
+      ZPad: 2
     }
     SuperaMCParticle: {
       Verbosity: 2
@@ -124,7 +107,7 @@ ProcessDriver: {
       Verbosity: 2
       LArMCShowerProducer: "mcreco"
       LArSimChProducer: "largeant"
-      OutClusterPixel2DLabel: "mcst"
+      OutClusterPixel2DLabel: ""
       OutClusterVoxel3DLabel: "mcst"
       ParticleProducer:       "mcst"
       TimeOffset: 0

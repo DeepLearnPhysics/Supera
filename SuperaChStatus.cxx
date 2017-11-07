@@ -22,7 +22,7 @@ namespace larcv {
   void SuperaChStatus::initialize()
   {
     SuperaBase::initialize();
-    for (size_t i = 0; i < ::supera::Nplanes(); ++i) {
+    for (size_t i = 0; i < ::supera::NProjections(); ++i) {
       ::larcv::ChStatus status;
       status.id(i);
       status.initialize(::supera::Nwires(i), ::larcv::chstatus::kUNKNOWN);

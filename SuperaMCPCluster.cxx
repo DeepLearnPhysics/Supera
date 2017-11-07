@@ -2,6 +2,7 @@
 #define __SUPERAMCPCLUSTER_CXX__
 
 #include "SuperaMCPCluster.h"
+#include "Voxel3DSlicer.h"
 #include "PulledPork3DSlicer.h"
 #include "larcv/core/DataFormat/EventParticle.h"
 #include "larcv/core/DataFormat/EventVoxel2D.h"
@@ -31,12 +32,18 @@ namespace larcv {
 
   bool SuperaMCPCluster::process(IOManager& mgr)
   {
+    SuperaBase::process(mgr);
 
     if(supera::PulledPork3DSlicer::Is(supera::ImageMetaMaker::MetaMakerPtr())) {
       auto ptr = (supera::PulledPork3DSlicer*)(supera::ImageMetaMaker::MetaMakerPtr());
       ptr->ClearEventData();
       ptr->AddConstraint(LArData<supera::LArMCTruth_t>());
       ptr->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());
+    }else if(supera::Voxel3DSlicer::Is(supera::ImageMetaMaker::MetaMakerPtr())) {
+      auto ptr = (supera::Voxel3DSlicer*)(supera::ImageMetaMaker::MetaMakerPtr());
+      ptr->ClearEventData();
+      ptr->AddConstraint(LArData<supera::LArMCTruth_t>());
+      ptr->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());      
     }
 
     auto const& part_v = mgr.get_data<larcv::EventParticle>(_part_producer).as_vector();
@@ -64,15 +71,14 @@ namespace larcv {
       }
     }
 
-    auto meta_v = Meta();
-    for (auto& meta : meta_v)
-      meta.update(meta.rows() / RowCompressionFactor().at(meta.id()),
-                  meta.cols() / ColCompressionFactor().at(meta.id()));
-
     //
     // Is pixel2d cluster requested? shit
     //                                                                                                                                                                              
     if(!(OutPixel2DLabel().empty())) {
+      auto meta_v = Meta();
+      for (auto& meta : meta_v)
+	meta.update(meta.rows() / RowCompressionFactor().at(meta.id()),
+		    meta.cols() / ColCompressionFactor().at(meta.id()));
       auto& ev_pixel2d  = mgr.get_data<larcv::EventClusterPixel2D>(OutPixel2DLabel());
       auto res = supera::SimCh2ClusterPixel2D(meta_v, LArData<supera::LArSimCh_t>(), 
 					      trackid2cluster, TimeOffset());
