@@ -52,7 +52,7 @@ namespace larcv {
     std::string _part_producer;
     ProjectionID_t _target_projection;
     supera::MCParticleTree _mcpt;
-
+    bool _use_true_pos;
   };
 
   /**

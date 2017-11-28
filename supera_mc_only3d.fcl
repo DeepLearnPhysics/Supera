@@ -3,8 +3,8 @@ ProcessDriver: {
   Verbosity:    2
   EnableFilter: false
   RandomAccess: false
-  ProcessType:  ["SuperaMetaMaker","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth"]
-  ProcessName:  ["SuperaMetaMaker","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth"]
+  ProcessType:  ["SuperaMetaMaker","SuperaMCParticle","SuperaKeyPointCluster","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth"]
+  ProcessName:  ["SuperaMetaMaker","SuperaMCParticle","PrimaryKeyPointCluster","SecondaryKeyPointCluster","SuperaMCPCluster","SuperaMCTruth"]
 
   IOManager: {
     Verbosity:   2
@@ -25,7 +25,7 @@ ProcessDriver: {
         Verbosity: 2
         Origin: 0
         GridSize:      [0.5,0.5,0.5]
-        WidthArray:    [130.,130.,130.]
+        WidthArray:    [128.,128.,128.]
         MinCoordinate: [0.,-116.5,0.]
         MaxCoordinate: [256.35,116.5,1036.8]
         Padding: [5,5,5]
@@ -44,22 +44,39 @@ ProcessDriver: {
       LArWireProducer:  "caldata"
       TimeOffset:       2400
     }
-    SuperaKeyPointCluster: {
+    PrimaryKeyPointCluster: {
       Verbosity: 1
       OutClusterPixel2DLabel: ""
-      OutClusterVoxel3DLabel: "keypt"
+      OutClusterVoxel3DLabel: "primary"
       LArMCTrackProducer:  "mcreco"
       LArMCShowerProducer: "mcreco"
       TimeOffset:    0
-      ApplySCE:      true
-      RowPad:        4
-      ColPad:        4
+      ApplySCE:      false
+      RowPad:        1
+      ColPad:        1
       UsePrimaryStart:   true
       UseSecondaryStart: false
       UseScattering:     false
-      XPad: 2
-      YPad: 2
-      ZPad: 2
+      XPad: 1
+      YPad: 1
+      ZPad: 1
+    }
+    SecondaryKeyPointCluster: {
+      Verbosity: 1
+      OutClusterPixel2DLabel: ""
+      OutClusterVoxel3DLabel: "secondary"
+      LArMCTrackProducer:  "mcreco"
+      LArMCShowerProducer: "mcreco"
+      TimeOffset:    0
+      ApplySCE:      false
+      RowPad:        1
+      ColPad:        1
+      UsePrimaryStart:   false
+      UseSecondaryStart: true
+      UseScattering:     false
+      XPad: 1
+      YPad: 1
+      ZPad: 1
     }
     SuperaMCParticle: {
       Verbosity: 2
@@ -110,6 +127,7 @@ ProcessDriver: {
       OutClusterPixel2DLabel: ""
       OutClusterVoxel3DLabel: "mcst"
       ParticleProducer:       "mcst"
+      UseTrue3DPosition: true
       TimeOffset: 0
       MCParticleTree: {
         Verbosity:    2

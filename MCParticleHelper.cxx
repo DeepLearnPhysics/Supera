@@ -22,7 +22,7 @@ namespace supera {
   }
 
   WTRangeArray_t MCParticleHelper::WireTimeBoundary(const LArMCTrack_t& mct,
-      const std::vector<supera::LArSimCh_t>& sch_v) const
+						    const std::vector<supera::LArSimCh_t>& sch_v) const
   {
     LARCV_DEBUG() << "start" << std::endl;
     // result is N projections' wire boundary + time boundary (N+1 elements)
@@ -194,7 +194,7 @@ namespace supera {
   }
 
   WTRangeArray_t MCParticleHelper::WireTimeBoundary(const LArMCShower_t& mcs,
-      const std::vector<supera::LArSimCh_t>& sch_v) const
+						    const std::vector<supera::LArSimCh_t>& sch_v) const
   {
     LARCV_DEBUG() << "start" << std::endl;
     // result is N projections' wire boundary + time boundary (N+1 elements)
@@ -234,7 +234,7 @@ namespace supera {
         else trange += (unsigned int)(tick);
       }
     }
-
+    
     for (auto& r : result) if (!r.valid()) r.Set(0, 0);
 
     for (size_t projection = 0; projection <= supera::NProjections(); ++projection)

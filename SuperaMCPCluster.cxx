@@ -25,6 +25,7 @@ namespace larcv {
     //_mcpt.configure(cfg.get<supera::Config_t>("MCParticleTree"));
     _part_producer = cfg.get<std::string>("ParticleProducer");
     _target_projection = cfg.get<size_t>("TargetProjection",larcv::kINVALID_SIZE);
+    _use_true_pos = cfg.get<bool>("UseTrue3DPosition");
   }
 
   void SuperaMCPCluster::initialize()
@@ -79,11 +80,23 @@ namespace larcv {
       for (auto& meta : meta_v)
 	meta.update(meta.rows() / RowCompressionFactor().at(meta.id()),
 		    meta.cols() / ColCompressionFactor().at(meta.id()));
+
+      std::vector<larcv::ClusterPixel2D> clusters;
+      for(auto const& meta : meta_v) {
+	if(clusters.size() <= meta.id()) clusters.resize(meta.id()+1);
+
+	clusters[meta.id()].resize(part_v.size()+1);
+	clusters[meta.id()].meta(meta);
+      }
+
+      supera::SimCh2ClusterPixel2D(clusters, LArData<supera::LArSimCh_t>(), 
+				   trackid2cluster, TimeOffset());
+
       auto& ev_pixel2d  = mgr.get_data<larcv::EventClusterPixel2D>(OutPixel2DLabel());
-      auto res = supera::SimCh2ClusterPixel2D(meta_v, LArData<supera::LArSimCh_t>(), 
-					      trackid2cluster, TimeOffset());
-      for(size_t i=0; i<res.size(); ++i)
-	ev_pixel2d.emplace(std::move(res[i]));
+
+      for(size_t i=0; i<clusters.size(); ++i)
+	ev_pixel2d.emplace(std::move(clusters[i]));
+      
     }
     //
     // Is voxel3d cluster requested? dipshit
@@ -92,8 +105,9 @@ namespace larcv {
       auto meta3d = Meta3D();
       auto& ev_voxel3d = mgr.get_data<larcv::EventClusterVoxel3D>(OutVoxel3DLabel());
       ev_voxel3d.meta(meta3d);
+      ev_voxel3d.resize(part_v.size()+1);
       supera::SimCh2ClusterVoxel3D(ev_voxel3d, LArData<supera::LArSimCh_t>(), 
-				   trackid2cluster, TimeOffset(), _target_projection);
+				   trackid2cluster, TimeOffset(), _use_true_pos, _target_projection);
     }
 
     return true;

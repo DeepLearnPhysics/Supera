@@ -56,6 +56,7 @@ namespace supera {
                        const std::vector<supera::LArSimCh_t>& sch_v,
                        const std::vector<size_t>& trackid2cluster,
                        const int time_offset,
+		       const bool use_true_pos,
                        const larcv::ProjectionID_t id = larcv::kINVALID_PROJECTIONID);
 
   void
@@ -63,13 +64,14 @@ namespace supera {
 		       const std::vector<supera::LArSimCh_t>& sch_v,
 		       const std::vector<size_t>& track_v,
 		       const int time_offset,
+		       const bool use_true_pos,
 		       const larcv::ProjectionID_t id = larcv::kINVALID_PROJECTIONID);
 
   //
   // SimChannel => Pixel2DCluster
   //
-  std::vector<larcv::ClusterPixel2D>
-  SimCh2ClusterPixel2D(const std::vector<larcv::ImageMeta>& meta_v,
+  void
+  SimCh2ClusterPixel2D(std::vector<larcv::ClusterPixel2D>& res,
 		       const std::vector<supera::LArSimCh_t>& sch_v,
 		       const std::vector<size_t>& trackid2cluster,
 		       const int time_offset);

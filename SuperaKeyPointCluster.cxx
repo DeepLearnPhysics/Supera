@@ -78,6 +78,7 @@ namespace larcv {
       if(mctrack.TrackID() == mctrack.MotherTrackID()) {
 	if(_cluster_primary_start) {
 	  LARCV_INFO() << "Primary MCTrack (PDG " << mctrack.PdgCode() << ") start @ ("
+		       << mctrack.Start().X() << "," << mctrack.Start().Y() << "," << mctrack.Start().Z() << ") ... w/ SCE ("
 		       << start.x() << "," << start.y() << "," << start.z() << ")"
 		       << " @ G4 Time = " << start.t() << " [ns]" << std::endl;
 	  primary_start_s.emplace(std::move(start));
