@@ -12,8 +12,8 @@ namespace supera {
     //int nticks = meta.rows();
     //int nwires = meta.cols();
     //size_t row_comp_factor = (size_t)(meta.pixel_height());
-    const int ymax = meta.max_y() - 1; // Need in terms of row coordinate
-    const int ymin = (meta.min_y() >= 0 ? meta.min_y() : 0);
+    const double ymax = meta.max_y(); // Need in terms of row coordinate
+    const double ymin = meta.min_y();
     larcv::Image2D img(meta);
 
     LARCV_SINFO() << "Filling an image: " << meta.dump();
@@ -29,9 +29,9 @@ namespace supera {
       try { col = meta.col(image_x); }
       catch (const larcv::larbys&) { continue; }
 
-      int row = int(h.PeakTime() + 0.5) + time_offset;
-      if (row > ymax || row < ymin) continue;
-      img.set_pixel(ymax - row, col, h.Integral());
+      double y = h.PeakTime() + 0.5 + time_offset;
+      if (y >= ymax || y < ymin) continue;
+      img.set_pixel(meta.row(y), col, h.Integral());
     }
     return img;
   }

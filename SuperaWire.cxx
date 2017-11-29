@@ -59,14 +59,14 @@ namespace larcv {
     }
 
     auto image_v = supera::Wire2Image2D(meta_v, LArData<supera::LArWire_t>(), TimeOffset());
-
+    /*
     for(size_t plane=0; plane<image_v.size(); ++plane) {
       auto& image = image_v[plane];
       image.compress(image.meta().rows() / RowCompressionFactor().at(plane),
 		     image.meta().cols() / ColCompressionFactor().at(plane),
 		     larcv::Image2D::kSum);
     }
-
+    */
     ev_image->emplace(std::move(image_v));
     return true;
   }
