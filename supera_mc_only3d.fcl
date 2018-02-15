@@ -24,8 +24,8 @@ ProcessDriver: {
       Voxel3DSlicer: {
         Verbosity: 2
         Origin: 0
-        GridSize:      [0.5,0.5,0.5]
-        WidthArray:    [128.,128.,128.]
+        GridSize:      [0.3,0.3,0.3]
+        WidthArray:    [230.4,230.4,230.4]
         MinCoordinate: [0.,-116.5,0.]
         MaxCoordinate: [256.35,116.5,1036.8]
         Padding: [5,5,5]
@@ -45,7 +45,7 @@ ProcessDriver: {
       TimeOffset:       2400
     }
     PrimaryKeyPointCluster: {
-      Verbosity: 1
+      Verbosity: 2
       OutClusterPixel2DLabel: ""
       OutClusterVoxel3DLabel: "primary"
       LArMCTrackProducer:  "mcreco"
@@ -62,7 +62,7 @@ ProcessDriver: {
       ZPad: 1
     }
     SecondaryKeyPointCluster: {
-      Verbosity: 1
+      Verbosity: 2
       OutClusterPixel2DLabel: ""
       OutClusterVoxel3DLabel: "secondary"
       LArMCTrackProducer:  "mcreco"
@@ -91,9 +91,9 @@ ProcessDriver: {
       FilterTargetInitEMin: []
       FilterTargetDepEMin:  []
       TrackInitEMin:  0
-      TrackDepEMin:   10
+      TrackDepEMin:   5
       ShowerInitEMin: 0
-      ShowerDepEMin:  10
+      ShowerDepEMin:  5
       MetaConfig: {
         MinTime:          2400
         MinWire:          0
