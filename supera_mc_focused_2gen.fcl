@@ -5,8 +5,8 @@ ProcessDriver: {
   RandomAccess: false
   #ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaChStatus","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth"]
   #ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaChStatus","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth"]
-  ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaHit","SuperaChStatus","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth"]
-  ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaHit","SuperaChStatus","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth"]
+  ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaHit","SuperaChStatus","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth","SuperaMCTruth"]
+  ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaHit","SuperaChStatus","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth","SuperaMCTruth2"]
 
   IOManager: {
     Verbosity:   2
@@ -20,12 +20,23 @@ ProcessDriver: {
   }
 
   ProcessList: {
+    #SuperaMetaMaker: {
+    #  MetaConfig: {
+    #    MinTime:          2400
+    #    MinWire:          0
+    #    #EventImageRows:   [6048,6048,6048]
+    #    EventImageRows:   [1008,1008,1008]
+    #    EventImageCols:   [3456,3456,3456]
+    #    EventCompRows:    [6,6,6]
+    #    EventCompCols:    [1,1,1]
+    #  }
+    #}
     SuperaMetaMaker: {
       LArSimChProducer: "largeant"
       LArMCTruthProducer: "generator"
       PulledPork: {
         Verbosity: 2
-        Origin: 0
+        Origin: 1
         WidthArray:    [171.16552,88.681001347526518,153.6]
         MinCoordinate: [0.,-116.5,0.]
         MaxCoordinate: [256.35,116.5,1036.8]
@@ -87,13 +98,14 @@ ProcessDriver: {
       FilterTargetInitEMin: []
       FilterTargetDepEMin:  []
       TrackInitEMin:  0
-      TrackDepEMin:   10
+      TrackDepEMin:   0.1
       ShowerInitEMin: 0
-      ShowerDepEMin:  10
+      ShowerDepEMin:  0.1
       MetaConfig: {
         MinTime:          2400
         MinWire:          0
         EventImageRows:   [1008,1008,1008]
+        #EventImageRows:   [6048,6048,6048]
         EventImageCols:   [3456,3456,3456]
         EventCompRows:    [6,6,6]
         EventCompCols:    [1,1,1]
@@ -113,15 +125,21 @@ ProcessDriver: {
     }
     SuperaMCTruth: {
       LArMCTruthProducer: "generator"
-      OutParticleLabel: "mctruth"
+      OutParticleLabel:   "mctruth"
+      Origin: 0
+    }
+    SuperaMCTruth2: {
+      LArMCTruthProducer: "rain"
+      OutParticleLabel:   "rain"
       Origin: 0
     }
     SuperaMCPCluster: {
       Verbosity: 2
       LArMCShowerProducer: "mcreco"
+      LArMCTrackProducer:  "mcreco"
       LArSimChProducer: "largeant"
       OutClusterPixel2DLabel: "mcst"
-      OutClusterVoxel3DLabel: "mcst"
+      #OutClusterVoxel3DLabel: "mcst"
       ParticleProducer:       "mcst"
       UseTrue3DPosition: true
       TimeOffset: 2400

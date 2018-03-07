@@ -77,10 +77,11 @@ namespace larcv {
     //                                                                                                                                                                              
     if(!(OutPixel2DLabel().empty())) {
       auto meta_v = Meta();
+      /*
       for (auto& meta : meta_v)
 	meta.update(meta.rows() / RowCompressionFactor().at(meta.id()),
 		    meta.cols() / ColCompressionFactor().at(meta.id()));
-
+      */
       std::vector<larcv::ClusterPixel2D> clusters;
       for(auto const& meta : meta_v) {
 	if(clusters.size() <= meta.id()) clusters.resize(meta.id()+1);
@@ -94,9 +95,23 @@ namespace larcv {
 
       auto& ev_pixel2d  = mgr.get_data<larcv::EventClusterPixel2D>(OutPixel2DLabel());
 
-      for(size_t i=0; i<clusters.size(); ++i)
+      for(size_t i=0; i<clusters.size(); ++i) {
+	if( (int)(this->logger().level()) < (int)(larcv::msg::kINFO) ) {
+	  auto const& plane_clusters = clusters[i];
+	  LARCV_INFO() << "Plane meta: " << plane_clusters.meta().dump();
+	  double total_sum=0;
+	  for(size_t j=0; j<plane_clusters.as_vector().size(); ++j) {
+	    auto const& cluster = plane_clusters.as_vector()[j];
+	    double sum=0;
+	    for(auto const& vox : cluster.as_vector())
+	      sum += vox.value();
+	    LARCV_INFO() << "Cluster " << j << " size " << cluster.as_vector().size() << " sum " << sum << std::endl;
+	    total_sum += sum;
+	  }
+	  LARCV_INFO() << "Total sum: " << total_sum << std::endl;
+	}
 	ev_pixel2d.emplace(std::move(clusters[i]));
-      
+      }      
     }
     //
     // Is voxel3d cluster requested? dipshit

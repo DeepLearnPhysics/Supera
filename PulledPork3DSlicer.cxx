@@ -122,11 +122,21 @@ namespace supera {
 
     // Target time pixels
     _time_pixel = cfg.get<size_t>("TimePixels");
+    for(auto const& comp : this->RowCompressionFactor()) {
+      if(_time_pixel % comp == 0) continue;
+      LARCV_CRITICAL() << "TimePixels " << _time_pixel << " is not modular of RowCompressionFactor " << comp << std::endl;
+      throw std::exception();
+    }
 
     // Target wire pixels
     _wire_pixel_v = cfg.get<std::vector<size_t> >("WirePixels");
     if (_wire_pixel_v.size() != supera::NProjections()) {
       LARCV_CRITICAL() << "WirePixels parameter array length != # projections..." << std::endl;
+      throw std::exception();
+    }
+    for(size_t i=0; i<_wire_pixel_v.size(); ++i) {
+      if(_wire_pixel_v[i] % ColCompressionFactor().at(i) == 0) continue;
+      LARCV_CRITICAL() << "TimePixels " << _wire_pixel_v[i] << " is not modular of RowCompressionFactor " << ColCompressionFactor()[i] << std::endl;
       throw std::exception();
     }
 
@@ -395,6 +405,8 @@ namespace supera {
     meta_v.clear();
     for (size_t projection = 0; projection < supera::NProjections(); ++projection) {
       auto const& wire_range = wire_range_v[projection];
+      auto row_comp = this->RowCompressionFactor().at(projection);
+      auto col_comp = this->ColCompressionFactor().at(projection);
       LARCV_INFO() << "Creating ImageMeta Width=" << (double)(wire_range.second - wire_range.first + 1)
                    << " Height=" << (double)(tick_end - tick_start + 1)
                    << " NRows=" << (size_t)(tick_end - tick_start + 1)
@@ -404,8 +416,10 @@ namespace supera {
                           (double)(tick_start),
 			  (double)(wire_range.second),
 			  (double)(tick_end),
-                          (size_t)(tick_end - tick_start + 1),
-                          (size_t)(wire_range.second - wire_range.first + 1),
+                          //(size_t)(tick_end - tick_start + 1),
+                          //(size_t)(wire_range.second - wire_range.first + 1),
+			  (size_t)((tick_end - tick_start + 1) / row_comp),
+			  (size_t)((wire_range.second - wire_range.first + 1) / col_comp),
                           (larcv::ProjectionID_t)(projection),
                           (larcv::DistanceUnit_t)(larcv::kUnitWireTime));
       LARCV_INFO() << "...done on projection " << projection << std::endl;

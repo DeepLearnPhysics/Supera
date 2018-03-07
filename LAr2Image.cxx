@@ -398,13 +398,17 @@ namespace supera {
           size_t trackid = std::abs(edep.trackID);
           size_t cluster_id = voxel_vv.size()-1;
           if (trackid < trackid2cluster.size() &&
-              trackid2cluster[trackid] != larcv::kINVALID_SIZE)
+              trackid2cluster.at(trackid) != larcv::kINVALID_SIZE)
             cluster_id = trackid2cluster[trackid];
           // Fill voxel
+	  //std::cout << "(x,y)=("<<x<<","<<tick<<") @ (row,col)=("<<row<<","<<col<<") @ index="<<voxel_vv.meta().index(row,col)<<" @ value="<<edep.energy<<std::endl;
           auto& voxel_v = voxel_vv.writeable_voxel_set(cluster_id);
-          voxel_v.emplace(voxel_vv.meta().index(row,col),edep.energy);
+          voxel_v.emplace(voxel_vv.meta().index(row,col),edep.energy,true);
+	  //break;
         }
+	//break;
       }
+      //break;
     }
   }
 
