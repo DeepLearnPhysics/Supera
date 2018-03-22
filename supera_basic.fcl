@@ -5,8 +5,10 @@ ProcessDriver: {
   RandomAccess: false
   #ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaOpDigit","SuperaChStatus","WireMask"]
   #ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaOpDigit","SuperaChStatus","WireMask"]
-  ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaOpDigit","SuperaChStatus"]
-  ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaOpDigit","SuperaChStatus"]
+  #ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaHit","SuperaOpDigit","SuperaChStatus"]
+  #ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaHit","SuperaOpDigit","SuperaChStatus"]
+  ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaHit"]
+  ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaHit"]
 
   IOManager: {
     Verbosity:   2
@@ -43,6 +45,13 @@ ProcessDriver: {
       OutImageLabel:    "wire"
       LArWireProducer:  "caldata"
       TimeOffset:       2400
+    }
+    SuperaHit: {
+      Verbosity: 2
+      OutImageLabel:    "hit"
+      LArHitProducer:   "gaushit"
+      TimeOffset:       2400
+      Smear: true
     }
     SuperaOpDigit: {
       Verbosity: 0

@@ -15,11 +15,13 @@ namespace supera {
   //
   larcv::Image2D Hit2Image2D(const larcv::ImageMeta& meta,
 			     const std::vector<supera::LArHit_t>& hits,
-			     const int time_offset=0);
+			     const int time_offset=0,
+			     const bool smear=false);
   
   std::vector<larcv::Image2D> Hit2Image2D(const std::vector<larcv::ImageMeta>& meta_v,
 					  const std::vector<supera::LArHit_t>& hits,
-					  const int time_offset=0);
+					  const int time_offset=0,
+					  const bool smear=false);
   
   //
   // Wire => Image2D

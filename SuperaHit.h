@@ -47,7 +47,10 @@ namespace larcv {
     bool process(IOManager& mgr);
 
     void finalize();
+    
+  private:
 
+    bool _smear;
   };
 
   /**

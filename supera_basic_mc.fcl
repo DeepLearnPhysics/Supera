@@ -3,8 +3,8 @@ ProcessDriver: {
   Verbosity:    2
   EnableFilter: false
   RandomAccess: false
-  ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaChStatus","SuperaMCParticle","WireMask"]
-  ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaChStatus","SuperaMCParticle","WireMaskWire"]
+  ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaHit"]
+  ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaHit"]
 
   IOManager: {
     Verbosity:   2

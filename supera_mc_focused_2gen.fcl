@@ -5,9 +5,12 @@ ProcessDriver: {
   RandomAccess: false
   #ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaChStatus","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth"]
   #ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaChStatus","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth"]
-  ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaHit","SuperaChStatus","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth","SuperaMCTruth"]
-  ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaHit","SuperaChStatus","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth","SuperaMCTruth2"]
-
+  #ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaHit","SuperaChStatus","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth","SuperaMCTruth"]
+  #ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaHit","SuperaChStatus","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth","SuperaMCTruth2"]
+  #ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaHit","SuperaChStatus"]#,"SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth","SuperaMCTruth"]
+  #ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaHit","SuperaChStatus"]#,"SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth","SuperaMCTruth2"]
+  ProcessType:  ["SuperaMetaMaker","SuperaWire","SuperaHit","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth","SuperaMCTruth"]
+  ProcessName:  ["SuperaMetaMaker","SuperaWire","SuperaHit","SuperaMCParticle","SuperaKeyPointCluster","SuperaMCPCluster","SuperaMCTruth","SuperaMCTruth2"]
   IOManager: {
     Verbosity:   2
     Name:        "IOManager"
@@ -67,6 +70,7 @@ ProcessDriver: {
       OutImageLabel:    "hit"
       LArHitProducer:   "gaushit"
       TimeOffset:       2400
+      Smear: true
     }
     SuperaKeyPointCluster: {
       Verbosity: 2

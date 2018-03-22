@@ -20,6 +20,7 @@ namespace larcv {
     SuperaBase::configure(cfg);
     supera::ParamsImage2D::configure(cfg);
     supera::ImageMetaMaker::configure(cfg);
+    _smear = cfg.get<bool>("Smear",false);
   }
 
   void SuperaHit::initialize()
@@ -57,7 +58,7 @@ namespace larcv {
       throw larbys();
     }
 
-    auto image_v = supera::Hit2Image2D(meta_v, LArData<supera::LArHit_t>(), TimeOffset());
+    auto image_v = supera::Hit2Image2D(meta_v, LArData<supera::LArHit_t>(), TimeOffset(), _smear);
     /*
     for(size_t plane=0; plane<image_v.size(); ++plane) {
       auto& image = image_v[plane];

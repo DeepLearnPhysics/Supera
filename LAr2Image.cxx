@@ -1,23 +1,29 @@
 #ifndef __SUPERA_LAR2IMAGE_CXX__
 #define __SUPERA_LAR2IMAGE_CXX__
 
+#include <math.h>
 #include "LAr2Image.h"
 #include "larcv/core/Base/larcv_logger.h"
 
 namespace supera {
 
   larcv::Image2D Hit2Image2D(const larcv::ImageMeta & meta,
-                             const std::vector<supera::LArHit_t>& hits, const int time_offset)
+                             const std::vector<supera::LArHit_t>& hits, 
+			     const int time_offset,
+			     const bool smear)
   {
     //int nticks = meta.rows();
     //int nwires = meta.cols();
     //size_t row_comp_factor = (size_t)(meta.pixel_height());
+    int pixel_height = (int)(meta.pixel_height());
     const double ymax = meta.max_y(); // Need in terms of row coordinate
     const double ymin = meta.min_y();
     larcv::Image2D img(meta);
 
     LARCV_SINFO() << "Filling an image: " << meta.dump();
     LARCV_SINFO() << "(ymin,ymax) = (" << ymin << "," << ymax << ")" << std::endl;
+
+    static std::vector<double> vals(10000,0.);
 
     for (auto const& h : hits) {
       auto const projection_id = ::supera::ChannelToProjectionID(h.Channel());
@@ -30,20 +36,61 @@ namespace supera {
       catch (const larcv::larbys&) { continue; }
 
       double y = h.PeakTime() + 0.5 + time_offset;
-      if (y >= ymax || y < ymin) continue;
-      img.set_pixel(meta.row(y), col, h.Integral());
+      size_t row;
+      if(!smear) {
+	if (y >= ymax || y < ymin) continue;
+	row = meta.row(y);
+	img.set_pixel(row, col, h.Integral() + img.pixel(row,col));
+      }else if(h.PeakAmplitude()>0){
+	
+	// Fill the array till it gets 1% of peak
+	double sigma = h.RMS();
+	double amp = h.PeakAmplitude() / (sigma * sqrt(2. * M_PI));
+	int step = 0;
+	vals[step] = amp;
+	while(1) {
+	  step++;
+	  vals[step] = amp * exp( -0.5 * step * step / (sigma * sigma) );
+	  //std::cout<<step<<" "<<vals.at(step)<<std::endl;
+	  if(vals[step] < (0.01*amp) && (step%pixel_height == 0))
+	    break;
+	}
+	// fill image
+	for(int i=1; i<=step; ++i) {
+	  double step_y = y + i;
+	  if(step_y < ymin || step_y >= ymax) break;
+	  //std::cout<<vals[i]<<" @ "<<i<<" "<<step_y<<" "<<ymin<<" => "<<ymax<<std::endl;
+	  row = meta.row(step_y);
+	  img.set_pixel(row, col, vals[i] + img.pixel(row,col));
+	}
+	for(int i=1; i<=step; ++i) {
+	  double step_y = y - i;
+	  if(step_y < ymin || step_y >= ymax) break;
+	  //std::cout<<vals[i]<<" @ -"<<i<<" "<<step_y<<" "<<ymin<<" => "<<ymax<<std::endl;
+	  row = meta.row(step_y);
+	  img.set_pixel(row, col, vals[i] + img.pixel(row,col));
+	}
+	if(ymin < y && y <=ymax) {
+	  //std::cout<<vals[0]<<" @ "<<y<<" "<<ymin<<" => "<<ymax<<std::endl;
+	  row = meta.row(y);
+	  img.set_pixel(row, col, vals[0] + img.pixel(row,col));
+	}
+      }
+
     }
+
     return img;
   }
 
   std::vector<larcv::Image2D> Hit2Image2D(const std::vector<larcv::ImageMeta>& meta_v,
                                           const std::vector<supera::LArHit_t>& hits,
-                                          const int time_offset)
+                                          const int time_offset,
+					  const bool smear)
   {
     std::vector<larcv::Image2D> res_v;
     for (size_t p = 0; p < ::supera::NProjections(); ++p) {
       auto const& meta = meta_v.at(p);
-      res_v.emplace_back(std::move(Hit2Image2D(meta, hits, time_offset)));
+      res_v.emplace_back(std::move(Hit2Image2D(meta, hits, time_offset, smear)));
       res_v.back().index(res_v.size() - 1);
     }
     return res_v;
