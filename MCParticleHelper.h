@@ -14,6 +14,7 @@
 #include "larcv/core/Base/larcv_base.h"
 #include "larcv/core/DataFormat/Particle.h"
 #include "larcv/core/DataFormat/BBox.h"
+#include "larcv/core/DataFormat/Voxel3DMeta.h"
 #include "FMWKInterface.h"
 #include "Range.h"
 namespace supera {
@@ -64,15 +65,28 @@ namespace supera {
 
     ::larcv::Particle MakeParticle( const supera::LArMCTrack_t& mct) const;
 
+    ::larcv::Particle MakeParticle( const supera::LArMCTrack_t& mct,
+				    const larcv::Voxel3DMeta& meta3d) const;
+
     ::larcv::Particle MakeParticle( const supera::LArMCShower_t& mcs) const;
 
     ::larcv::Particle MakeParticle( const supera::LArMCTrack_t& mct,
 				    const std::vector<supera::LArSimCh_t>& sch_v,
-				    const int time_offset ) const;
+				    const int time_offset) const;
 
     ::larcv::Particle MakeParticle( const supera::LArMCShower_t& mcs,
 				    const std::vector<supera::LArSimCh_t>& sch_v,
 				    const int time_offset ) const;
+
+    ::larcv::Particle MakeParticle( const supera::LArMCTrack_t& mct,
+				    const std::vector<supera::LArSimCh_t>& sch_v,
+				    const int time_offset,
+				    const larcv::Voxel3DMeta& meta3d) const;
+
+    ::larcv::Particle MakeParticle( const supera::LArMCShower_t& mcs,
+				    const std::vector<supera::LArSimCh_t>& sch_v,
+				    const int time_offset,
+				    const larcv::Voxel3DMeta& meta3d) const;
 
   private:
 

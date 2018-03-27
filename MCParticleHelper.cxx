@@ -352,6 +352,36 @@ namespace supera {
     return res;
   }
 
+  ::larcv::Particle MCParticleHelper::MakeParticle( const supera::LArMCTrack_t& mct,
+						    const std::vector<supera::LArSimCh_t>& sch_v,
+						    const int time_offset,
+						    const larcv::Voxel3DMeta& meta3d) const
+  {
+    auto res = MakeParticle(mct,meta3d);
+    /*
+    if(sch_v.empty())
+      res.boundingbox_3d(MakeBBox3D(mct,time_offset));
+    else
+      res.boundingbox_3d(MakeBBox3D(mct,sch_v,time_offset));
+    */
+    return res;
+  }
+
+  ::larcv::Particle MCParticleHelper::MakeParticle( const supera::LArMCShower_t& mcs,
+						    const std::vector<supera::LArSimCh_t>& sch_v,
+						    const int time_offset,
+						    const larcv::Voxel3DMeta& meta3d) const
+  {
+    auto res = MakeParticle(mcs);
+    /*
+    if(sch_v.empty())
+      res.boundingbox_3d(MakeBBox3D(mcs,meta3d,time_offset));
+    else
+      res.boundingbox_3d(MakeBBox3D(mcs,meta3d,sch_v,time_offset));
+    */
+    return res;
+  }
+
   ::larcv::Particle MCParticleHelper::MakeParticle( const supera::LArMCTrack_t& mct) const
   {
     LARCV_DEBUG() << "start" << std::endl;
@@ -396,6 +426,91 @@ namespace supera {
       for (size_t step_idx = 1; step_idx < mct.size(); ++step_idx) {
         auto const& step1 = mct[step_idx - 1];
         auto const& step2 = mct[step_idx];
+        length += sqrt(pow(step1.X() - step2.X(), 2) + pow(step1.Y() - step2.Y(), 2) + pow(step1.Z() - step2.Z(), 2));
+      }
+      res.distance_travel(length);
+    }
+    res.momentum(mct.Start().Px(), mct.Start().Py(), mct.Start().Pz());
+    res.pdg_code(mct.PdgCode());
+    res.parent_pdg_code(mct.MotherPdgCode());
+    res.track_id(mct.TrackID());
+    res.parent_track_id(mct.MotherTrackID());
+
+    xyz[0] = mct.MotherStart().X();
+    xyz[1] = mct.MotherStart().Y();
+    xyz[2] = mct.MotherStart().Z();
+    if (_apply_sce) ApplySCE(xyz);
+
+    res.parent_position(xyz[0], xyz[1], xyz[2], mct.MotherStart().T());
+    /*
+    res.parent_momentum(mct.MotherStart().Px(),
+                        mct.MotherStart().Py(),
+                        mct.MotherStart().Pz());
+    */
+    LARCV_INFO() << res.dump();
+    return res;
+  }
+
+  ::larcv::Particle MCParticleHelper::MakeParticle( const supera::LArMCTrack_t& mct, 
+						    const larcv::Voxel3DMeta& meta3d) const
+  {
+    LARCV_DEBUG() << "start" << std::endl;
+    LARCV_INFO() << "Assessing MCTrack G4Track ID = " << mct.TrackID() << " PdgCode " << mct.PdgCode() << std::endl;
+    double xyz[3] = {0.};
+
+    ::larcv::Particle res;
+    res.shape(::larcv::kShapeTrack);
+    //res.Type(::larcv::PdgCode2ROIType(mct.PdgCode()));
+    if (mct.size())
+      res.energy_deposit(mct.front().E() - mct.back().E());
+    else
+      res.energy_deposit(0);
+    res.energy_init(mct.Start().E());
+
+    xyz[0] = mct.Start().X();
+    xyz[1] = mct.Start().Y();
+    xyz[2] = mct.Start().Z();
+    if (_apply_sce) ApplySCE(xyz);
+    res.position(xyz[0], xyz[1], xyz[2], mct.Start().T());
+
+    xyz[0] = mct.End().X();
+    xyz[1] = mct.End().Y();
+    xyz[2] = mct.End().Z();
+    if (_apply_sce) ApplySCE(xyz);
+    res.end_position(xyz[0], xyz[1], xyz[2], mct.End().T());
+
+    res.creation_process(mct.Process());
+
+    int first_step = -1;
+    for(size_t i=0; i<mct.size(); ++i) {
+      auto const& step = mct[i];
+      auto id = meta3d.id(step.X(),step.Y(),step.Z());
+      if(id == larcv::kINVALID_VOXELID) continue;
+      xyz[0] = step.X();
+      xyz[1] = step.Y();
+      xyz[2] = step.Z();
+      if (_apply_sce) ApplySCE(xyz);
+      res.first_step(xyz[0], xyz[1], xyz[2], step.T());
+      first_step = i;
+      break;
+    }
+    int last_step = first_step;
+    for(size_t i=first_step; i<mct.size(); ++i) {
+      auto const& step = mct[i];
+      auto id = meta3d.id(step.X(),step.Y(),step.Z());
+      if(id == larcv::kINVALID_VOXELID) break;
+      xyz[0] = step.X();
+      xyz[1] = step.Y();
+      xyz[2] = step.Z();
+      if (_apply_sce) ApplySCE(xyz);
+      res.last_step(xyz[0], xyz[1], xyz[2], step.T());
+      last_step = i;
+    }
+    if (first_step > 0 && first_step != last_step) {
+      double length = 0;
+      for (int step_idx = first_step; step_idx < last_step; ++step_idx) {
+        auto const& step1 = mct[step_idx];
+        auto const& step2 = mct[step_idx+1];
         length += sqrt(pow(step1.X() - step2.X(), 2) + pow(step1.Y() - step2.Y(), 2) + pow(step1.Z() - step2.Z(), 2));
       }
       res.distance_travel(length);

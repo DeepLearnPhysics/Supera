@@ -31,7 +31,7 @@ ProcessDriver: {
         Padding: [5,5,5]
         EventCompRows: [1,1,1]
         EventCompCols: [1,1,1]
-        ApplySCE: true
+        ApplySCE: false
         T0G4ns: 0
         ConstraintX: []
         ConstraintY: []
@@ -94,14 +94,14 @@ ProcessDriver: {
       TrackDepEMin:   5
       ShowerInitEMin: 0
       ShowerDepEMin:  5
-      MetaConfig: {
-        MinTime:          2400
-        MinWire:          0
-        EventImageRows:   [1008,1008,1008]
-        EventImageCols:   [3456,3456,3456]
-        EventCompRows:    [6,6,6]
-        EventCompCols:    [1,1,1]
-      }
+      #MetaConfig: {
+      #  MinTime:          2400
+      #  MinWire:          0
+      #  EventImageRows:   [1008,1008,1008]
+      #  EventImageCols:   [3456,3456,3456]
+      #  EventCompRows:    [6,6,6]
+      #  EventCompCols:    [1,1,1]
+      #}
       MCParticleTree: {
         Verbosity:    2
         UseG4Primary: false
@@ -112,7 +112,7 @@ ProcessDriver: {
    	MaxTimeTick:  8448
         TimePadding:  0
         WirePadding:  0
-	ApplySCE:     true
+	ApplySCE:     false
       }
     }
     SuperaMCTruth: {
@@ -128,7 +128,7 @@ ProcessDriver: {
       OutClusterVoxel3DLabel: "mcst"
       ParticleProducer:       "mcst"
       UseTrue3DPosition: true
-      TimeOffset: 0
+      TimeOffset: 2400
       MCParticleTree: {
         Verbosity:    2
         UseG4Primary: false

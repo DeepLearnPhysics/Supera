@@ -83,8 +83,11 @@ namespace larcv {
       auto ptr = (supera::Voxel3DSlicer*)(supera::ImageMetaMaker::MetaMakerPtr());
       ptr->ClearEventData();
       ptr->AddConstraint(LArData<supera::LArMCTruth_t>());
-      ptr->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());      
+      ptr->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());
     }
+    bool use_meta3d=Meta3D().valid();
+
+    LARCV_INFO() << "Using " << (use_meta3d ? "3D" : "2D") << " meta..." << std::endl;
 
     auto ev_part = (EventParticle*)(mgr.get_data("particle", OutParticleLabel()));
     if (!ev_part) {
@@ -98,7 +101,7 @@ namespace larcv {
 
     LARCV_INFO() << "Running MCParticleTree::Register" << std::endl;
     _mcpt.Register(LArData<supera::LArMCTrack_t>(), LArData<supera::LArMCShower_t>());
-    _mcpt.dump();
+    //_mcpt.dump();
 
     auto primary_v = _mcpt.PrimaryArray();
     LARCV_INFO() << "Found " << primary_v.size() << " primary particles" << std::endl;
@@ -133,11 +136,17 @@ namespace larcv {
       _part_v.resize(_part_v.size() + 1);
       auto& pri_part = _part_v.back();
 
-      if (LArDataLabel(supera::LArDataType_t::kLArSimCh_t).empty())
-        pri_part = MakeParticle(primary, empty_sch_v);
-      else
-        pri_part = MakeParticle(primary, LArData<supera::LArSimCh_t>());
-
+      if(use_meta3d) {
+	if (LArDataLabel(supera::LArDataType_t::kLArSimCh_t).empty())
+	  pri_part = MakeParticle(primary, empty_sch_v, Meta3D());
+	else
+	  pri_part = MakeParticle(primary, LArData<supera::LArSimCh_t>(), Meta3D());
+      }else{
+	if (LArDataLabel(supera::LArDataType_t::kLArSimCh_t).empty())
+	  pri_part = MakeParticle(primary, empty_sch_v);
+	else
+	  pri_part = MakeParticle(primary, LArData<supera::LArSimCh_t>());
+      }
       LARCV_INFO() << "Analyzing primary " << primary_idx << " PDG " << pri_part.pdg_code()
                    << " Origin " << primary.origin
                    << " PDG << " << primary.pdg
@@ -168,11 +177,18 @@ namespace larcv {
         }
         larcv::Particle sec_part;
         try {
-          if (LArDataLabel(supera::LArDataType_t::kLArSimCh_t).empty())
-            sec_part = MakeParticle(daughter, empty_sch_v);
-          else
-            sec_part = MakeParticle(daughter, LArData<supera::LArSimCh_t>());
-        } catch (const larcv::larbys& err) {
+	  if(use_meta3d) {
+	    if (LArDataLabel(supera::LArDataType_t::kLArSimCh_t).empty())
+	      sec_part = MakeParticle(daughter, empty_sch_v, Meta3D());
+	    else
+	      sec_part = MakeParticle(daughter, LArData<supera::LArSimCh_t>(), Meta3D());
+	  }else{
+	    if (LArDataLabel(supera::LArDataType_t::kLArSimCh_t).empty())
+	      sec_part = MakeParticle(daughter, empty_sch_v);
+	    else
+	      sec_part = MakeParticle(daughter, LArData<supera::LArSimCh_t>());
+	  }
+	} catch (const larcv::larbys& err) {
           LARCV_NORMAL() << "Skipping a secondary (PDG,TrackID) = ("
                          << daughter.pdg << "," << daughter.track_id << ") as it could not be turned into Particle" << std::endl;
           continue;
@@ -298,7 +314,7 @@ namespace larcv {
   }
 
   larcv::Particle SuperaMCParticle::MakeParticle(const supera::MCNode & node,
-      const std::vector<supera::LArSimCh_t>& sch_v) const
+						 const std::vector<supera::LArSimCh_t>& sch_v) const
   {
     larcv::Particle res;
     if (node.source_type == supera::MCNode::SourceType_t::kMCTrack) {
@@ -314,6 +330,7 @@ namespace larcv {
       throw larbys("Unexpected SourceType_t!");
 
     // format Particle
+    /*
     std::vector<larcv::BBox2D> bb_v;
     for (size_t plane = 0; plane < res.boundingbox_2d().size(); ++plane) {
       auto const& part_meta  = res.boundingbox_2d().at(plane);
@@ -321,9 +338,30 @@ namespace larcv {
       bb_v.push_back(FormatMeta(part_meta, event_meta));
     }
     res.boundingbox_2d(bb_v);
+    */
     return res;
   }
 
+  larcv::Particle SuperaMCParticle::MakeParticle(const supera::MCNode & node,
+						 const std::vector<supera::LArSimCh_t>& sch_v,
+						 const Voxel3DMeta& meta3d) const
+  {
+    larcv::Particle res;
+    if (node.source_type == supera::MCNode::SourceType_t::kMCTrack) {
+      auto const& mctrack = LArData<supera::LArMCTrack_t>().at(node.source_index);
+      res = _mcpart_maker.MakeParticle(mctrack, sch_v, TimeOffset(), meta3d);
+      res.mcst_index(node.source_index);
+    }
+    else if (node.source_type == supera::MCNode::SourceType_t::kMCShower) {
+      auto const& mcshower = LArData<supera::LArMCShower_t>().at(node.source_index);
+      res = _mcpart_maker.MakeParticle(mcshower, sch_v, TimeOffset(), meta3d);
+      res.mcst_index(node.source_index);
+    } else
+      throw larbys("Unexpected SourceType_t!");
+
+    return res;
+  }
+  /*
   larcv::ImageMeta SuperaMCParticle::FormatMeta(const larcv::ImageMeta & part_image,
       const larcv::ImageMeta & event_image) const
   {
@@ -383,8 +421,8 @@ namespace larcv {
     }
     LARCV_INFO() << "Creating ImageMeta Width=" << width
                  << " Height=" << height
-                 << " NRows=" << rows / modular_row
-                 << " NCols=" << cols / modular_col
+                 << " NRows=" << (modular_row ? rows / modular_row : rows)
+                 << " NCols=" << (modular_col ? cols / modular_col : cols)
                  << " Origin @ (" << min_x << "," << max_y - height << ")" << std::endl;
     larcv::ImageMeta res(min_x, max_y - height, min_x + width, max_y,
                          cols, rows,
@@ -393,14 +431,12 @@ namespace larcv {
     LARCV_DEBUG() << "Event image   " << event_image.dump();
 
     LARCV_DEBUG() << "After format  " << res.dump();
-    /*
-    res = event_image.overlap(res);
 
-    LARCV_DEBUG() << "After overlap " << res.dump();
-    */
+    //res = event_image.overlap(res);
+    //LARCV_DEBUG() << "After overlap " << res.dump();
     return res;
   }
-
+  */
   void SuperaMCParticle::finalize()
   {}
 }

@@ -89,7 +89,11 @@ namespace larcv {
     bool FilterNode(const supera::MCNode& node) const;
     larcv::ImageMeta FormatMeta(const larcv::ImageMeta& part_image,
                                 const larcv::ImageMeta& event_image) const;
-    larcv::Particle MakeParticle(const supera::MCNode& node, const std::vector<supera::LArSimCh_t>& sch_v) const;
+    larcv::Particle MakeParticle(const supera::MCNode& node, 
+				 const std::vector<supera::LArSimCh_t>& sch_v) const;
+    larcv::Particle MakeParticle(const supera::MCNode& node, 
+				 const std::vector<supera::LArSimCh_t>& sch_v,
+				 const larcv::Voxel3DMeta& meta) const;
   };
 
   /**
