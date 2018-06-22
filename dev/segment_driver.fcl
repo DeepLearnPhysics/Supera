@@ -1,0 +1,39 @@
+#include "dlprod_fclbase_analyzers.fcl"
+#include "standard_ana_uboone.fcl"
+
+process_name: Ana
+
+# Add larcv required services.
+
+services.LLMetaMaker: {Enable: false}
+services.LArCVMetaMaker: {Enable: false}
+
+# Add larcv analyzer modules.
+
+physics.analyzers:  {
+		    @table::physics.analyzers
+		    @table::dlprod_analyzers
+		    }
+
+# Define larcv analyzer sequence.
+
+# physics.larcv: [ reco2d, opreco, mcinfo ]
+physics.larcv: [superaSegment]
+# Add larcv sequence to end_paths.
+
+physics.end_paths: [ larcv ]
+
+# Configuration for TFileMetadataMicroBooNE service.
+
+microboone_tfile_metadata:
+{
+  JSONFileName:	[ "ana_hist.root.json", 
+                  "larlite_reco2d.root.json",
+                  "larlite_opreco.root.json",
+                  "larlite_mcinfo.root.json",
+                  "larcv.root.json" ]
+  GenerateTFileMetadata: [ true, true, true, true, true ]
+  dataTier:              [ "root-tuple", "larlite", "larlite", "larlite", "larcv" ]
+  fileFormat:            [ "root", "root", "root", "root", "root" ]
+}
+

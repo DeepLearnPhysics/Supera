@@ -1,0 +1,134 @@
+#include "litemc_mcinfo.fcl"
+#include "litemc_simch.fcl"
+#include "litemc_wire.fcl"
+#include "litemc_reco2d.fcl"
+#include "litemc_opreco.fcl"
+#include "litemc_opdigit.fcl"
+
+BEGIN_PROLOG
+
+SuperaWholeView: {
+  module_type:     "LArSoftSuperaDriver"
+  supera_params:   "supera_segment.fcl"
+  out_filename:    "larcv.root"
+  unique_filename: false
+  stream:          "mc"
+}
+
+SuperaSegment: { 
+  module_type: "LArSoftSuperaDriver"
+  supera_params: "supera_segment.fcl"
+  out_filename: "larcv.root"
+  unique_filename: false
+  stream: "mc"
+}
+
+SuperaSegment2: @local::SuperaWholeView
+SuperaTest2.supera_params: "supera_segment.fcl"
+
+SuperaFocusedView: @local::SuperaWholeView
+SuperaFocusedView.supera_params: "supera_segment_focused.fcl"
+
+SuperaFocusedViewPlus: @local::SuperaWholeView
+SuperaFocusedViewPlus.supera_params: "supera_segment_focused_plus.fcl"
+
+SuperaBasic: @local::SuperaWholeView
+SuperaBasic.supera_params: "supera_basic.fcl"
+
+SuperaMCBasic: @local::SuperaWholeView
+SuperaMCBasic.supera_params: "supera_basic.fcl"
+
+SuperaMCLArFlow: @local::SuperaWholeView
+SuperaMCLArFlow.supera_params: "supera_larflow.fcl"
+
+SuperaMCInstance: @local::SuperaWholeView
+SuperaMCInstance.supera_params: "supera_instance.fcl"
+
+SuperaMCFullSet: @local::SuperaWholeView
+SuperaMCFullSet.supera_params: "supera_mcset.fcl"
+
+SuperaFocusedView3D: @local::SuperaWholeView
+SuperaFocusedView3D.supera_params: "supera_segment_pork3d.fcl"
+
+SuperaMichelMC: @local::SuperaFocusedView
+SuperaMichelMC.supera_params: "supera_michel_mc_focused.fcl"
+SuperaMichelMC.CSVSuperaMetaMaker: "michel_constraint_mcc7.fcl"
+
+SuperaMichelData: @local::SuperaFocusedView
+SuperaMichelData.supera_params: "supera_basic_focused.fcl"
+SuperaMichelData.CSVSuperaMetaMaker: "michel_constraint.fcl"
+
+SuperaCCPi0MC: @local::SuperaFocusedView
+SuperaCCPi0MC.supera_params: "supera_ccpi0_mc_focused.fcl"
+SuperaCCPi0MC.CSVSuperaMetaMaker: "ccpi0_constraint_mcc8.fcl"
+
+SuperaCCPi0Data: @local::SuperaFocusedView
+SuperaCCPi0Data.supera_params: "supera_basic_focused.fcl"
+SuperaCCPi0Data.CSVSuperaMetaMaker: "ccpi0_constraint.fcl"
+
+SuperaMCBasic: @local::SuperaWholeView
+SuperaMCBasic.supera_params: "supera_basic.fcl"
+
+SuperaMCTruthOnly: @local::SuperaWholeView
+SuperaMCTruthOnly.supera_params: "supera_mctruthonly.fcl"
+
+dlprod_analyzers:
+ {
+   mcinfo:  @local::litemc_mcinfo
+   simch:   @local::litemc_simch
+
+   wire:    @local::litemc_wire
+   opdigit: @local::litemc_opdigit
+   opreco:  @local::litemc_opreco
+
+   reco2d:  @local::litemc_reco2d
+
+   superaWholeView:   @local::SuperaBasic
+   superaWholeViewMC: @local::SuperaMCBasic
+   superaFocusedView: @local::SuperaFocusedView
+   superaFocusedViewPlus: @local::SuperaFocusedViewPlus
+   superaFocusedView3D: @local::SuperaFocusedView3D
+   superaMichelMC:    @local::SuperaMichelMC
+   superaMichelData:  @local::SuperaMichelData
+   superaCCPi0MC:     @local::SuperaCCPi0MC
+   superaCCPi0Data:   @local::SuperaCCPi0Data
+   superaMCLArFlow:   @local::SuperaMCLArFlow
+   superaMCInstance:  @local::SuperaMCInstance
+   superaMCFullSet:   @local::SuperaMCFullSet
+   superaMCBasic:     @local::SuperaMCBasic
+   superaMCTruthOnly: @local::SuperaMCTruthOnly
+   superaSegment:     @local::SuperaSegment
+}
+
+dlprod_analyze_all:    [ simch, mcinfo, opreco, reco2d, opdigit, wire ]
+
+dlprod_analyze_cosmic: [ mcinfo, opreco, reco2d ]
+
+dlprod_analyzers.mcinfo.stream:     "mcinfo"
+dlprod_analyzers.simch.stream:      "simch"
+dlprod_analyzers.opdigit.stream:    "opdigit"
+dlprod_analyzers.opreco.stream:     "opreco"
+dlprod_analyzers.wire.stream:       "wire"
+dlprod_analyzers.reco2d.stream:     "reco2d"
+
+dlprod_analyzers.mcinfo.out_filename:     "larlite_mcinfo.root"
+dlprod_analyzers.simch.out_filename:      "larlite_simch.root"
+dlprod_analyzers.opdigit.out_filename:    "larlite_opdigit.root"
+dlprod_analyzers.opreco.out_filename:     "larlite_opreco.root"
+dlprod_analyzers.wire.out_filename:       "larlite_wire.root"
+dlprod_analyzers.reco2d.out_filename:     "larlite_reco2d.root"
+
+dlprod_analyzers.wire.RawDigit4ChStatus: "wcNoiseFilter"
+
+dlprod_analyzers.opreco.DataLookUpMap.ophit: ["ophitBeam","ophitCosmic"]
+dlprod_analyzers.opreco.DataLookUpMap.opflash: ["simpleFlashBeam","simpleFlashCosmic","opflashBeam","opflashCosmic"]
+dlprod_analyzers.opreco.AssociationLookUpMap.ophit: ["ophitBeam","ophitCosmic"]
+dlprod_analyzers.opreco.AssociationLookUpMap.opflash: ["simpleFlashBeam","simpleFlashCosmic","opflashBeam","opflashCosmic"]
+
+dlprod_analyzers.reco2d.DataLookUpMap.hit: ["gaushit"]
+dlprod_analyzers.reco2d.DataLookUpMap.cluster: []
+dlprod_analyzers.reco2d.AssociationLookUpMap.wire: ["caldata"]
+dlprod_analyzers.reco2d.AssociationLookUpMap.hit: ["gaushit"]
+dlprod_analyzers.reco2d.AssociationLookUpMap.cluster: []
+dlprod_analyzers.reco2d.AssLabelToSave: ["gaushit"]
+END_PROLOG
