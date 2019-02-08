@@ -8,6 +8,23 @@
 #include "lardata/DetectorInfoServices/LArPropertiesServiceStandard.h"
 #include "lardata/DetectorInfoServices/DetectorClocksServiceStandard.h"
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
+#include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h" // RanItay Add
+
+//#include "LArUtil/SpaceChargeMicroBooNE.h"
+//
+//#include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h" // RanItay Add
+//
+//#include "lardataobj/Simulation/SimEnergyDeposit.h"// RanItay Add
+//#include "larevt/SpaceChargeServices/SpaceChargeService.h" // RanItay Add
+//#include "ubevt/SpaceCharge/SpaceChargeMicroBooNE.h" // RanItay Add
+//
+
+
+
+//#include "lardataobj/Simulation/SimEnergyDeposit.h"// RanItay Add
+//#include "larevt/SpaceChargeServices/SpaceChargeService.h" // RanItay Add
+//#include "ubevt/SpaceCharge/SpaceChargeMicroBooNE.h" // RanItay Add
+
 
 namespace supera {
 
@@ -159,7 +176,7 @@ namespace supera {
 
   void ApplySCE(double& x, double& y, double& z)
   {
-    auto xyz = ::lar::providerFrom<spacecharge::SpaceChargeService>()->GetPosOffsets(x,y,z);
+    auto xyz = ::lar::providerFrom<spacecharge::SpaceChargeService>()->GetPosOffsets(x,y,z); //RanItay Change
     x = x - xyz[0] + 0.7;
     y = y + xyz[1];
     z = z + xyz[2];

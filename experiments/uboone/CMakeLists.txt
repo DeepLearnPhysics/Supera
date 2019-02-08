@@ -12,7 +12,8 @@ art_make( EXCLUDE LArCVMetaMaker_service.cc
 	  BASENAME_ONLY
 	  LIBRARY_NAME     uboonecode_uboone_LArCVImageMaker
 	  LIB_LIBRARIES
-	  	   larcore_Geometry
+		   ubevt_Utilities
+		   ubcore_Geometry
 		   uboone_Geometry
 		   uboonecode_uboone_MuCS
 		   larcore_Geometry_Geometry_service

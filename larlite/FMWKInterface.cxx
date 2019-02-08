@@ -6,7 +6,14 @@
 #include "LArUtil/DetectorProperties.h"
 #include "LArUtil/LArProperties.h"
 #include "LArUtil/TimeService.h"
-#include "LArUtil/SpaceChargeMicroBooNE.h"
+//#include "LArUtil/SpaceChargeMicroBooNE.h"
+
+#include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h" // RanItay Add
+
+#include "lardataobj/Simulation/SimEnergyDeposit.h"// RanItay Add
+#include "larevt/SpaceChargeServices/SpaceChargeService.h" // RanItay Add
+#include "ubevt/SpaceCharge/SpaceChargeMicroBooNE.h" // RanItay Add
+
 
 namespace supera {
   
