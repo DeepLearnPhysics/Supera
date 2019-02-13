@@ -37,7 +37,7 @@ namespace util{
     void preBeginRun(art::Run const& run);
     void postBeginRun(art::Run const& run);
     /// Function to be executed @ event boundary
-    void preProcessEvent(const art::Event& evt);
+    //void preProcessEvent(const art::Event& evt);
     void postProcessEvent(const art::Event& evt);
     /// Function to be executed @ file open
     void preOpenFile(const std::string& filename);

@@ -4,6 +4,9 @@
 #include "art/Framework/Services/System/FileCatalogMetadata.h"
 #include "art/Framework/Services/Registry/GlobalSignal.h" // RanItay add
 #include "art/Framework/Services/Registry/detail/SignalResponseType.h" // RanItay add
+#include "art/Framework/Services/Registry/ServiceMacros.h"
+#include "art/Framework/Services/Registry/ActivityRegistry.h"
+#include "art/Framework/Principal/Event.h"
 
 
 
@@ -26,8 +29,8 @@ util::LArCVMetaMaker::LArCVMetaMaker(fhicl::ParameterSet const& pset, art::Activ
     reg.sPreBeginRun.watch      (this, &LArCVMetaMaker::preBeginRun      );
     reg.sPostBeginRun.watch     (this, &LArCVMetaMaker::postBeginRun     );
     
-    reg.sPreProcessEvent.watch  (this, &LArCVMetaMaker::preProcessEvent  );
-    reg.sPostProcessEvent.watch (this, &LArCVMetaMaker::postProcessEvent );
+    //reg.sPreProcessEvent.watch  (this, &LArCVMetaMaker::preProcessEvent  );
+    //reg.sPostProcessEvent.watch (this, &LArCVMetaMaker::postProcessEvent );
     
     reg.sPostBeginJob.watch     (this, &LArCVMetaMaker::postBeginJob );
     reg.sPostEndJob.watch       (this, &LArCVMetaMaker::postEndJob   );
@@ -99,11 +102,11 @@ void util::LArCVMetaMaker::postEndJob()
 }
 
 //------------------------------------------------------------
-void util::LArCVMetaMaker::preProcessEvent(const art::Event& evt)
+//void util::LArCVMetaMaker::preProcessEvent(const art::Event& evt)
 //------------------------------------------------------------
-{
+/*{
   std::cout << "This is before event process" << std::endl;
-}
+  }*/
 
 //------------------------------------------------------------
 void util::LArCVMetaMaker::postProcessEvent(const art::Event& evt)

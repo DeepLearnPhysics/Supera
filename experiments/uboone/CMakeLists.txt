@@ -14,8 +14,9 @@ art_make( EXCLUDE LArCVMetaMaker_service.cc
 	  LIB_LIBRARIES
 		   ubevt_Utilities
 		   ubcore_Geometry
-		   uboone_Geometry
-		   uboonecode_uboone_MuCS
+		  #uboone_Geometry
+		  # uboonecode_uboone_MuCS
+		   #ubreco_MuCS
 		   larcore_Geometry_Geometry_service
 	   	   larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
 		   lardataobj_RecoBase
@@ -23,7 +24,7 @@ art_make( EXCLUDE LArCVMetaMaker_service.cc
 		   lardataobj_MCBase
 		   larcoreobj_SummaryData
 		   lardataobj_RawData
-		   lardata_RecoObjects larreco_Deprecated
+		   lardata_RecoObjects #larreco_Deprecated
 		   ${UBOONECODE_LIB}
 		   nusimdata_SimulationBase
 		   ${LARRECO_LIB}
@@ -34,9 +35,9 @@ art_make( EXCLUDE LArCVMetaMaker_service.cc
 		   ${ART_FRAMEWORK_SERVICES_REGISTRY}
 		   ${ART_FRAMEWORK_SERVICES_OPTIONAL}
 		   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-		   art_Persistency_Common canvas_Persistency_Common
-		   art_Persistency_Provenance canvas_Persistency_Provenance
-		   art_Utilities canvas_Utilities
+		   art_Persistency_Common #canvas_Persistency_Common
+		   art_Persistency_Provenance #canvas_Persistency_Provenance
+		   art_Utilities #canvas_Utilities
 		   ${MF_MESSAGELOGGER}
 		   ${MF_UTILITIES}
 		   ${FHICLCPP}
@@ -52,9 +53,11 @@ art_make( EXCLUDE LArCVMetaMaker_service.cc
 	      	   TFileMetadataMicroBooNE_service
 	      	   FileCatalogMetadataMicroBooNE_service
 		   LArCVMetaMaker_service
-		   uboonecode_uboone_MuCS
-		   larcore_Geometry
-		   uboone_Geometry
+		   #uboonecode_uboone_MuCS
+		   #ubreco_MuCS
+		   #larcore_Geometry
+		  #uboone_Geometry
+		   ubcore_Geometry
 		   larcore_Geometry_Geometry_service
 		   larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
                    larevt_CalibrationDBI_IOVData
@@ -65,7 +68,7 @@ art_make( EXCLUDE LArCVMetaMaker_service.cc
 		   larcoreobj_SummaryData
 		   lardataobj_RawData
 		   lardataobj_RecoBase
-		   lardata_RecoObjects larreco_Deprecated
+		   lardata_RecoObjects #larreco_Deprecated
                    larevt_Filters
                    larevt_CalibrationDBI_IOVData
                    larevt_CalibrationDBI_Providers
@@ -79,9 +82,9 @@ art_make( EXCLUDE LArCVMetaMaker_service.cc
 		   ${ART_FRAMEWORK_SERVICES_REGISTRY}
 		   ${ART_FRAMEWORK_SERVICES_OPTIONAL}
 		   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-		   art_Persistency_Common canvas_Persistency_Common
-		   art_Persistency_Provenance canvas_Persistency_Provenance
-		   art_Utilities canvas_Utilities
+		   art_Persistency_Common #canvas_Persistency_Common
+		   art_Persistency_Provenance #canvas_Persistency_Provenance
+		   art_Utilities #canvas_Utilities
 		   ${MF_MESSAGELOGGER}
 		   ${MF_UTILITIES}
 		   ${FHICLCPP}
@@ -97,7 +100,7 @@ simple_plugin(LArCVMetaMaker "service"
 	      TFileMetadataMicroBooNE_service
 	      FileCatalogMetadataMicroBooNE_service
 	      ${ART_FRAMEWORK_SERVICES_SYSTEM_FILECATALOGMETADATA_SERVICE}	      
-	      art_Utilities canvas_Utilities
+	      art_Utilities #canvas_Utilities
 	      ${MF_MESSAGELOGGER}
 	      ${MF_UTILITIES}
 	      ${FHICLCPP}
