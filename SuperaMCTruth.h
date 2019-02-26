@@ -17,8 +17,6 @@
 //#ifndef __CLING__
 #include "SuperaBase.h"
 #include "FMWKInterface.h"
-#include "ImageMetaMaker.h"
-#include "ParamsParticle.h"
 
 namespace larcv {
 
@@ -27,9 +25,7 @@ namespace larcv {
      User defined class SuperaMCTruth ... these comments are used to generate
      doxygen documentation!
   */
-  class SuperaMCTruth : public SuperaBase,
-			   public supera::ParamsParticle,
-			   public supera::ImageMetaMaker {
+  class SuperaMCTruth : public SuperaBase {
 
   public:
 
@@ -50,12 +46,7 @@ namespace larcv {
   private:
 
     unsigned short _pass_origin;
-    /*
-    std::vector<int> _filter_pdg;
-    std::vector<double> _filter_min_einit;
-    double _shower_min_einit;
-    double _track_min_einit;
-    */
+    std::string _output_label;
   };
 
   /**

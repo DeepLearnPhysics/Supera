@@ -19,7 +19,7 @@
 #include "larcv/core/DataFormat/ImageMeta.h"
 #include "FMWKInterface.h"
 #include "SuperaTypes.h"
-#include "ImageMetaMakerBase.h"
+//#include "ImageMetaMakerBase.h"
 
 namespace larcv {
 
@@ -75,13 +75,16 @@ namespace larcv {
     std::string _empty_string;
     int _time_offset;
     std::map<supera::LArDataType_t,std::string> _data_request_m;
-    std::vector<supera::LArWire_t>*     _ptr_wire_v;
-    std::vector<supera::LArHit_t>*      _ptr_hit_v;
-    std::vector<supera::LArOpDigit_t>*  _ptr_opdigit_v;
-    std::vector<supera::LArSimCh_t>*    _ptr_sch_v;
-    std::vector<supera::LArMCTruth_t>*  _ptr_mctruth_v;
-    std::vector<supera::LArMCTrack_t>*  _ptr_mct_v;
-    std::vector<supera::LArMCShower_t>* _ptr_mcs_v;
+
+    std::vector<supera::LArWire_t>*       _ptr_wire_v;
+    std::vector<supera::LArHit_t>*        _ptr_hit_v;
+    std::vector<supera::LArOpDigit_t>*    _ptr_opdigit_v;
+    std::vector<supera::LArSimCh_t>*      _ptr_sch_v;
+    std::vector<supera::LArMCTruth_t>*    _ptr_mctruth_v;
+    std::vector<supera::LArMCParticle_t>* _ptr_mcp_v;
+    std::vector<supera::LArMCTrack_t>*    _ptr_mct_v;
+    std::vector<supera::LArMCShower_t>*   _ptr_mcs_v;
+    std::vector<supera::LArSimEnergyDeposit_t>* _ptr_simedep_v;
     std::string _csv_fname;
   };
 
@@ -99,9 +102,13 @@ namespace larcv {
 
   template <> const std::vector<supera::LArMCTruth_t>& SuperaBase::LArData<supera::LArMCTruth_t>() const;
 
+  template <> const std::vector<supera::LArMCParticle_t>& SuperaBase::LArData<supera::LArMCParticle_t>() const;
+
   template <> const std::vector<supera::LArMCTrack_t>& SuperaBase::LArData<supera::LArMCTrack_t>() const;
 
   template <> const std::vector<supera::LArMCShower_t>& SuperaBase::LArData<supera::LArMCShower_t>() const;
+
+  template <> const std::vector<supera::LArSimEnergyDeposit_t>& SuperaBase::LArData<supera::LArSimEnergyDeposit_t>() const;
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArWire_t>& data_v);
 
@@ -111,11 +118,15 @@ namespace larcv {
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArMCTruth_t>& data_v);
 
+  template <> void SuperaBase::LArData(const std::vector<supera::LArMCParticle_t>& data_v);
+
   template <> void SuperaBase::LArData(const std::vector<supera::LArMCTrack_t>& data_v);
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArMCShower_t>& data_v);
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArSimCh_t>& data_v);
+
+  template <> void SuperaBase::LArData(const std::vector<supera::LArSimEnergyDeposit_t>& data_v);
 
   /**
      \class larcv::SuperaBaseFactory

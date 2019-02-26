@@ -19,7 +19,9 @@
 #include "FMWKInterface.h"
 #include "MCParticleTree.h"
 #include "MCParticleHelper.h"
-#include "larcv/core/DataFormat/Voxel3DMeta.h"
+#include "ImageMetaMaker.h"
+#include "ParamsParticle.h"
+
 namespace larcv {
 
   /**
@@ -27,7 +29,9 @@ namespace larcv {
      User defined class SuperaMCParticle ... these comments are used to generate
      doxygen documentation!
   */
-  class SuperaMCParticle : public SuperaBase {
+  class SuperaMCParticle : public SuperaBase,
+			   public supera::ParamsParticle,
+			   public supera::ImageMetaMaker {
 
   public:
 
@@ -79,15 +83,16 @@ namespace larcv {
     double _track_min_einit;
     double _track_min_edep;
 
-    std::string _output_label;
-    std::string _ref_meta3d_cluster3d;
-    std::string _ref_meta3d_tensor3d;
-
     //size_t _filter_min_cols;
     //size_t _filter_min_rows;
 
     bool FilterNode(const supera::MCNode& node) const;
-    larcv::Particle MakeParticle(const supera::MCNode& node,
+    larcv::ImageMeta FormatMeta(const larcv::ImageMeta& part_image,
+                                const larcv::ImageMeta& event_image) const;
+    larcv::Particle MakeParticle(const supera::MCNode& node, 
+				 const std::vector<supera::LArSimCh_t>& sch_v) const;
+    larcv::Particle MakeParticle(const supera::MCNode& node, 
+				 const std::vector<supera::LArSimCh_t>& sch_v,
 				 const larcv::Voxel3DMeta& meta) const;
   };
 

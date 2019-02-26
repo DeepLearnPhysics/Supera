@@ -23,15 +23,20 @@
 #include "lardataobj/MCBase/MCShower.h"
 #include "lardataobj/MCBase/MCTrack.h"
 #include "lardataobj/Simulation/SimChannel.h"
+#include "lardataobj/Simulation/SimEnergyDeposit.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 #include "larcore/Geometry/Geometry.h"
 #include <TString.h>
 #include <TTimeStamp.h>
 
-#include "LArCVMetaMaker.h"
+//#include "LArCVMetaMaker.h"
 #include "LArCVSuperaDriver.h"
+#include "GenRandom.h"
 #include "larcv/core/Base/PSet.h"
+#include "CLHEP/Random/RandFlat.h"
+#include "TRandom.h"
+#include "nutools/RandomUtils/NuRandomService.h"
 
 class LArSoftSuperaDriver;
 
@@ -56,6 +61,7 @@ private:
 
   // Declare member data here.
   larcv::LArCVSuperaDriver _supera;
+  unsigned int _verbosity;
 };
 
 
@@ -65,6 +71,13 @@ LArSoftSuperaDriver::LArSoftSuperaDriver(fhicl::ParameterSet const & p)
  // More initializers here.
 {
 
+  _verbosity = p.get<unsigned int>("Verbosity",3);
+  // Setup random number generator
+  art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, p, "Seed");
+  art::ServiceHandle<art::RandomNumberGenerator> rng;
+  CLHEP::HepRandomEngine &engine = rng->getEngine(art::ScheduleID::first(),p.get<std::string>("module_label"));
+  supera::GenRandom::get().SetFlatGen(new CLHEP::RandFlat(engine));
+
   std::string supera_cfg;
   cet::search_path finder("FHICL_FILE_PATH");
 
@@ -72,6 +85,8 @@ LArSoftSuperaDriver::LArSoftSuperaDriver(fhicl::ParameterSet const & p)
     throw cet::exception("LArSoftSuperaDriver") << "Unable to find supera cfg in "  << finder.to_string() << "\n";
 
   _supera.configure(supera_cfg);
+
+  _supera.set_verbosity(::larcv::msg::Level_t(_verbosity));
 
   auto process_names = _supera.ProcessNames();
   for(auto const& proc_name : process_names) {
@@ -103,8 +118,8 @@ LArSoftSuperaDriver::LArSoftSuperaDriver(fhicl::ParameterSet const & p)
 
   _supera.override_output_file(out_fname);
 
-  art::ServiceHandle<util::LArCVMetaMaker> metamaker;
-  metamaker->addJson(out_fname,p.get<std::string>("stream"));
+  //art::ServiceHandle<util::LArCVMetaMaker> metamaker;
+  //metamaker->addJson(out_fname,p.get<std::string>("stream"));
 }
 
 void LArSoftSuperaDriver::beginJob()
@@ -118,7 +133,7 @@ void LArSoftSuperaDriver::analyze(art::Event const & e)
   //
   // set data pointers
   //
-
+  /*
   // hit
   for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArHit_t)) {
     if(label.empty()) continue;
@@ -166,8 +181,9 @@ void LArSoftSuperaDriver::analyze(art::Event const & e)
     }
     _supera.SetDataPointer(*data_h,label);
   }
-
+  */
   // mctruth
+  if(_verbosity==0) std::cout << "Checking MCTruth data request" << std::endl;
   for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArMCTruth_t)) {
     if(label.empty()) continue;
     art::Handle<std::vector<simb::MCTruth> > data_h;
@@ -180,6 +196,25 @@ void LArSoftSuperaDriver::analyze(art::Event const & e)
       std::cerr<< "Attempted to load data: " << label << std::endl;
       throw ::larcv::larbys("Could not locate data!"); 
     }
+    _supera.SetDataPointer(*data_h,label);
+  }
+
+  // SimEnergyDeposit
+  if(_verbosity==0) std::cout << "Checking SimEnergyDeposit data request" << std::endl;
+  for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArSimEnergyDeposit_t)) {
+    if(_verbosity==0) std::cout << "Requested: " << label << std::endl;
+    if(label.empty()) continue;
+    art::Handle<std::vector<sim::SimEnergyDeposit> > data_h;
+    if(label.find(" ")<label.size()) {
+      e.getByLabel(label.substr(0,label.find(" ")),
+		   label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
+		   data_h);
+    }else{ e.getByLabel(label, data_h); }
+    if(!data_h.isValid()) { 
+      std::cerr<< "Attempted to load data: " << label << std::endl;
+      throw ::larcv::larbys("Could not locate data!"); 
+    }
+    std::cout<<(*data_h).size()<<std::endl;
     _supera.SetDataPointer(*data_h,label);
   }
 
@@ -214,7 +249,7 @@ void LArSoftSuperaDriver::analyze(art::Event const & e)
     }
     _supera.SetDataPointer(*data_h,label);
   }
-
+  /*
   // simch
   for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArSimCh_t)) {
     if(label.empty()) continue;
@@ -243,32 +278,8 @@ void LArSoftSuperaDriver::analyze(art::Event const & e)
       if (!chanFilt.IsPresent(i)) supera_chstatus->set_chstatus(wid.Plane, wid.Wire, ::larcv::chstatus::kNOTPRESENT);
       else supera_chstatus->set_chstatus(wid.Plane, wid.Wire, (short)(chanFilt.Status(i)));
     }
-
-    /*
-    std::vector<bool> filled_ch( ::larcv::supera::Nchannels(), false );
-    // If specified check RawDigit pedestal value: if negative this channel is not used by wire (set status=>-2)
-    if(!_core.producer_digit().empty()) {
-      art::Handle<std::vector<raw::RawDigit> > digit_h;
-      e.getByLabel(_core.producer_digit(),digit_h);
-      for(auto const& digit : *digit_h) {
-        auto const ch = digit.Channel();
-        if(ch >= filled_ch.size()) throw ::larcv::larbys("Found RawDigit > possible channel number!");
-        if(digit.GetPedestal()<0.) {
-          _core.set_chstatus(ch,::larcv::chstatus::kNEGATIVEPEDESTAL);
-          filled_ch[ch] = true;
-        }
-      }
-    }
-
-    // Set database status
-    const lariov::ChannelStatusProvider& chanFilt = art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
-    for(size_t i=0; i < ::larcv::supera::Nchannels(); ++i) {
-      if ( filled_ch[i] ) continue;
-      if (!chanFilt.IsPresent(i)) _core.set_chstatus(i,::larcv::chstatus::kNOTPRESENT);
-      else _core.set_chstatus(i,(short)(chanFilt.Status(i)));
-    }
-    */
   }
+  */
 
   //
   // execute supera

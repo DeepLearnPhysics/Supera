@@ -7,7 +7,6 @@ namespace larcv {
 
   LArCVSuperaDriver::LArCVSuperaDriver()
     : _driver("ProcessDriver")
-    , _supera_chstatus_ptr(nullptr)
   {}
 
   void LArCVSuperaDriver::SetCSV(std::string proc_name, std::string fname)
@@ -40,9 +39,6 @@ namespace larcv {
     _driver.override_output_file(fname);
   }
 
-  SuperaChStatus* LArCVSuperaDriver::SuperaChStatusPointer()
-  { return _supera_chstatus_ptr; }
-  
   const std::set<std::string>& LArCVSuperaDriver::DataLabels(supera::LArDataType_t type) const
   {
     static std::set<std::string> empty_string;
@@ -74,15 +70,6 @@ namespace larcv {
 	}
       }
 
-      if(_driver.process_ptr(idx)->is("SuperaChStatus")) {
-	_supera_chstatus_ptr = (SuperaChStatus*)(_driver.process_ptr(idx));
-	for(size_t data_type=0; data_type<(size_t)(supera::LArDataType_t::kLArDataTypeMax); ++data_type) {
-	  auto const& label = _supera_chstatus_ptr->LArDataLabel((supera::LArDataType_t)data_type);
-	  if(label.empty()) continue;
-	  _data_request_m[(supera::LArDataType_t)(data_type)].insert(label);
-	}
-      }
-      
     }
   }
 

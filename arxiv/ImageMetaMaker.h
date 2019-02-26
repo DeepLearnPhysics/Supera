@@ -29,8 +29,6 @@ namespace supera {
   */
   class ImageMetaMaker{
 
-    friend class larcv::SuperaMetaMaker;
-    
   public:
     
     /// Default constructor

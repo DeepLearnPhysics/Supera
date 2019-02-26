@@ -11,9 +11,11 @@ namespace supera {
     kLArHit_t,       ///< recob::Hit
     kLArOpDigit_t,   ///< raw::OpDetWaveform
     kLArMCTruth_t,   ///< simb::MCTruth
+    kLArMCParticle_t,///< simb::MCParticle
     kLArMCTrack_t,   ///< sim::MCTrack
     kLArMCShower_t,  ///< sim::MCShower
-    kLArSimCh_t,      ///< sim::SimChannel
+    kLArSimCh_t,     ///< sim::SimChannel
+    kLArSimEnergyDeposit_t, ///< sim::SimEnergyDeposit
     kLArDataTypeMax 
   };
 
@@ -24,9 +26,11 @@ namespace supera {
   template<> LArDataType_t LArDataType<supera::LArWire_t>();
   template<> LArDataType_t LArDataType<supera::LArOpDigit_t>();
   template<> LArDataType_t LArDataType<supera::LArMCTruth_t>();
+  template<> LArDataType_t LArDataType<supera::LArMCParticle_t>();
   template<> LArDataType_t LArDataType<supera::LArMCTrack_t>();
   template<> LArDataType_t LArDataType<supera::LArMCShower_t>();
   template<> LArDataType_t LArDataType<supera::LArSimCh_t>();
+  template<> LArDataType_t LArDataType<supera::LArSimEnergyDeposit_t>();
 
   class RSEID {
   public:

@@ -1,0 +1,179 @@
+#include "services_icarus_simulation.fcl"
+#include "services_icarus.fcl"
+#include "largeantmodules_icarus.fcl"
+#include "detsimmodules_ICARUS.fcl"
+#include "opdetsim_pmt_icarus.fcl"
+#include "crtsimmodules_icarus.fcl"
+#include "rawdigitfilter_icarus.fcl"
+#include "recowire_icarus.fcl"
+#include "hitfindermodules_icarus.fcl"
+#include "cluster_icarus.fcl"
+#include "multipartvertex_icarus.fcl"
+#include "mcreco.fcl"
+process_name: G4
+
+services:
+{
+  #@table::icarus_simulation_services
+  @table::icarus_wirecalibration_services
+  LArG4Parameters:                       @local::icarus_largeantparameters
+  LArVoxelCalculator:                    @local::icarus_larvoxelcalculator
+  SpaceChargeService:                    @local::icarus_spacecharge
+  MagneticField:                         @local::no_mag_larsoft
+  PhotonVisibilityService:         @local::icarus_photonvisibilityservice
+}
+
+source:
+{
+  module_type: EmptyEvent
+  timestampPlugin: { plugin_type: "GeneratedEventTimestamp" }
+  maxEvents:   10
+  firstRun:    1
+  firstEvent:  1
+}
+
+physics:
+{
+
+ producers:
+ {
+   generator: @local::MultiPartVertex
+   largeant: @local::icarus_largeant
+   mcreco:   @local::standard_mcreco
+   #crtdaq:   @local::icarus_crtsim
+   #opdaq:    @local::icarus_simpmt_nonoise
+   daq:      @local::icarus_simwire
+   rawdigitfilter:                 @local::icarus_rawdigitfilter
+   decon1droi:                     @local::icarus_decon1droi
+   gaushitall:                     @local::gaus_hitfinder
+   gaushit:                        @local::icarus_hitselector
+   cluster3d:                      @local::icarus_cluster3d
+   rns:      { module_type: "RandomNumberSaver" }
+
+ }
+ analyzers:
+ {
+ }
+
+ simulate: [ rns, generator, largeant, mcreco, daq, rawdigitfilter, decon1droi, gaushitall, gaushit, cluster3d]
+ analyze:  [ ]
+ stream1:  [ out1 ]
+ trigger_paths: [simulate] 
+ end_paths:     [stream1]
+ #end_paths: [analyze]
+}
+
+physics.producers.generator.DebugMode    : 1
+physics.producers.generator.G4Time       : 0
+physics.producers.generator.G4TimeJitter : 0
+physics.producers.generator.XRange       : [10,10]
+physics.producers.generator.YRange       : [10,10]
+physics.producers.generator.ZRange       : [10,10]
+physics.producers.generator.TPCRange     : [0]
+physics.producers.generator.MultiMax     : 3
+physics.producers.generator.MultiMin     : 3
+#physics.producers.generator.ParticleParameter.PDGCode      : [       [11],        [22],       [13],      [2212]]
+#physics.producers.generator.ParticleParameter.MinMulti     : [          0,           0,          0,           0]
+#physics.producers.generator.ParticleParameter.MaxMulti     : [          1,           1,          1,           1]
+#physics.producers.generator.ParticleParameter.ProbWeight   : [          1,           1,          1,           1]
+#physics.producers.generator.ParticleParameter.KERange      : [ [0.05,0.5],  [0.05,0.5], [0.05,1.0],  [0.05,0.4]]
+physics.producers.generator.ParticleParameter.PDGCode      : [       [13],      [2212]]
+physics.producers.generator.ParticleParameter.MinMulti     : [          0,           0]
+physics.producers.generator.ParticleParameter.MaxMulti     : [          1,           1]
+physics.producers.generator.ParticleParameter.ProbWeight   : [          1,           1]
+physics.producers.generator.ParticleParameter.KERange      : [ [0.05,1.0],  [0.05,0.4]]
+physics.producers.generator.ParticleParameter.MomRange     : []
+
+physics.producers.largeant.KeepParticlesInVolumes: ["volCryostat"] #only keep MCParticles that cross the cryostat                           
+physics.producers.mcreco.SimChannelLabel: "largeant:TPCActive"
+physics.producers.mcreco.MCParticleLabel: "largeant"
+physics.producers.mcreco.UseSimEnergyDeposit: true
+physics.producers.mcreco.MCRecoPart.SavePathPDGList: [13,-13,211,-211,111,311,310,130,321,-321,2212,2112,2224,2214,2114,1114,3122,1000010020,1000010030,1000020030,1000020040]
+                                                      
+
+physics.producers.daq.NoiseGenToolVec:  [@local::WhiteNoiseTool, @local::WhiteNoiseTool, @local::WhiteNoiseTool]
+physics.producers.daq.SuppressNoSignal: true
+
+physics.producers.rawdigitfilter.ProcessNoise:                                         false
+physics.producers.rawdigitfilter.NumWiresToGroup:                                      [1, 1, 1]
+physics.producers.rawdigitfilter.FFTNoise:                                             true
+physics.producers.rawdigitfilter.FFTAlg.FilterTools.FilterPlane0.FilterFunction:       "x>0. ? 1.-gaus(0) : 0."
+physics.producers.rawdigitfilter.FFTAlg.FilterTools.FilterPlane0.FilterParametersVec:  [1., 0.0, 0.004]
+physics.producers.rawdigitfilter.FFTAlg.FilterTools.FilterPlane1.FilterFunction:       "x>0. ? 1.-gaus(0) : 0."
+physics.producers.rawdigitfilter.FFTAlg.FilterTools.FilterPlane1.FilterParametersVec:  [1., 0.0, 0.004]
+physics.producers.rawdigitfilter.FFTAlg.FilterTools.FilterPlane2.FilterFunction:       "x>0. ? 1.-gaus(0) : 0."
+physics.producers.rawdigitfilter.FFTAlg.FilterTools.FilterPlane2.FilterParametersVec:  [1., 0.0, 0.002]
+physics.producers.rawdigitfilter.FFTAlg.FillHistograms:                                false
+
+physics.producers.decon1droi.DigitModuleLabel:                                         "rawdigitfilter"
+
+physics.producers.gaushitall.CalDataModuleLabel:                                       "decon1droi"
+physics.producers.gaushitall.AreaNorms:                                                [  1.0,  1.0,  1.0 ]
+physics.producers.gaushitall.MaxMultiHit:                                              5
+physics.producers.gaushitall.TryNplus1Fits:                                            false
+physics.producers.gaushitall.Chi2NDF:                                                  500.
+physics.producers.gaushitall.PeakFitter.MinWidth:                                      1
+physics.producers.gaushitall.PeakFitter.FloatBaseline:                                 false
+physics.producers.gaushitall.LongMaxHits:                                              [25, 25, 25]
+physics.producers.gaushitall.LongPulseWidth:                                           [10, 10, 10]
+physics.producers.gaushitall.HitFinderToolVec.CandidateHitsPlane0:                     @local::candhitfinder_morphological
+physics.producers.gaushitall.HitFinderToolVec.CandidateHitsPlane0.Plane:               0
+physics.producers.gaushitall.HitFinderToolVec.CandidateHitsPlane0.MinDeltaTicks:       4
+physics.producers.gaushitall.HitFinderToolVec.CandidateHitsPlane0.MinDeltaPeaks:       1.5
+physics.producers.gaushitall.HitFinderToolVec.CandidateHitsPlane1:                     @local::candhitfinder_morphological
+physics.producers.gaushitall.HitFinderToolVec.CandidateHitsPlane1.Plane:               1
+physics.producers.gaushitall.HitFinderToolVec.CandidateHitsPlane1.MinDeltaTicks:       4
+physics.producers.gaushitall.HitFinderToolVec.CandidateHitsPlane1.MinDeltaPeaks:       1.5
+physics.producers.gaushitall.HitFinderToolVec.CandidateHitsPlane2:                     @local::candhitfinder_morphological
+physics.producers.gaushitall.HitFinderToolVec.CandidateHitsPlane2.Plane:               2
+physics.producers.gaushitall.HitFinderToolVec.CandidateHitsPlane2.MinDeltaTicks:       4
+physics.producers.gaushitall.HitFinderToolVec.CandidateHitsPlane2.MinDeltaPeaks:       1.5
+
+physics.producers.gaushit.HitProducerLabel:                                            "gaushitall"
+
+physics.producers.cluster3d.ClusterAlg:                                                @local::standard_cluster3ddbscanalg
+physics.producers.cluster3d.EnableMonitoring:                                          true
+physics.producers.cluster3d.ClusterAlg.MinPairPts:                                     1
+physics.producers.cluster3d.ClusterAlg.kdTree.PairSigmaPeakTime:                       3.0
+physics.producers.cluster3d.ClusterAlg.kdTree.RefLeafBestDist:                         0.75
+physics.producers.cluster3d.ClusterMergeAlg.MinEigenToProcess:                         50.
+physics.producers.cluster3d.ClusterPathAlg:                                            @local::standard_convexhullPathAlg
+physics.producers.cluster3d.ClusterPathAlg.MinTinyClusterSize:                         20 #30 #40 #200000
+physics.producers.cluster3d.ClusterPathAlg.MinEigen0To1Ratio:                          12.
+physics.producers.cluster3d.ClusterPathAlg.ClusterAlg.MinPairPts:                      1
+physics.producers.cluster3d.ClusterPathAlg.ClusterAlg.kdTree.PairSigmaPeakTime:        3.0
+physics.producers.cluster3d.ClusterPathAlg.ClusterAlg.kdTree.RefLeafBestDist:          0.75
+
+
+outputs:
+{
+ out1:
+ {
+   module_type: RootOutput
+   fileName:    "larsoft.root"
+   dataTier:    "simulated"
+   saveMemoryObjectThreshold: 0
+   compressionLevel: 1
+   fastCloning: false
+ }
+}
+
+services.TFileService.fileName: "ana.root"
+services.LArG4Parameters.FillSimEnergyDeposits:       true
+
+services.message.destinations :
+{
+  STDCOUT:
+  {
+     type:      "cout"      #tells the message service to output this destination to cout
+     threshold: "INFO"      #tells the message service that this destination applies to WARNING and higher level messages
+     categories:
+     {
+       default:
+       {
+         limit:       1000  #don't print anything at the infomsg level except the explicitly named categories
+         reportEvery: 1
+       }
+     }
+  }
+}

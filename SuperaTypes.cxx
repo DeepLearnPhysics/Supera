@@ -10,5 +10,6 @@ namespace supera {
   template<> LArDataType_t LArDataType<supera::LArMCTrack_t>()  { return LArDataType_t::kLArMCTrack_t;  }
   template<> LArDataType_t LArDataType<supera::LArMCShower_t>() { return LArDataType_t::kLArMCShower_t; }
   template<> LArDataType_t LArDataType<supera::LArSimCh_t>()    { return LArDataType_t::kLArSimCh_t;    }
+  template<> LArDataType_t LArDataType<supera::LArSimEnergyDeposit_t>()    { return LArDataType_t::kLArSimEnergyDeposit_t; }
 }
 #endif

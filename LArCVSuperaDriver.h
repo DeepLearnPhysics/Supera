@@ -21,7 +21,7 @@
 #include "FMWKInterface.h"
 #include "SuperaTypes.h"
 #include "SuperaBase.h"
-#include "SuperaChStatus.h"
+//#include "SuperaChStatus.h"
 
 namespace larcv {
   /**
@@ -55,13 +55,17 @@ namespace larcv {
       LARCV_INFO() << "Received LArDataType_t " << (int)(supera::LArDataType<T>()) << " by label " << label << std::endl;
       for(auto& idx : _supera_idx_v) {
 	auto supera_ptr = (SuperaBase*)(_driver.process_ptr(idx));
-	if(supera_ptr->LArDataLabel(supera::LArDataType<T>()) != label) continue;
+	if(supera_ptr->LArDataLabel(supera::LArDataType<T>()) != label) {
+	  LARCV_DEBUG() << supera_ptr->name() << " does not need LArDataType_t " << (int)(supera::LArDataType<T>()) 
+			<< " label " << label << std::endl;
+	  continue;
+	}
 	LARCV_INFO() << "Data pointer provided to: " << supera_ptr->name() << std::endl;
 	supera_ptr->LArData(data);
       }
     }
 
-    SuperaChStatus* SuperaChStatusPointer();
+    //SuperaChStatus* SuperaChStatusPointer();
 
     void initialize();
     bool process(size_t run, size_t subrun, size_t event);
@@ -78,7 +82,7 @@ namespace larcv {
     std::vector<size_t> _supera_idx_v;
 
     std::map<supera::LArDataType_t,std::set<std::string> > _data_request_m;
-    SuperaChStatus* _supera_chstatus_ptr;
+    //SuperaChStatus* _supera_chstatus_ptr;
 
   };
 
