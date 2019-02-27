@@ -64,8 +64,8 @@ ProcessDriver: {
       ParticleProducer: "mcst"
       OutCluster3DLabel: "mcst"
       StoreLength: true
-      StoreCharge: true
-      StorePhoton: true
+      StoreCharge: false
+      StorePhoton: false
       StoreDiffTime: true
       StoreAbsTime: true
       StoreDEDX: true
@@ -86,10 +86,14 @@ ProcessDriver: {
     }
     Tensor3DFromCluster3D: {
       Verbosity: 2
-      Cluster3DProducerList: ["mcst","mcst"]
-      OutputProducerList:    ["data","mcst"]
-      PITypeList:  [1,2]
-      FixedPIList: [0.,0.]
+      #Cluster3DProducerList: ["mcst_dedx"]
+      #OutputProducerList:    ["mcst_dedx"]
+      #PITypeList: [1]
+      #FixedPIList: [0.]
+      Cluster3DProducerList: ["mcst","mcst","mcst_dx","mcst_dedx","mcst_dt","mcst_at"]
+      OutputProducerList:    ["data","mcst","mcst_dx","mcst_dedx","mcst_dt","mcst_at"]
+      PITypeList:  [1,2,1,1,1,1]
+      FixedPIList: [0.,0.,0.,0.,0.,0.]
     }
 
     #MaskTensor3D: {

@@ -65,13 +65,11 @@ namespace larcv {
 
     // Reserve size
     cluster_de_v.resize(mcp_v.size()+1);
-    if(_store_dx) cluster_dx_v.resize(mcp_v.size()+1);
     if(_store_dq) cluster_dq_v.resize(mcp_v.size()+1);
     if(_store_dp) cluster_dp_v.resize(mcp_v.size()+1);
     if(_store_dt) cluster_dt_v.resize(mcp_v.size()+1);
     if(_store_at) cluster_at_v.resize(mcp_v.size()+1);
-    if(_store_dedx) cluster_dedx_v.resize(mcp_v.size()+1);
-
+    if(_store_dx || _store_dedx) cluster_dx_v.resize(mcp_v.size()+1);
     // Register particle energy deposition coordinates
     auto const& sedep_v = LArData<supera::LArSimEnergyDeposit_t>();
     LARCV_INFO() << "Processing SimEnergyDeposit array: " << sedep_v.size() << std::endl;
@@ -96,29 +94,44 @@ namespace larcv {
       if(track_id < (int)(part_idx_v.size()) && part_idx_v[track_id]>=0)
 	cluster_idx = part_idx_v[track_id];
 
-      auto de = sedep.Energy();
-      auto dx = sedep.StepLength();
-      auto dq = sedep.NumElectrons();
-      auto dp = sedep.NumPhotons();
-      auto at = sedep.T();
-      auto dt = sedep.EndT() - sedep.StartT();
-
+      float de = sedep.Energy();
+      float dx = sedep.StepLength();
+      float dq = sedep.NumElectrons();
+      float dp = sedep.NumPhotons();
+      float at = sedep.T();
+      float dt = sedep.EndT() - sedep.StartT();
+      
       cluster_de_v[cluster_idx].emplace(vox_id, de, true);
 
-      if(_store_dx) cluster_dx_v[cluster_idx].emplace  (vox_id, dx, true);
-      if(_store_dq) cluster_dx_v[cluster_idx].emplace  (vox_id, dq, true);
-      if(_store_dp) cluster_dx_v[cluster_idx].emplace  (vox_id, dp, true);
+      if(_store_dq) cluster_dq_v[cluster_idx].emplace  (vox_id, dq, true);
+      if(_store_dp) cluster_dp_v[cluster_idx].emplace  (vox_id, dp, true);
       if(_store_dt) cluster_dt_v[cluster_idx].emplace  (vox_id, dt, true);
+      if(_store_dx || _store_dedx) cluster_dx_v[cluster_idx].emplace  (vox_id, dx, true);
       if(_store_at) {
 	auto& cluster = cluster_at_v[cluster_idx];
 	auto const& vox = cluster.find(vox_id);
 	if(vox.id() == larcv::kINVALID_VOXELID)
-	  cluster.emplace(vox_id, at);
+	  cluster.emplace(vox_id, at, true);
 	else if(at < vox.value())
 	  cluster.emplace(vox_id,at,false);
       }
     }
 
+    if(_store_dedx) {
+      cluster_dedx_v.resize(mcp_v.size()+1);
+      for(size_t cluster_idx=0; cluster_idx<cluster_de_v.size(); ++cluster_idx) {
+	auto const& cluster_de = cluster_de_v[cluster_idx].as_vector();
+	auto const& cluster_dx = cluster_dx_v[cluster_idx].as_vector();
+	auto& cluster_dedx     = cluster_dedx_v[cluster_idx];
+	for(size_t vox_idx=0; vox_idx < cluster_de.size(); ++vox_idx) {
+	  auto const& vox_de = cluster_de[vox_idx];
+	  auto const& vox_dx = cluster_dx[vox_idx];
+	  float dedx = vox_de.value() / vox_dx.value();
+	  std::cout<< vox_de.value() << " " << vox_dx.value() << " " << dedx << std::endl;
+	  cluster_dedx.emplace(vox_de.id(),dedx,true);
+	}
+      }
+    }
     larcv::VoxelSetArray vsa_de; vsa_de.emplace(std::move(cluster_de_v));
     larcv::VoxelSetArray vsa_dx; vsa_dx.emplace(std::move(cluster_dx_v));
     larcv::VoxelSetArray vsa_dq; vsa_dq.emplace(std::move(cluster_dq_v));
