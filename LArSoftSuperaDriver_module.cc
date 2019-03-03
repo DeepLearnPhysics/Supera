@@ -62,21 +62,19 @@ private:
   // Declare member data here.
   larcv::LArCVSuperaDriver _supera;
   unsigned int _verbosity;
+  CLHEP::HepRandomEngine& fFlatEngine;
 };
 
 
 LArSoftSuperaDriver::LArSoftSuperaDriver(fhicl::ParameterSet const & p)
-  :
-  EDAnalyzer(p)  // ,
+  : EDAnalyzer(p)
+  , fFlatEngine(art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "Gen", p, "Seed"))
  // More initializers here.
 {
 
   _verbosity = p.get<unsigned int>("Verbosity",3);
   // Setup random number generator
-  art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, p, "Seed");
-  art::ServiceHandle<art::RandomNumberGenerator> rng;
-  CLHEP::HepRandomEngine &engine = rng->getEngine(art::ScheduleID::first(),p.get<std::string>("module_label"));
-  supera::GenRandom::get().SetFlatGen(new CLHEP::RandFlat(engine));
+  supera::GenRandom::get().SetFlatGen(new CLHEP::RandFlat(fFlatEngine,0,1));
 
   std::string supera_cfg;
   cet::search_path finder("FHICL_FILE_PATH");
