@@ -3,8 +3,8 @@ ProcessDriver: {
   Verbosity:    1
   EnableFilter: false
   RandomAccess: false
-  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","BBoxFromCluster3D","ParticleCorrector","Tensor3DFromCluster3D","SegLabelFiveTypes"]
-  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","BBoxFromCluster3D","ParticleCorrector","Tensor3DFromCluster3D","SegLabelFiveTypes"]
+  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction"]
+  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction"]
 
   IOManager: {
     Verbosity:   2

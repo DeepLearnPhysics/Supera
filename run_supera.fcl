@@ -1,30 +1,22 @@
-#include "services_icarus_simulation.fcl"
-#include "services_icarus.fcl"
-#include "largeantmodules_icarus.fcl"
-#include "detsimmodules_ICARUS.fcl"
-#include "opdetsim_pmt_icarus.fcl"
-#include "crtsimmodules_icarus.fcl"
-#include "rawdigitfilter_icarus.fcl"
-#include "recowire_icarus.fcl"
-#include "hitfindermodules_icarus.fcl"
-#include "cluster_icarus.fcl"
-#include "multipartvertex_icarus.fcl"
+#include "services_dune.fcl"
+#include "largeantmodules_dune.fcl"
+#include "photpropservices_dune.fcl"
+#include "opticaldetectormodules_dune.fcl"
 #include "mcreco.fcl"
-
 process_name: supera
 
 services:
 {
-  #@table::icarus_simulation_services
-  @table::icarus_wirecalibration_services
-  LArG4Parameters:                       @local::icarus_largeantparameters
-  LArVoxelCalculator:                    @local::icarus_larvoxelcalculator
-  SpaceChargeService:                    @local::icarus_spacecharge
-  MagneticField:                         @local::no_mag_larsoft
-  PhotonVisibilityService:         @local::icarus_photonvisibilityservice
+  # Load the service that manages root files for histograms.
+  TFileService: { fileName: "g4_protoDUNE_hist.root" }
+  TimeTracker:       {}
+  MemoryTracker:     {}
+  RandomNumberGenerator: {} #ART native random number generator
+  FileCatalogMetadata:  @local::art_file_catalog_mc
+  @table::protodune_simulation_services
 }
 
-source:
+ysource:
 {
   module_type: RootInput
 }
@@ -39,7 +31,8 @@ physics:
  analyzers:
  { supera: {
             module_type:     "LArSoftSuperaDriver"
-            supera_params:   "supera_mc_3d.fcl"
+            #supera_params:   "supera_mc_3d.fcl"
+            supera_params:   "supera_basic.fcl"
             out_filename:    "larcv.root"
             unique_filename: false
             stream:          "mc"
