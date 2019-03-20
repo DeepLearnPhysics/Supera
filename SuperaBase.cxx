@@ -109,6 +109,16 @@ namespace larcv {
     _ptr_mct_v      = nullptr;
     _ptr_mcs_v      = nullptr;
     _ptr_simedep_v  = nullptr;
+
+    // FIXME(kvtsang) Temporary solution to access associations
+    _event          = nullptr;
+  }
+
+  // FIXME(kvtsang) Temporary solution to access associations
+  const art::Event* SuperaBase::GetEvent(){
+      if (!_event)
+          throw larbys("art::Event not set!");
+      return _event;
   }
 
   template <> const std::vector<supera::LArWire_t>& SuperaBase::LArData<supera::LArWire_t>() const
@@ -138,6 +148,10 @@ namespace larcv {
   template <> const std::vector<supera::LArSimEnergyDeposit_t>& SuperaBase::LArData<supera::LArSimEnergyDeposit_t>() const
   { if(!_ptr_simedep_v) throw larbys("SimEnergyDeposit data pointer not available"); return *_ptr_simedep_v; }
 
+  template <> const std::vector<supera::LArSpacePoint_t>& SuperaBase::LArData<supera::LArSpacePoint_t>() const
+  { if(!_ptr_spacepoint_v) throw larbys("SpacePoint data pointer not available"); return *_ptr_spacepoint_v; }
+
+
   template <> void SuperaBase::LArData(const std::vector<supera::LArWire_t>& data_v)
   { _ptr_wire_v = (std::vector<supera::LArWire_t>*)(&data_v); }
 
@@ -165,5 +179,9 @@ namespace larcv {
   template <> void SuperaBase::LArData(const std::vector<supera::LArSimEnergyDeposit_t>& data_v)
   { _ptr_simedep_v = (std::vector<supera::LArSimEnergyDeposit_t>*)(&data_v); }
   
+  template <> void SuperaBase::LArData(const std::vector<supera::LArSpacePoint_t>& data_v)
+  { _ptr_spacepoint_v = (std::vector<supera::LArSpacePoint_t>*)(&data_v); }
+
 }
+
 #endif

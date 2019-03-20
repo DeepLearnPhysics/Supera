@@ -19,6 +19,7 @@
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Wire.h"
+#include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RawData/OpDetWaveform.h"
 #include "lardataobj/MCBase/MCShower.h"
 #include "lardataobj/MCBase/MCTrack.h"
@@ -127,6 +128,8 @@ void LArSoftSuperaDriver::beginJob()
 
 void LArSoftSuperaDriver::analyze(art::Event const & e)
 {
+  // FIXME(kvtsang) Temporary solution to access associations
+  _supera.SetEvent(&e);
 
   //
   // set data pointers
@@ -247,6 +250,23 @@ void LArSoftSuperaDriver::analyze(art::Event const & e)
     }
     _supera.SetDataPointer(*data_h,label);
   }
+
+  // SpacePoint
+  for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArSpacePoint_t)) {
+    if(label.empty()) continue;
+    art::Handle<std::vector<recob::SpacePoint> > data_h;
+    if(label.find(" ")<label.size()) {
+      e.getByLabel(label.substr(0,label.find(" ")),
+		   label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
+		   data_h);
+    }else{ e.getByLabel(label, data_h); }
+    if(!data_h.isValid()) { 
+      std::cerr<< "Attempted to load data: " << label << std::endl;
+      throw ::larcv::larbys("Could not locate data!"); 
+    }
+    _supera.SetDataPointer(*data_h,label);
+  }
+
   /*
   // simch
   for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArSimCh_t)) {

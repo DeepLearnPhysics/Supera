@@ -16,6 +16,7 @@ namespace supera {
     kLArMCShower_t,  ///< sim::MCShower
     kLArSimCh_t,     ///< sim::SimChannel
     kLArSimEnergyDeposit_t, ///< sim::SimEnergyDeposit
+    kLArSpacePoint_t, ///< simb::SpacePoint
     kLArDataTypeMax 
   };
 
@@ -31,6 +32,7 @@ namespace supera {
   template<> LArDataType_t LArDataType<supera::LArMCShower_t>();
   template<> LArDataType_t LArDataType<supera::LArSimCh_t>();
   template<> LArDataType_t LArDataType<supera::LArSimEnergyDeposit_t>();
+  template<> LArDataType_t LArDataType<supera::LArSpacePoint_t>();
 
   class RSEID {
   public:
