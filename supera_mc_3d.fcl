@@ -3,8 +3,8 @@ ProcessDriver: {
   Verbosity:    1
   EnableFilter: false
   RandomAccess: false
-  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","BBoxFromCluster3D","ParticleCorrector","Tensor3DFromCluster3D","SegLabelFiveTypes","SuperaSpacePoint","Tensor3DFromCluster3D"]
-  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","BBoxFromCluster3D","ParticleCorrector","Tensor3DFromCluster3D","SegLabelFiveTypes","SuperaSpacePoint","Tensor3DReco"]
+  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","BBoxFromCluster3D","ParticleCorrector","Tensor3DFromCluster3D","SegLabelFiveTypes","SuperaSpacePoint","Tensor3DFromCluster3D","SegLabelGhost"]
+  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","BBoxFromCluster3D","ParticleCorrector","Tensor3DFromCluster3D","SegLabelFiveTypes","SuperaSpacePoint","Tensor3DReco","SegLabelGhost"]
 
   IOManager: {
     Verbosity:   2
@@ -111,17 +111,23 @@ ProcessDriver: {
     }
 
     SuperaSpacePoint: {
-      Verbosity: 0
+      Verbosity: 1
       SpacePointProducer: "cluster3D"
       OutputLabel       : "reco"
     }
 
     Tensor3DReco: {
       Verbosity: 2
-      Cluster3DProducerList: ["reco","reco_chi2"]
-      OutputProducerList:    ["reco","reco_chi2"]
-      PITypeList:  [1,1]
-      FixedPIList: [0.,0.]
+      Cluster3DProducerList: ["reco","reco_chi2","reco_occupancy","reco_hit_charge0","reco_hit_charge1","reco_hit_charge2","reco_hit_time0","reco_hit_time1","reco_hit_time2","reco_hit_rms0","reco_hit_rms1","reco_hit_rms2"]
+      OutputProducerList:    ["reco","reco_chi2","reco_occupancy","reco_hit_charge0","reco_hit_charge1","reco_hit_charge2","reco_hit_time0","reco_hit_time1","reco_hit_time2","reco_hit_rms0","reco_hit_rms1","reco_hit_rms2"]
+      PITypeList:  [1,1,1,1,1,1,1,1,1,1,1,1]
+      FixedPIList: [0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.]
+    }
+
+    SegLabelGhost: {
+        RecoProducer   : "reco"
+        McProducer     : "mcst"
+        OutputProducer : "ghost"
     }
   }
 }
