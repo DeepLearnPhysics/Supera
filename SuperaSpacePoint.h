@@ -42,11 +42,13 @@ namespace larcv {
 
     void finalize();
 
-    static float average_hit_charge(const std::vector<art::Ptr<recob::Hit>>& hits);
+    static std::vector<std::pair<geo::WireID, float>> get_hit_charges(
+            const std::vector<art::Ptr<recob::Hit>>& hits);
 
   private:
     std::string _output_label, _producer_label;
     size_t _max_debug_dropping = 0; // Max debug message for dropping space points
+    unsigned short _n_planes = 3;
   };
 
   /**

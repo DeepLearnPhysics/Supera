@@ -19,6 +19,7 @@ namespace larcv {
     _producer_label     = cfg.get<std::string>("SpacePointProducer");
     _output_label       = cfg.get<std::string>("OutputLabel");
     _max_debug_dropping = cfg.get<size_t>("MaxDebugForDropping", 0);
+    _n_planes           = cfg.get<size_t>("NumOfPlanes", 3);
 
     Request(supera::LArDataType_t::kLArSpacePoint_t, _producer_label);
   }
@@ -37,8 +38,26 @@ namespace larcv {
     auto const& meta = event_cluster_v.meta();
     LARCV_INFO() << "Voxel3DMeta: " << meta.dump();
 
-    std::vector<larcv::VoxelSet> v_charge(1);
+    /* TODO(kvtsang) implement number of clusters
+     * Now consider whole event as a single cluster
+     */
+    std::vector<larcv::VoxelSet> v_occupancy(1); 
+    std::vector<larcv::VoxelSet> v_charge(1); 
     std::vector<larcv::VoxelSet> v_chi2(1);
+
+    auto gen_vec = [&]()
+    {   
+        std::vector<std::vector<larcv::VoxelSet>> _vec(_n_planes);
+        for (auto& _v : _vec) _v.resize(1);
+        return std::move(_vec);
+    };
+
+    //std::vector<std::vector<larcv::VoxelSet>> v_charge_plane(_n_planes);
+    //for (auto& v : v_charge_plane) v.resize(1);
+
+    auto v_hit_charge = gen_vec();
+    auto v_hit_time   = gen_vec();
+    auto v_hit_rms    = gen_vec();
 
 
     /* FIXME(kvtsang) To be removed?
@@ -76,25 +95,56 @@ namespace larcv {
                     << xyz[2] << ")"
                     << std::endl;
             ++n_dropped;
+            continue;
         } 
-        else {
-            v_chi2[0].emplace(vox_id, pt.Chisq(), true);
 
-            /* Calculuate charge by arverage 3 wires
-             * FIXME(kvtsang) should be provided by SpacePoint
-             */ 
-            std::vector<art::Ptr<recob::Hit>> hits;
-            find_hits.get(i_pt, hits);
-            float charge = average_hit_charge(hits);
-            v_charge[0].emplace(vox_id, charge, true);
+        /* Calculuate charge by averaging common overlaps of 3 wire
+         * FIXME(kvtsang) should be provided by SpacePoint
+         */ 
+        std::vector<art::Ptr<recob::Hit>> hits;
+        find_hits.get(i_pt, hits);
+
+        if (hits.size() != _n_planes) {
+            LARCV_WARNING() 
+                << "Dropping space point - "
+                << "Wrong number of hits: "
+                << hits.size()
+                << " (expecting " << _n_planes << ")" 
+                << std::endl;
+            ++n_dropped;
+            continue;
         }
+
+        v_occupancy[0].emplace(vox_id, 1, true);
+        if (!(v_chi2[0].find(vox_id) == larcv::kINVALID_VOXEL)
+            continue;
+
+        bool is_replaced = false;
+        float total_charge = 0;
+        for (const auto& hit : hits) {
+            size_t plane = hit->WireID().Plane;
+            if (plane < 0 || plane >= _n_planes) {
+                LARCV_CRITICAL() << "Invalid plane " << plane << std::endl;
+                continue;
+            }
+
+            float charge  = hit->Integral();
+            total_charge += charge;
+            v_hit_charge[plane][0].emplace(vox_id, charge, true);
+            v_hit_time[plane][0].emplace(vox_id, hit->PeakTime(), true);
+            v_hit_rms[plane][0].emplace(vox_id, hit->RMS(), true);
+        }
+
+        v_chi2[0].emplace(vox_id, pt.Chisq(), true);
+        v_charge[0].emplace(vox_id, total_charge, true);
     }
 
     LARCV_INFO() << n_dropped << " out of " << points.size() 
         << " SpacePoints dropped."
         << std::endl;
 
-    auto store = [&](auto &vec, const std::string& name) {
+    auto store = [&](auto &vec, const std::string& name) 
+    {
         auto &cluster = 
             mgr.get_data<larcv::EventClusterVoxel3D>(_output_label + name);
         larcv::VoxelSetArray vsa;
@@ -102,8 +152,19 @@ namespace larcv {
         cluster.emplace(std::move(vsa), meta);
     };
 
-    store(v_charge, ""     );
-    store(v_chi2,   "_chi2");
+    auto store_vec = [&](auto &vec, const std::string& name)
+    {
+        for (size_t i = 0; i < _n_planes; ++i)
+            store(vec[i], name + std::to_string(i));
+    };
+
+    store(v_charge,     ""     );
+    store(v_chi2,       "_chi2");
+    store(v_occupancy,  "_occupancy");
+
+    store_vec(v_hit_charge, "_hit_charge");
+    store_vec(v_hit_time,   "_hit_time");
+    store_vec(v_hit_rms,    "_hit_rms");
 
     return true;
   }
@@ -111,7 +172,8 @@ namespace larcv {
   void SuperaSpacePoint::finalize()
   {}
 
-  float SuperaSpacePoint::average_hit_charge(
+  std::vector<std::pair<geo::WireID, float>>
+  SuperaSpacePoint::get_hit_charges(
           const std::vector<art::Ptr<recob::Hit>>& hits)
   {
       float charge(0.);
@@ -132,7 +194,8 @@ namespace larcv {
       if (!hits.empty())
           charge /= float(hits.size());
 
-      auto integrate = [&](const auto& hit) {
+      auto integrate = [&](const auto& hit)
+      {
           double mean  = hit->PeakTime();
           double amp   = hit->PeakAmplitude();
           double width = hit->RMS();
@@ -143,13 +206,13 @@ namespace larcv {
           return integral;
       };
 
-      float integral(0.);
+      std::vector<std::pair<geo::WireID, float>> charges;
       if (charge > 0 && idx1 > idx0) {
           for (const auto& hit : hits) {
-              integral += integrate(hit);
+              charges.emplace_back(hit->WireID(), integrate(hit));
           }
       }
-      return integral;
+      return std::move(charges);
   }
 }
 
