@@ -33,32 +33,23 @@ namespace larcv {
   {
     SuperaBase::process(mgr);
 
-    // Main cluster3d to be filled
-    auto& event_cluster_v = mgr.get_data<larcv::EventClusterVoxel3D>(_output_label);
-    auto const& meta = event_cluster_v.meta();
+    // Get meta (presumbly produced by BBox)
+    auto& main_tensor = mgr.get_data<larcv::EventSparseTensor3D>(_output_label);
+    auto const& meta = main_tensor.meta();
     LARCV_INFO() << "Voxel3DMeta: " << meta.dump();
 
     /* TODO(kvtsang) implement number of clusters
      * Now consider whole event as a single cluster
      */
-    std::vector<larcv::VoxelSet> v_occupancy(1); 
-    std::vector<larcv::VoxelSet> v_charge(1); 
-    std::vector<larcv::VoxelSet> v_chi2(1);
 
-    auto gen_vec = [&]()
-    {   
-        std::vector<std::vector<larcv::VoxelSet>> _vec(_n_planes);
-        for (auto& _v : _vec) _v.resize(1);
-        return std::move(_vec);
-    };
+    larcv::VoxelSet v_occupancy;
+    larcv::VoxelSet v_charge;
+    larcv::VoxelSet v_chi2;
+    larcv::VoxelSet v_inv_chi2;
 
-    //std::vector<std::vector<larcv::VoxelSet>> v_charge_plane(_n_planes);
-    //for (auto& v : v_charge_plane) v.resize(1);
-
-    auto v_hit_charge = gen_vec();
-    auto v_hit_time   = gen_vec();
-    auto v_hit_rms    = gen_vec();
-
+    std::vector<larcv::VoxelSet> v_hit_charge(_n_planes);
+    std::vector<larcv::VoxelSet> v_hit_time(_n_planes);
+    std::vector<larcv::VoxelSet> v_hit_rms(_n_planes);
 
     /* FIXME(kvtsang) To be removed?
      * Find associated hits
@@ -115,8 +106,9 @@ namespace larcv {
             continue;
         }
 
-        v_occupancy[0].emplace(vox_id, 1, true);
-        if (!(v_chi2[0].find(vox_id) == larcv::kINVALID_VOXEL)
+        v_occupancy.emplace(vox_id, 1, true);
+
+        if (!(v_chi2.find(vox_id) == larcv::kINVALID_VOXEL))
             continue;
 
         bool is_replaced = false;
@@ -130,26 +122,27 @@ namespace larcv {
 
             float charge  = hit->Integral();
             total_charge += charge;
-            v_hit_charge[plane][0].emplace(vox_id, charge, true);
-            v_hit_time[plane][0].emplace(vox_id, hit->PeakTime(), true);
-            v_hit_rms[plane][0].emplace(vox_id, hit->RMS(), true);
+            v_hit_charge[plane].emplace(vox_id, charge, true);
+            v_hit_time[plane].emplace(vox_id, hit->PeakTime(), true);
+            v_hit_rms[plane].emplace(vox_id, hit->RMS(), true);
         }
 
-        v_chi2[0].emplace(vox_id, pt.Chisq(), true);
-        v_charge[0].emplace(vox_id, total_charge, true);
+        v_chi2.emplace(vox_id, pt.Chisq(), true);
+        v_inv_chi2.emplace(vox_id, 1. / pt.Chisq(), true);
+        v_charge.emplace(vox_id, total_charge, true);
     }
 
     LARCV_INFO() << n_dropped << " out of " << points.size() 
         << " SpacePoints dropped."
         << std::endl;
 
-    auto store = [&](auto &vec, const std::string& name) 
+    auto store = [&](auto &vset, const std::string& name)
     {
-        auto &cluster = 
-            mgr.get_data<larcv::EventClusterVoxel3D>(_output_label + name);
-        larcv::VoxelSetArray vsa;
-        vsa.emplace(std::move(vec));
-        cluster.emplace(std::move(vsa), meta);
+        //auto &tensor = reinterpret_cast<larcv::EventSparseTensor3D>(
+        std::string label = _output_label + name;
+        auto &tensor = mgr.get_data<larcv::EventSparseTensor3D>(label);
+        tensor.emplace(std::move(vset), meta);
+
     };
 
     auto store_vec = [&](auto &vec, const std::string& name)
@@ -158,9 +151,10 @@ namespace larcv {
             store(vec[i], name + std::to_string(i));
     };
 
-    store(v_charge,     ""     );
-    store(v_chi2,       "_chi2");
-    store(v_occupancy,  "_occupancy");
+    store(v_charge,    "");
+    store(v_chi2,      "_chi2");
+    store(v_inv_chi2,  "_inv_chi2");
+    store(v_occupancy, "_occupancy");
 
     store_vec(v_hit_charge, "_hit_charge");
     store_vec(v_hit_time,   "_hit_time");
