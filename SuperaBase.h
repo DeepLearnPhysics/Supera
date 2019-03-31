@@ -2,7 +2,7 @@
  * \file SuperaBase.h
  *
  * \ingroup Package_Name
- * 
+ *
  * \brief Class def header for a class SuperaBase
  *
  * @author kazuhiro
@@ -31,10 +31,10 @@ namespace larcv {
   class SuperaBase : public ProcessBase {
 
   public:
-    
+
     /// Default constructor
     SuperaBase(const std::string name="SuperaBase");
-    
+
     /// Default destructor
     ~SuperaBase(){}
 
@@ -85,6 +85,7 @@ namespace larcv {
     std::vector<supera::LArMCTrack_t>*    _ptr_mct_v;
     std::vector<supera::LArMCShower_t>*   _ptr_mcs_v;
     std::vector<supera::LArSimEnergyDeposit_t>* _ptr_simedep_v;
+		std::vector<supera::LArSpacePoint_t>* _ptr_spacepoint_v;
     std::string _csv_fname;
   };
 
@@ -110,6 +111,8 @@ namespace larcv {
 
   template <> const std::vector<supera::LArSimEnergyDeposit_t>& SuperaBase::LArData<supera::LArSimEnergyDeposit_t>() const;
 
+	template <> const std::vector<supera::LArSpacePoint_t>& SuperaBase::LArData<supera::LArSpacePoint_t>() const;
+
   template <> void SuperaBase::LArData(const std::vector<supera::LArWire_t>& data_v);
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArHit_t>& data_v);
@@ -127,6 +130,8 @@ namespace larcv {
   template <> void SuperaBase::LArData(const std::vector<supera::LArSimCh_t>& data_v);
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArSimEnergyDeposit_t>& data_v);
+
+	template <> void SuperaBase::LArData(const std::vector<supera::LArSpacePoint_t>& data_v);
 
   /**
      \class larcv::SuperaBaseFactory
@@ -147,5 +152,5 @@ namespace larcv {
 }
 
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 
