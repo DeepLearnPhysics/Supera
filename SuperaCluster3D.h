@@ -44,7 +44,7 @@ namespace larcv {
 
   private:
 
-    std::string _output_label, _cluster3d_label;
+    std::string _output_label;
   };
 
   /**

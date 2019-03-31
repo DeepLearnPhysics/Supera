@@ -29,46 +29,30 @@ namespace larcv {
   {
     SuperaBase::process(mgr);
 
-    // Main cluster3d to be filled
-    //auto& event_cluster_v = mgr.get_data<larcv::EventSparseTensor3D>(_output_label);
 		auto& event2 = mgr.get_data<larcv::EventClusterVoxel3D>(_output_label);
-		//auto const& meta = event_cluster_v.meta();
 		auto const& meta = event2.meta();
 
     LARCV_INFO() << "Voxel3DMeta: " << meta.dump();
-		std::cout << meta.dump() << std::endl;
 
 		larcv::VoxelSet cluster_spacepoint_v;
 
-
 		auto const& spacepoint_v = LArData<supera::LArSpacePoint_t>();
-		//cluster_spacepoint_v.resize(spacepoint_v.size()+1);
 		LARCV_INFO() << "Processing SpacePoint array: " << spacepoint_v.size() << std::endl;
+		// Loop over space points and store them in cluster_spacepoint_v
 		for (size_t spacepoint_idx=0; spacepoint_idx < spacepoint_v.size(); ++spacepoint_idx) {
-			//std::cout << spacepoint_idx << std::endl;
 			auto const& spacepoint = spacepoint_v.at(spacepoint_idx);
-			//std::cout << spacepoint << std::endl;
 			auto coords = spacepoint.XYZ();
 			auto error = spacepoint.ErrXYZ();
-			//std::cout << error[0] << " " << error[1] << " " << error[2] << " " << error[3] << " " << error[4] << " " << error[5] << std::endl;
-			//std::cout << coords << " " << spacepoint << std::endl;
-			//std::cout << coords[0] << coords[1] << coords[2] << std::endl;
-			//std::cout << meta.size_voxel_x() << meta.size_voxel_y() << meta.size_voxel_z() << std::endl;
-			//std::cout << meta.min_x() << meta.max_x() << meta.min_y() << meta.max_y() << meta.min_z() << meta.max_z() << std::endl;
-			//std::cout << (coords[0] - meta.min_x()) / meta.size_voxel_x() << std::endl;
-			//std::cout << meta.id(coords[0], coords[1], coords[2]) << std::endl;
 			larcv::VoxelID_t vox_id = meta.id(coords[0], coords[1], coords[2]);
 			float vox_value = error[0];
-			//std::cout << "SpacePoint " << vox_id << " " << coords[0] << std::endl;
 			if (vox_id == larcv::kINVALID_VOXELID) {
-				LARCV_DEBUG() << "Skipping SpacePoint from track id " << spacepoint.ID() << " pos=(" << coords[0] << "," << coords[1] << "," << coords[2] << ")" << std::endl;
-				//std::cout << "hi" << std::endl;
+				LARCV_DEBUG() << "Skipping SpacePoint from id " << spacepoint.ID() << " pos=(" << coords[0] << "," << coords[1] << "," << coords[2] << ")" << std::endl;
 				continue;
 			}
-			//cluster_spacepoint_v.push_back(larcv::Voxel(vox_id, 1.0));
 			cluster_spacepoint_v.emplace(vox_id, vox_value, false);
 
 		} // end for
+		// Write cluster_spacepoint_v to sparse3d_spacepoint_tree
 		mgr.get_data<larcv::EventSparseTensor3D>("spacepoint").emplace(std::move(cluster_spacepoint_v), meta);
 
     return true;

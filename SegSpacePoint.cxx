@@ -1,34 +1,34 @@
-#ifndef __SUPERASEGSPACEPOINT_CXX__
-#define __SUPERASEGSPACEPOINT_CXX__
+#ifndef __SEGSPACEPOINT_CXX__
+#define __SEGSPACEPOINT_CXX__
 
-#include "SuperaSegSpacePoint.h"
+#include "SegSpacePoint.h"
 #include "GenRandom.h"
 #include "larcv/core/DataFormat/EventParticle.h"
 #include "larcv/core/DataFormat/EventVoxel3D.h"
 
 namespace larcv {
 
-  static SuperaSegSpacePointProcessFactory __global_SuperaSegSpacePointProcessFactory__;
+  static SegSpacePointProcessFactory __global_SegSpacePointProcessFactory__;
 
-  SuperaSegSpacePoint::SuperaSegSpacePoint(const std::string name)
-    : SuperaBase(name)
+  SegSpacePoint::SegSpacePoint(const std::string name)
+    : ProcessBase(name)
   {}
-  void SuperaSegSpacePoint::configure(const PSet& cfg)
+  void SegSpacePoint::configure(const PSet& cfg)
   {
-    SuperaBase::configure(cfg);
+    //ProcessBase::configure(cfg);
     _output_label   = cfg.get<std::string>("Cluster3DProducer");
 		_data_label = cfg.get<std::string>("DataProducer");
 		_distance_threshold = cfg.get<float>("DistanceThreshold");
   }
 
-  void SuperaSegSpacePoint::initialize()
+  void SegSpacePoint::initialize()
   {
-    SuperaBase::initialize();
+    //ProcessBase::initialize();
   }
 
-  bool SuperaSegSpacePoint::process(IOManager& mgr)
+  bool SegSpacePoint::process(IOManager& mgr)
   {
-    SuperaBase::process(mgr);
+    //ProcessBase::process(mgr);
 
 		auto& event_spacepoint_v = mgr.get_data<larcv::EventSparseTensor3D>("spacepoint");
 		auto& event_data_v = mgr.get_data<larcv::EventSparseTensor3D>(_data_label);
@@ -64,7 +64,7 @@ namespace larcv {
     return true;
   }
 
-  void SuperaSegSpacePoint::finalize()
+  void SegSpacePoint::finalize()
   {}
 
 }

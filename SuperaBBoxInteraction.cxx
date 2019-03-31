@@ -63,7 +63,7 @@ namespace larcv {
   bool SuperaBBoxInteraction::process(IOManager& mgr)
   {
     SuperaBase::process(mgr);
-		_bbox.update(0, 0, 0, 0, 0, 0);
+		larcv::BBox3D bbox(0, 0, 0, 0, 0, 0);
     /*
     // Retrieve mcparticles
     art::Handle<std::vector<simb::MCParticle> > mcpHandle;
@@ -104,7 +104,7 @@ namespace larcv {
 	larcv::Point3D pt;
 	pt.x = pos.X(); pt.y = pos.Y(); pt.z = pos.Z();
 	LARCV_INFO() << "Registering MCTruth::MCParticle vertex: (" << pt.x << "," << pt.y << "," << pt.z << ")" << std::endl;
-	this->update_bbox(_bbox,pt);
+	this->update_bbox(bbox,pt);
       }
     }
     // Register particle energy deposition coordinates
@@ -114,16 +114,16 @@ namespace larcv {
       auto const& sedep = sedep_v.at(sedep_idx);
       larcv::Point3D pt;
       pt.x = sedep.X(); pt.y = sedep.Y(); pt.z=sedep.Z();
-      if(!update_bbox(_bbox,pt)) break;
+      if(!update_bbox(bbox,pt)) break;
     }
 
     // Randomize BBox location
-    randomize_bbox_center(_bbox);
+    randomize_bbox_center(bbox);
 
     // Create 3D meta
     larcv::Voxel3DMeta meta;
-    auto const& min_pt = _bbox.bottom_left();
-    auto const& max_pt = _bbox.top_right();
+    auto const& min_pt = bbox.bottom_left();
+    auto const& max_pt = bbox.top_right();
     size_t xnum = _xlen/_xvox;
     size_t ynum = _ylen/_yvox;
     size_t znum = _zlen/_zvox;
