@@ -24,7 +24,7 @@ ProcessDriver: {
       Origin: 0
     }
     SuperaBBoxInteraction: {
-      Verbosity: 1
+      Verbosity: 2
       LArMCTruthProducer: "generator"
       LArSimEnergyDepositProducer: "largeant TPCActive"
       Origin: 0
@@ -35,7 +35,7 @@ ProcessDriver: {
       TPCList: [0]
     }
     SuperaMCParticle: {
-      Verbosity: 1
+      Verbosity: 2
       OutParticleLabel:    "mcst"
       LArMCTruthProducer:  "generator"
       LArMCTrackProducer:  "mcreco"
@@ -59,7 +59,7 @@ ProcessDriver: {
       }
     }
     SuperaSimEnergyDeposit: {
-      Verbosity: 1
+      Verbosity: 2
       LArSimEnergyDepositProducer: "largeant TPCActive"
       ParticleProducer: "mcst"
       OutCluster3DLabel: "mcst"

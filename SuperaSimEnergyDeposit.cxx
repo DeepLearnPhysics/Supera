@@ -127,7 +127,7 @@ namespace larcv {
 	  auto const& vox_de = cluster_de[vox_idx];
 	  auto const& vox_dx = cluster_dx[vox_idx];
 	  float dedx = vox_de.value() / vox_dx.value();
-	  std::cout<< vox_de.value() << " " << vox_dx.value() << " " << dedx << std::endl;
+	  //std::cout<< vox_de.value() << " " << vox_dx.value() << " " << dedx << std::endl;
 	  cluster_dedx.emplace(vox_de.id(),dedx,true);
 	}
       }

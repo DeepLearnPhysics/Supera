@@ -102,7 +102,9 @@ namespace larcv {
 	auto const& pos = mcp.Position(0);
 	larcv::Point3D pt;
 	pt.x = pos.X(); pt.y = pos.Y(); pt.z = pos.Z();
-	LARCV_INFO() << "Registering MCTruth::MCParticle vertex: (" << pt.x << "," << pt.y << "," << pt.z << ")" << std::endl;
+	LARCV_INFO() << "Registering MCTruth::MCParticle vertex: (" 
+		     << pt.x << "," << pt.y << "," << pt.z << ")"
+		     << " ... PDG " << mcp.PdgCode() << std::endl;
 	this->update_bbox(_bbox,pt);
       }
     }
