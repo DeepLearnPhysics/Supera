@@ -21,19 +21,19 @@ namespace larcv {
 
     _cluster3d_labels = cfg.get<std::vector<std::string> >("Cluster3DLabels");
     _tensor3d_labels  = cfg.get<std::vector<std::string> >("Tensor3DLabels");
- 
+
     auto bbox_size = cfg.get<std::vector<double> >("BBoxSize");
     assert(bbox_size.size() == 3);
     _xlen = bbox_size.at(0);
     _ylen = bbox_size.at(1);
     _zlen = bbox_size.at(2);
-    
+
     auto voxel_size = cfg.get<std::vector<double> >("VoxelSize");
     assert(voxel_size.size() == 3);
     _xvox = voxel_size.at(0);
     _yvox = voxel_size.at(1);
     _zvox = voxel_size.at(2);
-    
+
     auto tpc_v = cfg.get<std::vector<unsigned short> >("TPCList");
     larcv::Point3D min_pt(1.e9,1.e9,1.e9);
     larcv::Point3D max_pt(-1.e9,-1.e9,-1.e9);
@@ -63,6 +63,7 @@ namespace larcv {
   bool SuperaBBoxInteraction::process(IOManager& mgr)
   {
     SuperaBase::process(mgr);
+		larcv::BBox3D bbox(0, 0, 0, 0, 0, 0);
     /*
     // Retrieve mcparticles
     art::Handle<std::vector<simb::MCParticle> > mcpHandle;
@@ -105,7 +106,7 @@ namespace larcv {
 	LARCV_INFO() << "Registering MCTruth::MCParticle vertex: (" 
 		     << pt.x << "," << pt.y << "," << pt.z << ")"
 		     << " ... PDG " << mcp.PdgCode() << std::endl;
-	this->update_bbox(_bbox,pt);
+	this->update_bbox(bbox,pt);
       }
     }
     // Register particle energy deposition coordinates
@@ -115,16 +116,16 @@ namespace larcv {
       auto const& sedep = sedep_v.at(sedep_idx);
       larcv::Point3D pt;
       pt.x = sedep.X(); pt.y = sedep.Y(); pt.z=sedep.Z();
-      if(!update_bbox(_bbox,pt)) break;
+      if(!update_bbox(bbox,pt)) break;
     }
 
     // Randomize BBox location
-    randomize_bbox_center(_bbox);
+    randomize_bbox_center(bbox);
 
     // Create 3D meta
     larcv::Voxel3DMeta meta;
-    auto const& min_pt = _bbox.bottom_left();
-    auto const& max_pt = _bbox.top_right();
+    auto const& min_pt = bbox.bottom_left();
+    auto const& max_pt = bbox.top_right();
     size_t xnum = _xlen/_xvox;
     size_t ynum = _ylen/_yvox;
     size_t znum = _zlen/_zvox;
@@ -140,14 +141,14 @@ namespace larcv {
     for(auto const& name : _tensor3d_labels) {
       auto& tensor3d = mgr.get_data<larcv::EventSparseTensor3D>(name);
       tensor3d.meta(meta);
-    }    
+    }
     return true;
   }
-      
+
   void SuperaBBoxInteraction::finalize()
   {}
 
-  bool SuperaBBoxInteraction::update_bbox(larcv::BBox3D& bbox, 
+  bool SuperaBBoxInteraction::update_bbox(larcv::BBox3D& bbox,
 					  const larcv::Point3D& pt) {
     larcv::Point3D min_pt, max_pt;
     if(bbox.empty()) {
@@ -208,7 +209,7 @@ namespace larcv {
   }
 
   void SuperaBBoxInteraction::randomize_bbox_center(larcv::BBox3D& bbox) {
-    
+
     larcv::Point3D min_pt = bbox.bottom_left();
     larcv::Point3D max_pt = bbox.top_right();
     LARCV_INFO() << "Randomize before:" << bbox.dump() << std::endl;

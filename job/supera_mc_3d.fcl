@@ -1,10 +1,10 @@
 ProcessDriver: {
 
-  Verbosity:    1
+  Verbosity:    3
   EnableFilter: false
   RandomAccess: false
-  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","BBoxFromCluster3D","ParticleCorrector","Tensor3DFromCluster3D","SegLabelFiveTypes"]
-  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","BBoxFromCluster3D","ParticleCorrector","Tensor3DFromCluster3D","SegLabelFiveTypes"]
+  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaCluster3D","SuperaSimEnergyDeposit","BBoxFromCluster3D","ParticleCorrector","Tensor3DFromCluster3D","SegLabelFiveTypes","SegSpacePoint"]
+  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaCluster3D","SuperaSimEnergyDeposit","BBoxFromCluster3D","ParticleCorrector","Tensor3DFromCluster3D","SegLabelFiveTypes","SegSpacePoint"]
 
   IOManager: {
     Verbosity:   2
@@ -109,6 +109,16 @@ ProcessDriver: {
       MinVoxelCount:     3
     }
 
+		SuperaCluster3D: {
+			LArSpacePointProducer: "cluster3d"
+			Cluster3DProducer: "mcst"
+		}
+
+		SegSpacePoint: {
+			DataProducer: "data"
+			Cluster3DProducer: "mcst"
+			DistanceThreshold: 0.3
+		}
   }
 }
 

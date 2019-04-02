@@ -24,7 +24,7 @@ namespace larcv {
     _store_dt = cfg.get<bool>("StoreDiffTime");
     _store_at = cfg.get<bool>("StoreAbsTime");
     _store_dedx = cfg.get<bool>("StoreDEDX");
- 
+
   }
 
   void SuperaSimEnergyDeposit::initialize()
@@ -52,7 +52,7 @@ namespace larcv {
 
     // List particles to be stored
     static std::vector<int> part_idx_v(1e6,-1);
-    std::fill(part_idx_v.begin(),part_idx_v.end(),-1);    
+    std::fill(part_idx_v.begin(),part_idx_v.end(),-1);
     auto const& mcp_v = mgr.get_data<larcv::EventParticle>(_particle_label).as_vector();
     LARCV_INFO() << "Processing larcv::EventParticle array: " << mcp_v.size() << std::endl;
     for(size_t idx=0; idx<mcp_v.size(); ++idx) {
@@ -81,12 +81,12 @@ namespace larcv {
       larcv::Point3D pt;
       VoxelID_t vox_id = meta.id(sedep.X(), sedep.Y(), sedep.Z());
       if(vox_id == larcv::kINVALID_VOXELID) {
-	LARCV_DEBUG() << "Skipping sedep from track id " << sedep.TrackID() 
+	LARCV_DEBUG() << "Skipping sedep from track id " << sedep.TrackID()
 		      << " E=" << sedep.Energy()
 		      << " pos=(" << sedep.X() << "," << sedep.Y() << "," << sedep.Z() << ")" << std::endl;
 	continue;
       }
-      LARCV_DEBUG() << "Recording sedep from track id " << sedep.TrackID() 
+      LARCV_DEBUG() << "Recording sedep from track id " << sedep.TrackID()
 		    << " E=" << sedep.Energy() << std::endl;
       size_t cluster_idx = mcp_v.size();
       int track_id = sedep.TrackID();
@@ -100,7 +100,7 @@ namespace larcv {
       float dp = sedep.NumPhotons();
       float at = sedep.T();
       float dt = sedep.EndT() - sedep.StartT();
-      
+
       cluster_de_v[cluster_idx].emplace(vox_id, de, true);
 
       if(_store_dq) cluster_dq_v[cluster_idx].emplace  (vox_id, dq, true);
@@ -147,10 +147,10 @@ namespace larcv {
     if(_store_dt) mgr.get_data<larcv::EventClusterVoxel3D>(_output_label + "_dt").emplace(std::move(vsa_dt),meta);
     if(_store_at) mgr.get_data<larcv::EventClusterVoxel3D>(_output_label + "_at").emplace(std::move(vsa_at),meta);
     if(_store_dedx) mgr.get_data<larcv::EventClusterVoxel3D>(_output_label + "_dedx").emplace(std::move(vsa_dedx),meta);
-    
+
     return true;
   }
-      
+
   void SuperaSimEnergyDeposit::finalize()
   {}
 

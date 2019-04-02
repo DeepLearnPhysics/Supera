@@ -21,11 +21,11 @@ namespace larcv {
     if(iter == _data_request_m.end()) return _empty_string;
     return (*iter).second;
   }
-  
+
   void SuperaBase::configure(const PSet& cfg)
   {
     _time_offset  = cfg.get<int>("TimeOffset",2400);
-    
+
     auto producer_wire     = cfg.get<std::string>("LArWireProducer",       "");
     auto producer_hit      = cfg.get<std::string>("LArHitProducer",        "");
     auto producer_opdigit  = cfg.get<std::string>("LArOpDigitProducer",    "");
@@ -35,6 +35,7 @@ namespace larcv {
     auto producer_mcshower = cfg.get<std::string>("LArMCShowerProducer",   "");
     auto producer_simch    = cfg.get<std::string>("LArSimChProducer",      "");
     auto producer_simedep  = cfg.get<std::string>("LArSimEnergyDepositProducer", "");
+		auto producer_spacepoint = cfg.get<std::string>("LArSpacePointProducer", "");
 
     if(!producer_wire.empty()    ) {
       LARCV_INFO() << "Requesting Wire data product by " << producer_wire << std::endl;
@@ -45,7 +46,7 @@ namespace larcv {
       LARCV_INFO() << "Requesting Hit data product by " << producer_hit << std::endl;
       Request(supera::LArDataType_t::kLArHit_t, producer_hit);
     }
-    
+
     if(!producer_opdigit.empty() ) {
       LARCV_INFO() << "Requesting OpDigit data product by " << producer_opdigit << std::endl;
       Request(supera::LArDataType_t::kLArOpDigit_t, producer_opdigit );
@@ -60,17 +61,17 @@ namespace larcv {
       LARCV_INFO() << "Requesting MCParticle data product by " << producer_mcpart << std::endl;
       Request(supera::LArDataType_t::kLArMCParticle_t, producer_mcpart );
     }
-    
+
     if(!producer_mctrack.empty() ) {
       LARCV_INFO() << "Requesting MCTrack data product by " << producer_mctrack << std::endl;
       Request(supera::LArDataType_t::kLArMCTrack_t, producer_mctrack );
     }
-    
+
     if(!producer_mcshower.empty()) {
       LARCV_INFO() << "Requesting MCShower data product by " << producer_mcshower << std::endl;
       Request(supera::LArDataType_t::kLArMCShower_t, producer_mcshower);
     }
-    
+
     if(!producer_simch.empty()   ) {
       LARCV_INFO() << "Requesting SimCh data product by " << producer_simch << std::endl;
       Request(supera::LArDataType_t::kLArSimCh_t, producer_simch);
@@ -80,6 +81,11 @@ namespace larcv {
       LARCV_INFO() << "Requesting SimEnergyDeposit data product by " << producer_simedep << std::endl;
       Request(supera::LArDataType_t::kLArSimEnergyDeposit_t, producer_simedep);
     }
+
+		if(!producer_spacepoint.empty()) {
+			LARCV_INFO() << "Requesting SpacePoint data product by " << producer_spacepoint << std::endl;
+			Request(supera::LArDataType_t::kLArSpacePoint_t, producer_spacepoint);
+		}
 
   }
 
@@ -109,6 +115,7 @@ namespace larcv {
     _ptr_mct_v      = nullptr;
     _ptr_mcs_v      = nullptr;
     _ptr_simedep_v  = nullptr;
+		_ptr_spacepoint_v = nullptr;
   }
 
   template <> const std::vector<supera::LArWire_t>& SuperaBase::LArData<supera::LArWire_t>() const
@@ -138,6 +145,9 @@ namespace larcv {
   template <> const std::vector<supera::LArSimEnergyDeposit_t>& SuperaBase::LArData<supera::LArSimEnergyDeposit_t>() const
   { if(!_ptr_simedep_v) throw larbys("SimEnergyDeposit data pointer not available"); return *_ptr_simedep_v; }
 
+	template <> const std::vector<supera::LArSpacePoint_t>& SuperaBase::LArData<supera::LArSpacePoint_t>() const
+	{ if(!_ptr_spacepoint_v) throw larbys("SpacePoint data pointer not available"); return *_ptr_spacepoint_v; }
+
   template <> void SuperaBase::LArData(const std::vector<supera::LArWire_t>& data_v)
   { _ptr_wire_v = (std::vector<supera::LArWire_t>*)(&data_v); }
 
@@ -164,6 +174,8 @@ namespace larcv {
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArSimEnergyDeposit_t>& data_v)
   { _ptr_simedep_v = (std::vector<supera::LArSimEnergyDeposit_t>*)(&data_v); }
-  
+
+	template <> void SuperaBase::LArData(const std::vector<supera::LArSpacePoint_t>& data_v)
+	{ _ptr_spacepoint_v = (std::vector<supera::LArSpacePoint_t>*)(&data_v); }
 }
 #endif
