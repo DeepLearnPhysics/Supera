@@ -18,6 +18,7 @@ art_make( EXCLUDE LArCVMetaMaker_service.cc
 		  # uboonecode_uboone_MuCS
 		   #ubreco_MuCS
 		   larcore_Geometry_Geometry_service
+		   larcorealg_Geometry
 	   	   larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
 		   lardataobj_RecoBase
 		   nusimdata_SimulationBase
@@ -29,9 +30,14 @@ art_make( EXCLUDE LArCVMetaMaker_service.cc
 		   nusimdata_SimulationBase
 		   ${LARRECO_LIB}
 		   ${LARDATA_LIB}
+		   ${ART_FRAMEWORK_ART}
 		   ${ART_FRAMEWORK_CORE}
+		   ${ART_FRAMEWORK_IO}
+		   #${ART_FRAMEWORK_IO_CATALOG}
+		   #${ART_FRAMEWORK_EVENTPROCESSOR}
 		   ${ART_FRAMEWORK_PRINCIPAL}
                    ${ART_FRAMEWORK_BASIC}
+		   ${ART_UTILITIES}
 		   ${ART_FRAMEWORK_SERVICES_REGISTRY}
 		   ${ART_FRAMEWORK_SERVICES_OPTIONAL}
 		   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
@@ -42,7 +48,9 @@ art_make( EXCLUDE LArCVMetaMaker_service.cc
 		   ${MF_UTILITIES}
 		   ${FHICLCPP}
 		   ${CETLIB}
-		   #cetlib cetlib_except
+		   cetlib
+		   cetlib_except
+		   canvas
 		   ${ROOT_GEOM}
 		   ${ROOT_XMLIO}
 		   ${ROOT_GDML}
@@ -59,6 +67,7 @@ art_make( EXCLUDE LArCVMetaMaker_service.cc
 		  #uboone_Geometry
 		   ubcore_Geometry
 		   larcore_Geometry_Geometry_service
+		   larcorealg_Geometry
 		   larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
                    larevt_CalibrationDBI_IOVData
                    larevt_CalibrationDBI_Providers
@@ -99,6 +108,11 @@ art_make( EXCLUDE LArCVMetaMaker_service.cc
 simple_plugin(LArCVMetaMaker "service"
 	      TFileMetadataMicroBooNE_service
 	      FileCatalogMetadataMicroBooNE_service
+		   ${ART_FRAMEWORK_ART}
+		   ${ART_FRAMEWORK_CORE}
+		   ${ART_FRAMEWORK_IO}
+		   ${ART_FRAMEWORK_PRINCIPAL}
+                   ${ART_FRAMEWORK_BASIC}
 	      ${ART_FRAMEWORK_SERVICES_SYSTEM_FILECATALOGMETADATA_SERVICE}	      
 	      art_Utilities #canvas_Utilities
 	      ${MF_MESSAGELOGGER}
