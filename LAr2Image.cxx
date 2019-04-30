@@ -191,6 +191,54 @@ namespace supera {
     return img;
   }
 
+  larcv::VoxelSet Wire2Sparse2D(const larcv::ImageMeta& meta,
+				const std::vector<supera::LArWire_t>& wires,
+				const int time_offset)
+  {
+    const int ymax = meta.max_y() - 1; // Need in terms of row coordinate
+    const int ymin = (meta.min_y() >= 0 ? meta.min_y() : 0);
+    larcv::VoxelSet img;
+
+    LARCV_SINFO() << "Filling an image: " << meta.dump();
+    LARCV_SINFO() << "(ymin,ymax) = (" << ymin << "," << ymax << ")" << std::endl;
+
+    for (auto const& wire : wires) {
+      auto const projection_id = ::supera::ChannelToProjectionID(wire.Channel());
+      auto const image_x = ::supera::ChannelToImageX(wire.Channel());
+
+      if (projection_id != meta.id()) continue;
+
+      size_t col = 0;
+      try {
+        col = meta.col(image_x);
+      } catch (const ::larcv::larbys&) {
+        continue;
+      }
+
+      for (auto const& range : wire.SignalROI().get_ranges()) {
+
+        auto const& adcs = range.data();
+        //double sumq = 0;
+        //for(auto const& v : adcs) sumq += v;
+        //sumq /= (double)(adcs.size());
+        //if(sumq<3) continue;
+
+        int start_index = range.begin_index() + time_offset;
+        int end_index   = start_index + adcs.size() - 1;
+        if (start_index > ymax || end_index < ymin) continue;
+
+
+	for (size_t index = 0; index < adcs.size(); ++index) {
+	  if ((int)index + start_index < ymin) continue;
+	  if ((int)index + start_index > ymax) break;
+	  auto row = meta.row((double)(start_index + index));
+	  img.emplace(meta.index(row,col), adcs[index], true);
+	}
+      }
+    }
+    return img;
+  }
+
   std::vector<larcv::Image2D>
   Wire2Image2D(const std::vector<larcv::ImageMeta>& meta_v,
                const std::vector<supera::LArWire_t>& wires,
@@ -201,6 +249,19 @@ namespace supera {
       auto const& meta = meta_v.at(p);
       res_v.emplace_back(std::move(Wire2Image2D(meta, wires, time_offset)));
       res_v.back().index(res_v.size() - 1);
+    }
+    return res_v;
+  }
+
+  std::vector<larcv::VoxelSet>
+  Wire2Sparse2D(const std::vector<larcv::ImageMeta>& meta_v,
+               const std::vector<supera::LArWire_t>& wires,
+               const int time_offset)
+  {
+    std::vector<larcv::VoxelSet> res_v;
+    for (size_t p = 0; p < ::supera::NProjections(); ++p) {
+      auto const& meta = meta_v.at(p);
+      res_v.emplace_back(std::move(Wire2Sparse2D(meta, wires, time_offset)));
     }
     return res_v;
   }

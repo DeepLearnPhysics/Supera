@@ -35,6 +35,17 @@ namespace supera {
 					   const int time_offset=0);
 
   //
+  // Wire => Sparse2D
+  //
+  larcv::VoxelSet Wire2Sparse2D(const larcv::ImageMeta& meta,
+				const std::vector<supera::LArWire_t>& wires,
+				const int time_offset=0);
+  
+  std::vector<larcv::VoxelSet> Wire2Sparse2D(const std::vector<larcv::ImageMeta>& meta_v,
+					     const std::vector<supera::LArWire_t>& wires,
+					     const int time_offset=0);
+
+  //
   // OpDigit => Image2D
   //
   larcv::Image2D OpDigit2Image2D(const larcv::ImageMeta& meta,

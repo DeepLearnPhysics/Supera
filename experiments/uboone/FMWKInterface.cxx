@@ -116,7 +116,7 @@ namespace supera {
   double WirePitch(size_t plane)
   {
     auto const* geom = ::lar::providerFrom<geo::Geometry>();
-    return geom->WirePitch(0,1,plane);
+    return geom->WirePitch(plane);
   }
 
   double DetHalfWidth() 

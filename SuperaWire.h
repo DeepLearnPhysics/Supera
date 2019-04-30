@@ -47,6 +47,8 @@ namespace larcv {
 
     void finalize();
 
+    bool _store_sparse2d;
+
   };
 
   /**
