@@ -110,10 +110,11 @@ namespace larcv {
         continue;
       }
       // at this point we decided to store primary. create one
-      _part_v.resize(_part_v.size() + 1);
-      auto& pri_part = _part_v.back();
+      //_part_v.resize(_part_v.size() + 1);
+      //auto& pri_part = _part_v.back();
 
-      pri_part = MakeParticle(primary,meta);
+      auto pri_part = MakeParticle(primary,meta);
+      _part_v.push_back(std::move(pri_part));
 
       LARCV_INFO() << "Analyzing primary " << primary_idx << " PDG " << pri_part.pdg_code()
                    << " Origin " << primary.origin
@@ -155,7 +156,7 @@ namespace larcv {
                      << " PDG " << sec_part.pdg_code() << ")" << std::endl;
         sec_part.mct_index(pri_part.mct_index());
         pri_part.energy_deposit(pri_part.energy_deposit() + sec_part.energy_deposit());
-        _part_v.emplace_back(std::move(sec_part));
+        _part_v.push_back(std::move(sec_part));
       }
     }
 
