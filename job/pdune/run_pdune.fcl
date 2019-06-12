@@ -141,8 +141,9 @@ physics.producers.cluster3D.Hit3DBuilderAlg.DoRawDigitAssns:                    
 physics.producers.cluster3D.Hit3DBuilderAlg.NumSigmaPeakTime:                    3.0
 physics.producers.cluster3D.Hit3DBuilderAlg.HitWidthScaleFactor:                 3.0
 physics.producers.cluster3D.Hit3DBuilderAlg.DeltaPeakTimeSig:                    1.75
-#physics.producers.cluster3D.Hit3DBuilderAlg.InvalidTPCVec:                       [0, 3, 4, 7, 8, 11]
-physics.producers.cluster3D.Hit3DBuilderAlg.InvalidTPCVec:                       [0,2,3,4,6,7,8,10,11]
+physics.producers.cluster3D.Hit3DBuilderAlg.InvalidTPCVec:                       [0, 3, 4, 7, 8, 11]
+# following beam side only
+#physics.producers.cluster3D.Hit3DBuilderAlg.InvalidTPCVec:                       [0,2,3,4,6,7,8,10,11]
 physics.producers.cluster3D.ClusterAlg:                                          @local::standard_cluster3ddbscanalg
 physics.producers.cluster3D.EnableMonitoring:                                    true
 physics.producers.cluster3D.ClusterAlg.MinPairPts:                               1
