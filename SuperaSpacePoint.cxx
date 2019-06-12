@@ -48,8 +48,9 @@ namespace larcv {
     larcv::VoxelSet v_inv_chi2;
 
     std::vector<larcv::VoxelSet> v_hit_charge(_n_planes);
-    std::vector<larcv::VoxelSet> v_hit_time(_n_planes);
-    std::vector<larcv::VoxelSet> v_hit_rms(_n_planes);
+    std::vector<larcv::VoxelSet> v_hit_amp   (_n_planes);
+    std::vector<larcv::VoxelSet> v_hit_time  (_n_planes);
+    std::vector<larcv::VoxelSet> v_hit_rms   (_n_planes);
 
     /* FIXME(kvtsang) To be removed?
      * Find associated hits
@@ -111,8 +112,8 @@ namespace larcv {
         if (!(v_chi2.find(vox_id) == larcv::kINVALID_VOXEL))
             continue;
 
-        bool is_replaced = false;
-        float total_charge = 0;
+        //bool is_replaced = false;
+        float charge = get_common_charge(hits);
         for (const auto& hit : hits) {
             size_t plane = hit->WireID().Plane;
             if (plane < 0 || plane >= _n_planes) {
@@ -121,15 +122,15 @@ namespace larcv {
             }
 
             float charge  = hit->Integral();
-            total_charge += charge;
-            v_hit_charge[plane].emplace(vox_id, charge, true);
-            v_hit_time[plane].emplace(vox_id, hit->PeakTime(), true);
-            v_hit_rms[plane].emplace(vox_id, hit->RMS(), true);
+            v_hit_charge[plane].emplace(vox_id, charge,               true);
+            v_hit_amp   [plane].emplace(vox_id, hit->PeakAmplitude(), true);
+            v_hit_time  [plane].emplace(vox_id, hit->PeakTime(),      true);
+            v_hit_rms   [plane].emplace(vox_id, hit->RMS(),           true);
         }
 
         v_chi2.emplace(vox_id, pt.Chisq(), true);
         v_inv_chi2.emplace(vox_id, 1. / pt.Chisq(), true);
-        v_charge.emplace(vox_id, total_charge, true);
+        v_charge.emplace(vox_id, charge, true);
     }
 
     LARCV_INFO() << n_dropped << " out of " << points.size() 
@@ -157,6 +158,7 @@ namespace larcv {
     store(v_occupancy, "_occupancy");
 
     store_vec(v_hit_charge, "_hit_charge");
+    store_vec(v_hit_amp,    "_hit_charge");
     store_vec(v_hit_time,   "_hit_time");
     store_vec(v_hit_rms,    "_hit_rms");
 
@@ -166,16 +168,16 @@ namespace larcv {
   void SuperaSpacePoint::finalize()
   {}
 
-  std::vector<std::pair<geo::WireID, float>>
-  SuperaSpacePoint::get_hit_charges(
-          const std::vector<art::Ptr<recob::Hit>>& hits)
+  float SuperaSpacePoint::get_common_charge(
+      const std::vector<art::Ptr<recob::Hit>>& hits)
   {
-      float charge(0.);
+      float charge_common = 0.;
+      float charge_total  = 0.;
       int idx0(std::numeric_limits<int>::min());
       int idx1(std::numeric_limits<int>::max());
 
       for (const auto& hit : hits)  {
-          charge += hit->Integral();
+          charge_total += hit->Integral();
 
           float peak = hit->PeakTime();
           float width = 2. * hit->RMS() + 0.5;
@@ -184,9 +186,8 @@ namespace larcv {
           idx0 = std::max(start,    idx0);
           idx1 = std::min(stop + 1, idx1);
       }
-
-      if (!hits.empty())
-          charge /= float(hits.size());
+      
+      /* std::cout << "Idx " << idx0 << " -> " << idx1 << std::endl; */
 
       auto integrate = [&](const auto& hit)
       {
@@ -194,19 +195,33 @@ namespace larcv {
           double amp   = hit->PeakAmplitude();
           double width = hit->RMS();
 
-          double integral(0.);
-          for (int pos = idx0; pos < idx1; ++pos)
-              integral += amp * TMath::Gaus(double(pos), mean, width);
+          float t0 = (idx0 - mean) / width / TMath::Sqrt(2.);
+          float t1 = (idx1 - mean) / width / TMath::Sqrt(2.);
+          float integral = TMath::Erf(t1) - TMath::Erf(t0);
+          integral *= amp * TMath::Sqrt(TMath::PiOver2());
+
+           /* for (int pos = idx0; pos < idx1; ++pos)
+           integral += amp * TMath::Gaus(double(pos), mean, width); */
+
+          /*
+          std::cout
+            << "m:" << mean
+            << " a:" << amp
+            << " w:" << width
+            << " q:" << integral
+            << std::endl;
+            */
+
           return integral;
       };
 
-      std::vector<std::pair<geo::WireID, float>> charges;
-      if (charge > 0 && idx1 > idx0) {
-          for (const auto& hit : hits) {
-              charges.emplace_back(hit->WireID(), integrate(hit));
-          }
-      }
-      return std::move(charges);
+      if (charge_total <= 0 || idx0 >= idx1)
+        return 0;
+
+      for (const auto& hit : hits)
+        charge_common += integrate(hit);
+
+      return charge_common;
   }
 }
 

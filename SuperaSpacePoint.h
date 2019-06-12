@@ -42,8 +42,7 @@ namespace larcv {
 
     void finalize();
 
-    static std::vector<std::pair<geo::WireID, float>> get_hit_charges(
-            const std::vector<art::Ptr<recob::Hit>>& hits);
+    static float get_common_charge(const std::vector<art::Ptr<recob::Hit>>& hits);
 
   private:
     std::string _output_label, _producer_label;
