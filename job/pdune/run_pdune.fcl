@@ -1,0 +1,163 @@
+#include "services_dune.fcl"
+
+#include "largeantmodules_dune.fcl"
+#include "photpropservices_dune.fcl"
+#include "opticaldetectormodules_dune.fcl"
+
+#include "mcreco.fcl"
+#include "detsimmodules_dune.fcl"
+#include "CRT.fcl"
+#include "caldata_dune.fcl"
+#include "hitfindermodules_dune.fcl"
+#include "ProtoDUNETriggerFilter.fcl"
+#include "cluster_dune.fcl"
+
+#include "protodune_tools_dune.fcl"
+
+process_name: supera
+
+services:
+{
+  TFileService: { fileName: "pdune_hist.root" }
+  TimeTracker:       {}
+  MemoryTracker:     {}
+  RandomNumberGenerator: {}
+  FileCatalogMetadata:  @local::art_file_catalog_mc
+  @table::protodune_simulation_services
+  @table::protodune_reco_services
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:   100
+  fileNames:   [ "pdune_gen.root" ]
+}
+
+physics:
+{
+ producers:
+ {
+   rns      :  { module_type: "RandomNumberSaver" }
+   largeant :  @local::dunefd_largeant
+   mcreco   :  @local::standard_mcreco
+   daq      :  @local::dune_detsim
+   caldata  :  @local::producer_adcprep
+   gaushit  :  @local::protodunespmc_gaushitfinder
+   cluster3D:  @local::standard_cluster3d
+ }
+
+ analyzers:
+ {
+
+   supera: {
+            module_type:     "LArSoftSuperaDriver"
+            supera_params:   "supera_pdune_mc.fcl"
+            out_filename:    "larcv.root"
+            unique_filename: true 
+            stream:          "mc"
+            Verbosity: 2
+            }
+ }
+
+ prod: [ rns, largeant, mcreco, daq, caldata, gaushit, cluster3D ]
+ 
+ trigger_paths: [ prod ]
+ # stream1:  [ supera, out1 ]
+ stream1:  [ supera ]   # Only write larcv output
+ end_paths:     [ stream1 ]
+}
+
+outputs:
+{
+ out1:
+ {
+   module_type: RootOutput
+   fileName:    "%ifb_%p.root"
+   dataTier:    "supera"
+   compressionLevel: 1
+   # skim output (if needed)
+   outputCommands: [ "drop *", 
+                     "keep *_mcreco_*_*",
+                     "keep recob::Hit*_gaushit_*_*"
+                   ]
+ }
+}
+
+services.message.destinations :
+{
+  STDCOUT:
+  {
+     type:      "cout"      #tells the message service to output this destination to cout
+     threshold: "INFO"      #tells the message service that this destination applies to WARNING and higher level messages
+     categories:
+     {
+       default:
+       {
+         limit:       1000  #don't print anything at the infomsg level except the explicitly named categories
+         reportEvery: 1
+       }
+     }
+  }
+}
+
+# skip inactive TPCs
+services.LArG4Parameters.SkipWireSignalInTPCs: [0,3,4,7,8,11]
+
+# beam side only
+#services.LArG4Parameters.SkipWireSignalInTPCs: [0,2,3,4,6,7,8,10,11]
+
+services.LArG4Parameters.FillSimEnergyDeposits:       true
+
+services.DetectorPropertiesService.Electronlifetime: 12000 # microseconds
+
+services.DetPedestalService: @local::dune_fixedpeds
+services.SimChannelExtractService: @local::scxgeneric
+services.ChannelNoiseService:      @local::chnoiseold
+services.PedestalAdditionService:  @local::padprovided
+services.AdcDistortService:        @local::stuckbits
+services.AdcSuppressService:       @local::zslegacy
+services.AdcCompressService:       @local::cmpblock
+
+services.Geometry.SortingParameters.ChannelsPerOpDet: 12
+
+physics.producers.largeant.ChargeRecoveryMargin: 2.5 # cm
+
+physics.producers.daq.NoiseOn:     true
+physics.producers.daq.PedestalOn:  true
+physics.producers.daq.DistortOn:   false
+physics.producers.daq.SuppressOn:  false
+
+physics.producers.mcreco.SimChannelLabel: "largeant:TPCActive"
+physics.producers.mcreco.MCParticleLabel: "largeant"
+physics.producers.mcreco.UseSimEnergyDeposit: true
+physics.producers.mcreco.MCRecoPart.SavePathPDGList: [
+    13,-13,211,-211,111,311,310,
+    130,321,-321,2212,2112,2224,2214,2114,1114,3122,
+    1000010020,1000010030,1000020030,1000020040 ]
+
+physics.producers.cluster3D.Hit3DBuilderAlg.HitFinderTag:                        "gaushit"
+physics.producers.cluster3D.Hit3DBuilderAlg.DoRawDigitAssns:                     false 
+physics.producers.cluster3D.Hit3DBuilderAlg.NumSigmaPeakTime:                    3.0
+physics.producers.cluster3D.Hit3DBuilderAlg.HitWidthScaleFactor:                 3.0
+physics.producers.cluster3D.Hit3DBuilderAlg.DeltaPeakTimeSig:                    1.75
+#physics.producers.cluster3D.Hit3DBuilderAlg.InvalidTPCVec:                       [0, 3, 4, 7, 8, 11]
+physics.producers.cluster3D.Hit3DBuilderAlg.InvalidTPCVec:                       [0,2,3,4,6,7,8,10,11]
+physics.producers.cluster3D.ClusterAlg:                                          @local::standard_cluster3ddbscanalg
+physics.producers.cluster3D.EnableMonitoring:                                    true
+physics.producers.cluster3D.ClusterAlg.MinPairPts:                               1
+physics.producers.cluster3D.ClusterAlg.kdTree.PairSigmaPeakTime:                 3.0
+physics.producers.cluster3D.ClusterAlg.kdTree.RefLeafBestDist:                   1.25 #0.75
+physics.producers.cluster3D.ClusterAlg.kdTree.MaxWireDeltas:                     4
+physics.producers.cluster3D.ClusterMergeAlg.MinEigenToProcess:                   5 #50.
+physics.producers.cluster3D.ClusterMergeAlg.MinTransEigenVal:                    1. #0.5
+physics.producers.cluster3D.ClusterMergeAlg.NumTransEigenVals:                   3. #30.
+physics.producers.cluster3D.ClusterMergeAlg.OutputHistograms:                    true
+physics.producers.cluster3D.ClusterPathAlg:                                      @local::standard_convexhullPathAlg
+physics.producers.cluster3D.ClusterPathAlg.MinTinyClusterSize:                   200000 #20 #30 #40 #200000
+physics.producers.cluster3D.ClusterPathAlg.MinEigen0To1Ratio:                    12.
+physics.producers.cluster3D.ClusterPathAlg.ClusterAlg.MinPairPts:                1
+physics.producers.cluster3D.ClusterPathAlg.ClusterAlg.kdTree.PairSigmaPeakTime:  3.0
+physics.producers.cluster3D.ClusterPathAlg.ClusterAlg.kdTree.RefLeafBestDist:    0.75
+physics.producers.cluster3D.Hit3DBuilderAlg.OutputHistograms:                    false
+physics.producers.cluster3D.ClusterMergeAlg.OutputHistograms:                    false
