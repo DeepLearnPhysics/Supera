@@ -3,6 +3,7 @@
 In general, **Supear** works fine with latest larsoft release on _cvmfs_ (linux only, sorry for mac users).
 The following has been tested with the tags specified. It depends on [[larcv2][https://github.com/DeepLearnPhysics/larcv2]].
 
+**For building**
 ```
 # ===========================
 # Prepare a working directory
@@ -21,6 +22,7 @@ cd $MRB_SOURCE
 git clone https://github.com/DeepLearnPhysics/larcv2
 cd larcv2
 source configure.sh
+make
 
 # ================
 # checkout dunetpc
@@ -44,4 +46,14 @@ source setup.sh pdune
 cd $MRB_BUILDDIR
 mrbsetenv
 mrb i             # or mrb i -j <n> for parallel build
+```
+
+**For running**
+```
+# ==========================================
+# Do it once, before executing "lar" command
+# ==========================================
+source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
+source MyWorkDir/localProducts_larsoft_v08_21_00_e17_prof/setup
+source MyWorkDir/larcv2/configure.sh
 ```
