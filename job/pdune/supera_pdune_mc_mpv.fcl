@@ -124,7 +124,7 @@ ProcessDriver: {
       Verbosity: 3
       Cluster3DProducer: "mcst"
       ParticleProducer: "mcst"
-      VoxelMinValue: 0.05
+      VoxelMinValue: 0.2
     }
 
     SuperaSpacePoint: {
