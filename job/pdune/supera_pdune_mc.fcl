@@ -31,7 +31,7 @@ ProcessDriver: {
       Origin: 0
       Cluster3DLabels: ["mcst"]
       Tensor3DLabels:  ["reco"]
-      BBoxSize: [1536.0,1536.0,1536.0]
+      BBoxSize: [768.0,768.0,768.0]
       VoxelSize: [0.5,0.5,0.5]
       TPCList: [1,2,5,6,9,10]
     }
