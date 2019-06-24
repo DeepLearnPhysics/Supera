@@ -10,6 +10,7 @@
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Wire.h"
+#include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RawData/OpDetWaveform.h"
 #include "lardataobj/MCBase/MCShower.h"
 #include "lardataobj/MCBase/MCTrack.h"
@@ -28,6 +29,7 @@ namespace supera {
   typedef sim::SimChannel    LArSimCh_t;
   typedef sim::MCStep        LArMCStep_t;
   typedef sim::SimEnergyDeposit LArSimEnergyDeposit_t;
+  typedef recob::SpacePoint  LArSpacePoint_t;
 }
 //
 // Utility functions (geometry, lar properties, etc.)

@@ -11,8 +11,8 @@
 /** \addtogroup Package_Name
 
     @{*/
-#ifndef __SUPERABBOXINTERACTION_H__
-#define __SUPERABBOXINTERACTION_H__
+#ifndef __SUPERASIMENERGYDEPOSIT_H__
+#define __SUPERASIMENERGYDEPOSIT_H__
 //#ifndef __CINT__
 //#ifndef __CLING__
 #include "SuperaBase.h"

@@ -3,9 +3,8 @@ ProcessDriver: {
   Verbosity:    1
   EnableFilter: false
   RandomAccess: false
-  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","BBoxFromCluster3D","ParticleCorrector","Tensor3DFromCluster3D","SegLabelFiveTypes","SuperaSpacePoint","SegLabelGhost"]
-  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","BBoxFromCluster3D","ParticleCorrector","Tensor3DFromCluster3D","SegLabelFiveTypes","SuperaSpacePoint","SegLabelGhost"]
-
+  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","Tensor3DFromCluster3D","SegLabelFiveTypes","MaskCluster3D","MaskTensor3D","BBoxFromCluster3D","ParticleCorrector","SuperaSpacePoint","SegLabelGhost"]
+  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","Tensor3DFromCluster3D","SegLabelFiveTypes","MaskCluster3D","MaskTensor3D","BBoxFromCluster3D","ParticleCorrector","SuperaSpacePoint","SegLabelGhost"]
   IOManager: {
     Verbosity:   2
     Name:        "IOManager"
@@ -18,11 +17,13 @@ ProcessDriver: {
   }
 
   ProcessList: {
+
     SuperaMCTruth: {
       LArMCTruthProducer: "generator"
       OutParticleLabel: "mctruth"
       Origin: 0
     }
+
     SuperaBBoxInteraction: {
       Verbosity: 1
       LArMCTruthProducer: "generator"
@@ -30,10 +31,11 @@ ProcessDriver: {
       Origin: 0
       Cluster3DLabels: ["mcst"]
       Tensor3DLabels:  ["reco"]
-      BBoxSize: [256.0,256.0,256.0]
+      BBoxSize: [768.0,768.0,768.0]
       VoxelSize: [0.5,0.5,0.5]
-      TPCList: [1,2,4,5,9,10]
+      TPCList: [1,2,5,6,9,10]
     }
+
     SuperaMCParticle: {
       Verbosity: 1
       OutParticleLabel:    "mcst"
@@ -51,13 +53,14 @@ ProcessDriver: {
       MCParticleTree: {
         Verbosity:    2
         UseG4Primary: false
-	DTMax:        10000
+	      DTMax:        10000
       }
       MCParticleMaker: {
         Verbosity:    2
-	ApplySCE:     true
+      	ApplySCE:     false
       }
     }
+
     SuperaSimEnergyDeposit: {
       Verbosity: 1
       LArSimEnergyDepositProducer: "largeant TPCActive"
@@ -71,19 +74,6 @@ ProcessDriver: {
       StoreDEDX: true
     }
 
-    BBoxFromCluster3D: {
-      Verbosity: 2
-      Cluster3DProducer: "mcst"
-      ParticleProducer: "mcst"
-      OutputProducer:   "mcst"
-      Threshold: 0.2
-    }
-    ParticleCorrector: {
-      Verbosity: 3
-      Cluster3DProducer: "mcst"
-      ParticleProducer: "mcst"
-      VoxelMinValue: 0.05
-    }
     Tensor3DFromCluster3D: {
       Verbosity: 2
       #Cluster3DProducerList: ["mcst_dedx"]
@@ -96,18 +86,40 @@ ProcessDriver: {
       FixedPIList: [0.,0.,0.,0.,0.,0.]
     }
 
-    #MaskTensor3D: {
-    #  MinVoxelValueList: [0.01,0.01,0.01]
-    #  TargetProducerList:    ["data","segment","clst"]
-    #  ReferenceProducerList: ["segment","data","segment"]
-    #  OutputProducerList:    ["data","segment","clst"]
-    #}
     SegLabelFiveTypes: {
       Cluster3DProducer: "mcst"
       ParticleProducer:  "mcst"
       OutputProducer:    "fivetypes"
       MinVoxelCount:     3
-    
+    }
+
+    MaskCluster3D: {
+      MinVoxelValueList: [-0.01]
+      TargetProducerList:    ["mcst"]
+      ReferenceProducerList: ["fivetypes"]
+      OutputProducerList:    ["mcst"]
+    }
+
+    MaskTensor3D: {
+      MinVoxelValueList:     [-0.01]
+      TargetProducerList:    ["data"]
+      ReferenceProducerList: ["fivetypes"]
+      OutputProducerList:    ["data"]
+    } 
+
+    BBoxFromCluster3D: {
+      Verbosity: 2
+      Cluster3DProducer: "mcst"
+      ParticleProducer: "mcst"
+      OutputProducer:   "mcst"
+      Threshold: 0.2
+    }
+
+    ParticleCorrector: {
+      Verbosity: 3
+      Cluster3DProducer: "mcst"
+      ParticleProducer: "mcst"
+      VoxelMinValue: 0.2
     }
 
     SuperaSpacePoint: {

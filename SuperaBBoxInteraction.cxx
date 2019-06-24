@@ -27,7 +27,6 @@ namespace larcv {
     _xlen = bbox_size.at(0);
     _ylen = bbox_size.at(1);
     _zlen = bbox_size.at(2);
-    
     auto voxel_size = cfg.get<std::vector<double> >("VoxelSize");
     assert(voxel_size.size() == 3);
     _xvox = voxel_size.at(0);
@@ -63,6 +62,7 @@ namespace larcv {
   bool SuperaBBoxInteraction::process(IOManager& mgr)
   {
     SuperaBase::process(mgr);
+
     /*
     // Retrieve mcparticles
     art::Handle<std::vector<simb::MCParticle> > mcpHandle;
@@ -82,6 +82,7 @@ namespace larcv {
     fPart.AddParticles(mcp_array,orig_array);
     */
     // Register primary vertex points
+    /* FIXME(orignal)
     auto const& mct_v = LArData<supera::LArMCTruth_t>();
     LARCV_INFO() << "Processing MCTruth: Loaded MCTruth array: " << mct_v.size() << std::endl;
     for(size_t mct_index=0; mct_index<mct_v.size(); ++mct_index) {
@@ -118,6 +119,16 @@ namespace larcv {
 
     // Randomize BBox location
     randomize_bbox_center(_bbox);
+    FIXME(orignal) */
+
+    /* ----------
+     * fixed bbox
+     * ----------
+     */
+    // TODO(kvtsang) get starting point from fcl
+    larcv::Point3D pt0(-_xlen / 2., 0, 0);
+    larcv::Point3D pt1(_xlen / 2., _ylen, _zlen);
+    _bbox.update(pt0, pt1);
 
     // Create 3D meta
     larcv::Voxel3DMeta meta;
