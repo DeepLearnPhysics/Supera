@@ -7,33 +7,33 @@
 #include "larcv/core/DataFormat/EventVoxel3D.h"
 
 namespace larcv {
-
+  
   static SuperaBBoxInteractionProcessFactory __global_SuperaBBoxInteractionProcessFactory__;
-
+  
   SuperaBBoxInteraction::SuperaBBoxInteraction(const std::string name)
     : SuperaBase(name)
   {}
   void SuperaBBoxInteraction::configure(const PSet& cfg)
   {
     SuperaBase::configure(cfg);
-
+    
     _origin = cfg.get<unsigned short>("Origin",0);
-
+    
     _cluster3d_labels = cfg.get<std::vector<std::string> >("Cluster3DLabels");
     _tensor3d_labels  = cfg.get<std::vector<std::string> >("Tensor3DLabels");
-
+    
     auto bbox_size = cfg.get<std::vector<double> >("BBoxSize");
     assert(bbox_size.size() == 3);
     _xlen = bbox_size.at(0);
     _ylen = bbox_size.at(1);
     _zlen = bbox_size.at(2);
-
+    
     auto voxel_size = cfg.get<std::vector<double> >("VoxelSize");
     assert(voxel_size.size() == 3);
     _xvox = voxel_size.at(0);
     _yvox = voxel_size.at(1);
     _zvox = voxel_size.at(2);
-
+    
     auto tpc_v = cfg.get<std::vector<unsigned short> >("TPCList");
     larcv::Point3D min_pt(1.e9,1.e9,1.e9);
     larcv::Point3D max_pt(-1.e9,-1.e9,-1.e9);
@@ -54,16 +54,16 @@ namespace larcv {
     }
     _world_bounds.update(min_pt,max_pt);
   }
-
+  
   void SuperaBBoxInteraction::initialize()
   {
     SuperaBase::initialize();
   }
-
+  
   bool SuperaBBoxInteraction::process(IOManager& mgr)
   {
     SuperaBase::process(mgr);
-		larcv::BBox3D bbox(0, 0, 0, 0, 0, 0);
+    larcv::BBox3D bbox(0, 0, 0, 0, 0, 0);
     /*
     // Retrieve mcparticles
     art::Handle<std::vector<simb::MCParticle> > mcpHandle;
@@ -86,20 +86,20 @@ namespace larcv {
     auto const& mct_v = LArData<supera::LArMCTruth_t>();
     LARCV_INFO() << "Processing MCTruth: Loaded MCTruth array: " << mct_v.size() << std::endl;
     for(size_t mct_index=0; mct_index<mct_v.size(); ++mct_index) {
-
+      
       auto const& mct = mct_v[mct_index];
       if(_origin && mct.Origin() != _origin) {
 	LARCV_INFO() << "Skipping MCTruth of oritin type: " << (int)(mct.Origin()) << std::endl;
 	continue;
       }
-
+      
       for(int i=0; i<mct.NParticles(); ++i) {
 	auto const& mcp = mct.GetParticle(i);
 	if(mcp.StatusCode() != 1) {
 	  LARCV_INFO() << "Skipping MCTruth::MCParticle of status code: " << (int)(mcp.StatusCode()) << std::endl;
 	  continue;
 	}
-
+	
 	auto const& pos = mcp.Position(0);
 	larcv::Point3D pt;
 	pt.x = pos.X(); pt.y = pos.Y(); pt.z = pos.Z();
@@ -118,10 +118,10 @@ namespace larcv {
       pt.x = sedep.X(); pt.y = sedep.Y(); pt.z=sedep.Z();
       if(!update_bbox(bbox,pt)) break;
     }
-
+    
     // Randomize BBox location
     randomize_bbox_center(bbox);
-
+    
     // Create 3D meta
     larcv::Voxel3DMeta meta;
     auto const& min_pt = bbox.bottom_left();
@@ -131,7 +131,7 @@ namespace larcv {
     size_t znum = _zlen/_zvox;
     meta.set(min_pt.x, min_pt.y, min_pt.z, max_pt.x, max_pt.y, max_pt.z, xnum, ynum, znum);
     LARCV_INFO() << "3D Meta:" << meta.dump() << std::endl;
-
+    
     // Create Cluster3D
     for(auto const& name : _cluster3d_labels) {
       auto& cluster3d = mgr.get_data<larcv::EventClusterVoxel3D>(name);
@@ -144,10 +144,10 @@ namespace larcv {
     }
     return true;
   }
-
+  
   void SuperaBBoxInteraction::finalize()
   {}
-
+  
   bool SuperaBBoxInteraction::update_bbox(larcv::BBox3D& bbox,
 					  const larcv::Point3D& pt) {
     larcv::Point3D min_pt, max_pt;
@@ -207,9 +207,9 @@ namespace larcv {
 	     (max_pt.y - min_pt.y) < _ylen ||
 	     (max_pt.z - min_pt.z) < _zlen );
   }
-
+  
   void SuperaBBoxInteraction::randomize_bbox_center(larcv::BBox3D& bbox) {
-
+    
     larcv::Point3D min_pt = bbox.bottom_left();
     larcv::Point3D max_pt = bbox.top_right();
     LARCV_INFO() << "Randomize before:" << bbox.dump() << std::endl;
@@ -235,9 +235,9 @@ namespace larcv {
     bbox.update(min_pt,max_pt);
     LARCV_INFO() << "Randomize after:" << bbox.dump() << std::endl;
   }
-
-
-
+  
+  
+  
 }
 
 #endif

@@ -49,7 +49,8 @@ private:
 };
 
 
-RSEFilter::RSEFilter(fhicl::ParameterSet const & p)
+RSEFilter::RSEFilter(fhicl::ParameterSet const & p) : 
+  art::EDFilter{p}
 {
 
   std::string runlist;

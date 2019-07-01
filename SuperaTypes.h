@@ -5,9 +5,9 @@
 #include "FMWKInterface.h"
 namespace supera {
 
-  /// enum to define LAr* data type
+  /// enum to define LAr* data type 
   enum class LArDataType_t : unsigned int{
-    kLArWire_t,      ///< recob::Wire
+    kLArWire_t,      ///< recob::Wire 
     kLArHit_t,       ///< recob::Hit
     kLArOpDigit_t,   ///< raw::OpDetWaveform
     kLArMCTruth_t,   ///< simb::MCTruth
@@ -16,8 +16,8 @@ namespace supera {
     kLArMCShower_t,  ///< sim::MCShower
     kLArSimCh_t,     ///< sim::SimChannel
     kLArSimEnergyDeposit_t, ///< sim::SimEnergyDeposit
-		kLArSpacePoint_t,
-    kLArDataTypeMax
+    kLArSpacePoint_t, ///< simb::SpacePoint
+    kLArDataTypeMax 
   };
 
   template <class T>
@@ -32,7 +32,7 @@ namespace supera {
   template<> LArDataType_t LArDataType<supera::LArMCShower_t>();
   template<> LArDataType_t LArDataType<supera::LArSimCh_t>();
   template<> LArDataType_t LArDataType<supera::LArSimEnergyDeposit_t>();
-	template<> LArDataType_t LArDataType<supera::LArSpacePoint_t>();
+  template<> LArDataType_t LArDataType<supera::LArSpacePoint_t>();
 
   class RSEID {
   public:
@@ -64,7 +64,7 @@ namespace supera {
 
     size_t run, subrun, event;
   };
-
+  
 }
 //#endif
 //#endif

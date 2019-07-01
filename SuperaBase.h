@@ -2,7 +2,7 @@
  * \file SuperaBase.h
  *
  * \ingroup Package_Name
- *
+ * 
  * \brief Class def header for a class SuperaBase
  *
  * @author kazuhiro
@@ -21,6 +21,9 @@
 #include "SuperaTypes.h"
 //#include "ImageMetaMakerBase.h"
 
+// FIXME(kvtsang) Temporary solution to access associations
+#include "art/Framework/Principal/Event.h"
+
 namespace larcv {
 
   /**
@@ -31,10 +34,10 @@ namespace larcv {
   class SuperaBase : public ProcessBase {
 
   public:
-
+    
     /// Default constructor
     SuperaBase(const std::string name="SuperaBase");
-
+    
     /// Default destructor
     ~SuperaBase(){}
 
@@ -56,6 +59,9 @@ namespace larcv {
     inline void SetCSV(const std::string& fname)
     { _csv_fname = fname; }
 
+    // FIXME(kvtsang) Temporary solution to access associations
+    void SetEvent(const art::Event *ev) { _event = ev; }; 
+
     void ClearEventData();
 
     //
@@ -69,6 +75,9 @@ namespace larcv {
     int TimeOffset() const { return _time_offset; }
 
     const std::string& CSV() const { return _csv_fname; }
+
+    const art::Event *GetEvent();
+
 
   private:
 
@@ -85,8 +94,11 @@ namespace larcv {
     std::vector<supera::LArMCTrack_t>*    _ptr_mct_v;
     std::vector<supera::LArMCShower_t>*   _ptr_mcs_v;
     std::vector<supera::LArSimEnergyDeposit_t>* _ptr_simedep_v;
-		std::vector<supera::LArSpacePoint_t>* _ptr_spacepoint_v;
+    std::vector<supera::LArSpacePoint_t>* _ptr_spacepoint_v;
     std::string _csv_fname;
+
+    // FIXME(kvtsang) Temporary solution to access associations
+    const art::Event *_event;
   };
 
   //
@@ -110,8 +122,7 @@ namespace larcv {
   template <> const std::vector<supera::LArMCShower_t>& SuperaBase::LArData<supera::LArMCShower_t>() const;
 
   template <> const std::vector<supera::LArSimEnergyDeposit_t>& SuperaBase::LArData<supera::LArSimEnergyDeposit_t>() const;
-
-	template <> const std::vector<supera::LArSpacePoint_t>& SuperaBase::LArData<supera::LArSpacePoint_t>() const;
+  template <> const std::vector<supera::LArSpacePoint_t>& SuperaBase::LArData<supera::LArSpacePoint_t>() const;
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArWire_t>& data_v);
 
@@ -131,7 +142,7 @@ namespace larcv {
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArSimEnergyDeposit_t>& data_v);
 
-	template <> void SuperaBase::LArData(const std::vector<supera::LArSpacePoint_t>& data_v);
+  template <> void SuperaBase::LArData(const std::vector<supera::LArSpacePoint_t>& data_v);
 
   /**
      \class larcv::SuperaBaseFactory
@@ -152,5 +163,5 @@ namespace larcv {
 }
 
 #endif
-/** @} */ // end of doxygen group
+/** @} */ // end of doxygen group 
 

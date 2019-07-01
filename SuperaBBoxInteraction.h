@@ -48,6 +48,7 @@ namespace larcv {
     double _xlen, _ylen, _zlen;
     double _xvox, _yvox, _zvox;
     larcv::BBox3D _world_bounds;
+    larcv::BBox3D _bbox;
     std::vector<std::string> _cluster3d_labels;
     std::vector<std::string> _tensor3d_labels;
 

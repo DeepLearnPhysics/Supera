@@ -76,6 +76,15 @@ namespace larcv {
     inline std::vector<std::string> ProcessNames() const
     { return _driver.process_names(); }
 
+    // FIXME(kvtsang) Temporary solution to access associations
+    void SetEvent(const art::Event *ev) {
+        LARCV_INFO() << "Passing art::Event to SuperaBase classes...";
+        for(auto& idx : _supera_idx_v) {
+            auto supera_ptr = (SuperaBase*)(_driver.process_ptr(idx));
+            supera_ptr->SetEvent(ev);
+        }
+    }
+
   private:
 
     ProcessDriver _driver;
@@ -83,7 +92,6 @@ namespace larcv {
 
     std::map<supera::LArDataType_t,std::set<std::string> > _data_request_m;
     //SuperaChStatus* _supera_chstatus_ptr;
-
   };
 
 }
