@@ -1,0 +1,3 @@
+#include "run_pdune_singles.fcl"
+physics.producers.generator.PDG: [11]
+physics.producers.generator.P0:  [0.1]
