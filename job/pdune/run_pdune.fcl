@@ -18,7 +18,7 @@ process_name: supera
 
 services:
 {
-  TFileService: { fileName: "pdune_hist.root" }
+  TFileService: { fileName: "pdune_hist_%tc.root" }
   TimeTracker:       {}
   MemoryTracker:     {}
   RandomNumberGenerator: {}
@@ -108,6 +108,24 @@ services.LArG4Parameters.SkipWireSignalInTPCs: [0,3,4,7,8,11]
 #services.LArG4Parameters.SkipWireSignalInTPCs: [0,2,3,4,6,7,8,10,11]
 
 services.LArG4Parameters.FillSimEnergyDeposits:       true
+
+# turn off optical simulation
+services.LArG4Parameters.NoPhotonPropagation:   true
+serivces.LArG4Parameters.UseCustomPhysics: true
+serivces.LArG4Parameters.EnabledPhysics: [
+         "Em",
+         #"FastOptical",
+         "SynchrotronAndGN",
+         "Ion",
+         "Hadron",
+         "Decay",
+         "HadronElastic",
+         "Stopping",
+         "NeutronTrackingCut"
+         ]
+services.LArPropertiesService.ScintYield: 0 #24000
+services.LArPropertiesService.ScintPreScale: 0. #0.0287
+services.LArPropertiesService.EnableCerenkovLight: false
 
 services.DetectorPropertiesService.Electronlifetime: 12000 # microseconds
 
