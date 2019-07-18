@@ -87,17 +87,17 @@ ProcessDriver: {
     ParticleCorrector: {
       Verbosity: 3
       Profile: true
-      Cluster3DProducer: "mcst"
+      Cluster3DProducer: "mcst_true"
       ParticleProducer: "mcst"
       VoxelMinValue: 0.05
     }
 
     MaskTensor3D: {
       Profile: true
-      MinVoxelValueList:     [-0.01]
-      TargetProducerList:    ["fivetypes_reco"]
-      ReferenceProducerList: ["reco"]
-      OutputProducerList:    ["fivetypes_reco"]
+      MinVoxelValueList:     [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+      TargetProducerList:    ["reco","fivetypes_reco","reco_chi2","reco_inv_chi2","reco_hit_charge0","reco_hit_charge1","reco_hit_charge2","reco_hit_time0","reco_hit_time1","reco_hit_time2","reco_hit_rms0","reco_hit_rms1","reco_hit_rms2","reco_occupancy"]
+      ReferenceProducerList: ["reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco"]
+      OutputProducerList:    ["reco","fivetypes_reco","reco_chi2","reco_inv_chi2","reco_hit_charge0","reco_hit_charge1","reco_hit_charge2","reco_hit_time0","reco_hit_time1","reco_hit_time2","reco_hit_rms0","reco_hit_rms1","reco_hit_rms2","reco_occupancy"]
     }
 
     SegLabelFiveTypes0: {
@@ -122,7 +122,7 @@ ProcessDriver: {
       MinVoxelValueList: [-0.01,-0.01]
       TargetProducerList:    ["mcst","mcst"]
       ReferenceProducerList: ["fivetypes_reco","fivetypes_true"]
-      OutputProducerList:    ["mcst_reco","mcst"]
+      OutputProducerList:    ["mcst_reco","mcst_true"]
     }
 
     Tensor3DFromCluster3D: {
@@ -132,7 +132,7 @@ ProcessDriver: {
       #OutputProducerList:    ["mcst_dedx"]
       #PITypeList: [1]
       #FixedPIList: [0.]
-      Cluster3DProducerList: ["mcst","mcst","mcst_dx","mcst_dedx","mcst_reco","mcst_reco"]
+      Cluster3DProducerList: ["mcst_true","mcst_true","mcst_dx","mcst_dedx","mcst_reco","mcst_reco"]
       OutputProducerList:    ["mcst","mcst_group","mcst_dx","mcst_dedx","mcst_reco","mcst_reco_group"]
       PITypeList:  [1,2,1,1,1,2]
       FixedPIList: [0.,0.,0.,0.,0.,0.]
@@ -146,7 +146,7 @@ ProcessDriver: {
       SpacePointProducer: "cluster3d"
       OutputLabel       : "reco"
     }
-    
+
   }
 }
 
