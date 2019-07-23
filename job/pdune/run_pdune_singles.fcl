@@ -76,7 +76,7 @@ outputs:
  out1:
  {
    module_type: RootOutput
-   fileName:    "%ifb_%p.root"
+   fileName:    "pdune_singles_%tc_%p.root"
    dataTier:    "supera"
    compressionLevel: 1
    # skim output (if needed)
@@ -150,6 +150,8 @@ serivces.LArG4Parameters.EnabledPhysics: [
 services.LArPropertiesService.ScintYield: 0 #24000
 services.LArPropertiesService.ScintPreScale: 0. #0.0287
 services.LArPropertiesService.EnableCerenkovLight: false
+
+services.OpDetResponseInterface.QuantumEfficiency: 0
 
 services.DetectorPropertiesService.Electronlifetime: 12000 # microseconds
 
