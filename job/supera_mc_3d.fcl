@@ -5,6 +5,7 @@ ProcessDriver: {
   RandomAccess: false
   ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","SuperaSpacePoint","SegLabelFiveTypes","SegLabelFiveTypes","MaskTensor3D","MaskCluster3D","Tensor3DFromCluster3D","ParticleCorrector"]
   ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","SuperaSpacePoint","SegLabelFiveTypes0","SegLabelFiveTypes1","MaskTensor3D","MaskCluster3D","Tensor3DFromCluster3D","ParticleCorrector"]
+
   IOManager: {
     Verbosity:   2
     Name:        "IOManager"
@@ -17,27 +18,24 @@ ProcessDriver: {
   }
 
   ProcessList: {
-
     SuperaMCTruth: {
       Profile: true
       LArMCTruthProducer: "generator"
       OutParticleLabel: "mctruth"
       Origin: 0
     }
-
     SuperaBBoxInteraction: {
       Verbosity: 2
       Profile: true
       LArMCTruthProducer: "generator"
       LArSimEnergyDepositProducer: "largeant TPCActive"
-      Origin: 0
+      Origin: 1
       Cluster3DLabels: ["mcst"]
       Tensor3DLabels:  ["reco"]
-      BBoxSize: [768.0,768.0,768.0]
-      VoxelSize: [0.5,0.5,0.5]
-      TPCList: [1,2,5,6,9,10]
+      BBoxSize: [230.4,230.4,230.4]
+      VoxelSize: [0.3,0.3,0.3]
+      TPCList: [0,1]
     }
-
     SuperaMCParticle: {
       Verbosity: 2
       Profile: true
@@ -56,16 +54,15 @@ ProcessDriver: {
       MCParticleTree: {
         Verbosity:    2
         UseG4Primary: false
-	      DTMax:        10000
+	DTMax:        10000
       }
       MCParticleMaker: {
         Verbosity:    2
-	      ApplySCE:     false
+	ApplySCE:     true
       }
     }
-
     SuperaSimEnergyDeposit: {
-      Verbosity: 2
+      Verbosity: 1
       Profile: true
       LArSimEnergyDepositProducer: "largeant TPCActive"
       LArMCShowerProducer: "mcreco"
@@ -88,7 +85,7 @@ ProcessDriver: {
       Threshold: 0.2
     }
     ParticleCorrector: {
-      Verbosity: 2
+      Verbosity: 3
       Profile: true
       Cluster3DProducer: "mcst"
       ParticleProducer: "mcst"
@@ -141,12 +138,15 @@ ProcessDriver: {
       FixedPIList: [0.,0.,0.,0.,0.,0.]
     }
 
+
+
     SuperaSpacePoint: {
       Profile: true
       Verbosity: 2
-      SpacePointProducer: "cluster3D"
+      SpacePointProducer: "cluster3d"
       OutputLabel       : "reco"
     }
     
   }
 }
+

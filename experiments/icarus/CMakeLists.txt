@@ -1,6 +1,6 @@
 set( LARCV_LIB -L$ENV{LARCV_LIBDIR} -llarcv )
 
-set( ICARUSCODE_LIB -L$ENV{ICARUSCODE_LIB} )
+set( ICARUS_LIB -L$ENV{ICARUS_LIB} )
 
 include_directories ( $ENV{LARCV_INCDIR} )
 
@@ -9,10 +9,11 @@ link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} -lboost_system ${ROOTLIB} ${LARCV_
 #add_subdirectory(job)
 
 art_make( BASENAME_ONLY
-	  LIBRARY_NAME
-		icaruscode_LArCVImageMaker
-	  LIB_LIBRARIES
-		nutools_RandomUtils_NuRandomService_service
+    LIBRARY_NAME
+        icarus_LArCVImageMaker
+
+    LIB_LIBRARIES
+		nurandom_RandomUtils_NuRandomService_service
 		larcore_Geometry_Geometry_service
 		larcorealg_Geometry
 		larcoreobj_SummaryData
@@ -22,16 +23,22 @@ art_make( BASENAME_ONLY
 		lardataobj_RecoBase
 		nusimdata_SimulationBase
 		${ART_FRAMEWORK_SERVICES_REGISTRY}
+        art_Persistency_Common
+		art_Persistency_Provenance
+		art_Utilities
 		canvas
 		${CETLIB}
 		${CETLIB_EXCEPT}
 		${ROOT_BASIC_LIB_LIST}
 		${CLHEP}
+		${ART_FRAMEWORK_CORE}
+		${ART_FRAMEWORK_PRINCIPAL}
+        ${ART_FRAMEWORK_BASIC}
 
-          MODULE_LIBRARIES
-		icaruscode_LArCVImageMaker
+    MODULE_LIBRARIES
+		icarus_LArCVImageMaker
 		#nutools_ParticleNavigation
-		nutools_RandomUtils_NuRandomService_service
+		nurandom_RandomUtils_NuRandomService_service
 		larcore_Geometry_Geometry_service
 		larcorealg_Geometry
 		#larsim_Simulation
@@ -47,14 +54,14 @@ art_make( BASENAME_ONLY
 		#${LARDATA_LIB}
 		${ART_FRAMEWORK_CORE}
 		${ART_FRAMEWORK_PRINCIPAL}
-                ${ART_FRAMEWORK_BASIC}
+        ${ART_FRAMEWORK_BASIC}
 		${ART_FRAMEWORK_SERVICES_REGISTRY}
 		#${ART_FRAMEWORK_SERVICES_OPTIONAL}
 		#${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 		art_Framework_Services_Optional_RandomNumberGenerator_service
-		#art_Persistency_Common
+		art_Persistency_Common
 		art_Persistency_Provenance
-		#art_Utilities
+		art_Utilities
 		canvas
 		${MF_MESSAGELOGGER}
 		${MF_UTILITIES}
@@ -80,5 +87,6 @@ art_make( BASENAME_ONLY
 #)
 
 install_headers()
-install_fhicl()
 install_source()
+add_subdirectory(job)
+#add_subdirectory(MultiPartGenerators)

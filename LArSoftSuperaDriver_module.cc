@@ -37,7 +37,7 @@
 #include "larcv/core/Base/PSet.h"
 #include "CLHEP/Random/RandFlat.h"
 #include "TRandom.h"
-#include "nutools/RandomUtils/NuRandomService.h"
+#include "nurandom/RandomUtils/NuRandomService.h"
 
 class LArSoftSuperaDriver;
 

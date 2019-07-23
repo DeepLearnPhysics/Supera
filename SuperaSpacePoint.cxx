@@ -72,11 +72,16 @@ namespace larcv {
     //TODO(kvtsang) Preferred methond to get data vector via Supera FW
     //auto const& points = LArData<supera::LArSpacePoint_t>();
 
+    // reserve
+    v_occupancy.reserve(points.size());
+    v_charge.reserve(points.size());
+    v_chi2.reserve(points.size());
+    v_inv_chi2.reserve(points.size());
 
     size_t n_dropped = 0;
     for (size_t i_pt = 0; i_pt < points.size(); ++i_pt) {
         auto const &pt = points[i_pt];
-    //for (auto const &pt : points) {
+	//for (auto const &pt : points) {
         auto *xyz = pt.XYZ();
         VoxelID_t vox_id = meta.id(xyz[0], xyz[1], xyz[2]);
         if(vox_id == larcv::kINVALID_VOXELID) { 
