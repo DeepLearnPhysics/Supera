@@ -22,6 +22,27 @@ namespace larcv {
     _n_planes           = cfg.get<size_t>("NumOfPlanes", 3);
 
     Request(supera::LArDataType_t::kLArSpacePoint_t, _producer_label);
+
+    auto tpc_v = cfg.get<std::vector<unsigned short> >("TPCList");
+    larcv::Point3D min_pt(1.e9,1.e9,1.e9);
+    larcv::Point3D max_pt(-1.e9,-1.e9,-1.e9);
+    for(auto const& tpc_id : tpc_v) {
+      auto geop = lar::providerFrom<geo::Geometry>();
+      for(size_t c=0; c<geop->Ncryostats(); ++c) {
+	auto const& cryostat = geop->Cryostat(c);
+	if(!cryostat.HasTPC(tpc_id)) continue;
+	auto const& tpcabox = cryostat.TPC(tpc_id).ActiveBoundingBox();
+	if(min_pt.x > tpcabox.MinX()) min_pt.x = tpcabox.MinX();
+	if(min_pt.y > tpcabox.MinY()) min_pt.y = tpcabox.MinY();
+	if(min_pt.z > tpcabox.MinZ()) min_pt.z = tpcabox.MinZ();
+	if(max_pt.x < tpcabox.MaxX()) max_pt.x = tpcabox.MaxX();
+	if(max_pt.y < tpcabox.MaxY()) max_pt.y = tpcabox.MaxY();
+	if(max_pt.z < tpcabox.MaxZ()) max_pt.z = tpcabox.MaxZ();
+	break;
+      }
+    }
+    _world_bounds.update(min_pt,max_pt);
+
   }
 
   void SuperaSpacePoint::initialize()
@@ -84,7 +105,7 @@ namespace larcv {
 	//for (auto const &pt : points) {
         auto *xyz = pt.XYZ();
         VoxelID_t vox_id = meta.id(xyz[0], xyz[1], xyz[2]);
-        if(vox_id == larcv::kINVALID_VOXELID) { 
+        if(vox_id == larcv::kINVALID_VOXELID || !_world_bounds.contains(xyz[0],xyz[1],xyz[2])) {
             if (n_dropped < _max_debug_dropping)
                 LARCV_DEBUG() << "Dropping space point ("
                     << xyz[0] << ","
@@ -93,7 +114,7 @@ namespace larcv {
                     << std::endl;
             ++n_dropped;
             continue;
-        } 
+        }
 
         /* Calculuate charge by averaging common overlaps of 3 wire
          * FIXME(kvtsang) should be provided by SpacePoint

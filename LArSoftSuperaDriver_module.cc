@@ -17,6 +17,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "nusimdata/SimulationBase/MCTruth.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Wire.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
@@ -200,6 +201,23 @@ void LArSoftSuperaDriver::analyze(art::Event const & e)
     _supera.SetDataPointer(*data_h,label);
   }
 
+  // mcparticle
+  if(_verbosity==0) std::cout << "Checking MCParticle data request" << std::endl;
+  for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArMCParticle_t)) {
+    if(label.empty()) continue;
+    art::Handle<std::vector<simb::MCParticle> > data_h;
+    if(label.find(" ")<label.size()) {
+      e.getByLabel(label.substr(0,label.find(" ")),
+		   label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
+		   data_h);
+    }else{ e.getByLabel(label, data_h); }
+    if(!data_h.isValid() || data_h->empty()) { 
+      std::cerr<< "Attempted to load data: " << label << std::endl;
+      throw ::larcv::larbys("Could not locate data!"); 
+    }
+    _supera.SetDataPointer(*data_h,label);
+  }
+
   // SimEnergyDeposit
   if(_verbosity==0) std::cout << "Checking SimEnergyDeposit data request" << std::endl;
   for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArSimEnergyDeposit_t)) {
@@ -215,7 +233,6 @@ void LArSoftSuperaDriver::analyze(art::Event const & e)
       std::cerr<< "Attempted to load data: " << label << std::endl;
       throw ::larcv::larbys("Could not locate data!"); 
     }
-    std::cout<<(*data_h).size()<<std::endl;
     _supera.SetDataPointer(*data_h,label);
   }
 
@@ -267,7 +284,7 @@ void LArSoftSuperaDriver::analyze(art::Event const & e)
     _supera.SetDataPointer(*data_h,label);
   }
 
-  /*
+
   // simch
   for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArSimCh_t)) {
     if(label.empty()) continue;
@@ -283,7 +300,7 @@ void LArSoftSuperaDriver::analyze(art::Event const & e)
     }
     _supera.SetDataPointer(*data_h,label);
   }
-
+  /*
   // chstatus
   auto supera_chstatus = _supera.SuperaChStatusPointer();
   if(supera_chstatus) {

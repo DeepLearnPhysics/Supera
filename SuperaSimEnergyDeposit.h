@@ -16,7 +16,7 @@
 //#ifndef __CINT__
 //#ifndef __CLING__
 #include "SuperaBase.h"
-
+#include "larcv/core/DataFormat/BBox.h"
 namespace larcv {
 
   /**
@@ -46,6 +46,8 @@ namespace larcv {
 
     bool _store_dx, _store_dq, _store_dp, _store_dt, _store_at, _store_dedx;
     std::string _output_label, _particle_label;
+    BBox3D _world_bounds;
+
   };
 
   /**

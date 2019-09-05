@@ -3,8 +3,10 @@ ProcessDriver: {
   Verbosity:    3
   EnableFilter: false
   RandomAccess: false
-  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","SuperaSpacePoint","SegLabelFiveTypes","SegLabelFiveTypes","MaskTensor3D","MaskCluster3D","Tensor3DFromCluster3D","ParticleCorrector"]
-  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","SuperaSpacePoint","SegLabelFiveTypes0","SegLabelFiveTypes1","MaskTensor3D","MaskCluster3D","Tensor3DFromCluster3D","ParticleCorrector"]
+  #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaShowerCluster","SegLabelFiveTypes","SegLabelFiveTypes","MaskTensor3D","MaskCluster3D","Tensor3DFromCluster3D","ParticleCorrector"]
+  #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaShowerCluster","SegLabelFiveTypes0","SegLabelFiveTypes1","MaskTensor3D","MaskCluster3D","Tensor3DFromCluster3D","ParticleCorrector"]
+  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","MaskCluster3D","MaskTensor3D","ParticleCorrector"]
+  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","MaskCluster3D","MaskTensor3D","ParticleCorrector"]
 
   IOManager: {
     Verbosity:   2
@@ -18,6 +20,28 @@ ProcessDriver: {
   }
 
   ProcessList: {
+    ThresholdTensor3D: {
+      TargetProducer: "reco"
+      OutputProducer: "semantics_reco"
+      MinThreshold: 0.00001
+      PaintValue: 5
+    }
+    CombineTensor3D: {
+      Tensor3DProducers: ["semantics_reco","pcluster_semantics"]
+      OutputProducer:    ["semantics_reco"]
+    }
+    SuperaMCParticleCluster: {
+      OutputLabel: "pcluster"
+      LArMCParticleProducer: "largeant"
+      LArMCShowerProducer: "mcreco"
+      LArMCTrackProducer:  "mcreco"
+      LArSimEnergyDepositProducer: "largeant TPCActive"
+      LArSimChProducer: "largeant"
+      Meta3DFromCluster3D: "mcst"
+      Verbosity: 2
+      UseSimEnergyDeposit: false
+      TPCList: [0,1]
+    }
     SuperaMCTruth: {
       Profile: true
       LArMCTruthProducer: "generator"
@@ -30,8 +54,8 @@ ProcessDriver: {
       LArMCTruthProducer: "generator"
       LArSimEnergyDepositProducer: "largeant TPCActive"
       Origin: 1
-      Cluster3DLabels: ["mcst"]
-      Tensor3DLabels:  ["reco"]
+      Cluster3DLabels: ["mcst","pcluster","pcluster_lowE"]
+      Tensor3DLabels:  ["reco","pcluster_index"]
       BBoxSize: [230.4,230.4,230.4]
       VoxelSize: [0.3,0.3,0.3]
       TPCList: [0,1]
@@ -62,7 +86,7 @@ ProcessDriver: {
       }
     }
     SuperaSimEnergyDeposit: {
-      Verbosity: 1
+      Verbosity: 2
       Profile: true
       LArSimEnergyDepositProducer: "largeant TPCActive"
       LArMCShowerProducer: "mcreco"
@@ -74,6 +98,7 @@ ProcessDriver: {
       StoreDiffTime: false
       StoreAbsTime: false
       StoreDEDX: true
+      TPCList: [0,1]
     }
 
     BBoxFromCluster3D: {
@@ -87,17 +112,19 @@ ProcessDriver: {
     ParticleCorrector: {
       Verbosity: 3
       Profile: true
-      Cluster3DProducer: "mcst_true"
-      ParticleProducer: "mcst"
+      #Cluster3DProducer: "mcst_true"
+      #ParticleProducer: "mcst"
+      Cluster3DProducer: "pcluster"
+      ParticleProducer:  "pcluster"
       VoxelMinValue: 0.05
     }
 
     MaskTensor3D: {
       Profile: true
-      MinVoxelValueList:     [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
-      TargetProducerList:    ["reco","fivetypes_reco","reco_chi2","reco_inv_chi2","reco_hit_charge0","reco_hit_charge1","reco_hit_charge2","reco_hit_time0","reco_hit_time1","reco_hit_time2","reco_hit_rms0","reco_hit_rms1","reco_hit_rms2","reco_occupancy"]
+      MinVoxelValueList:     [0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001]
+      TargetProducerList:    ["reco","semantics_reco","reco_chi2","reco_inv_chi2","reco_hit_charge0","reco_hit_charge1","reco_hit_charge2","reco_hit_time0","reco_hit_time1","reco_hit_time2","reco_hit_rms0","reco_hit_rms1","reco_hit_rms2","reco_occupancy"]
       ReferenceProducerList: ["reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco"]
-      OutputProducerList:    ["reco","fivetypes_reco","reco_chi2","reco_inv_chi2","reco_hit_charge0","reco_hit_charge1","reco_hit_charge2","reco_hit_time0","reco_hit_time1","reco_hit_time2","reco_hit_rms0","reco_hit_rms1","reco_hit_rms2","reco_occupancy"]
+      OutputProducerList:    ["reco","semantics_reco","reco_chi2","reco_inv_chi2","reco_hit_charge0","reco_hit_charge1","reco_hit_charge2","reco_hit_time0","reco_hit_time1","reco_hit_time2","reco_hit_rms0","reco_hit_rms1","reco_hit_rms2","reco_occupancy"]
     }
 
     SegLabelFiveTypes0: {
@@ -119,10 +146,10 @@ ProcessDriver: {
 
     MaskCluster3D: {
       Profile: true
-      MinVoxelValueList: [-0.01,-0.01]
-      TargetProducerList:    ["mcst","mcst"]
-      ReferenceProducerList: ["fivetypes_reco","fivetypes_true"]
-      OutputProducerList:    ["mcst_reco","mcst_true"]
+      MinVoxelValueList: [-0.01]
+      TargetProducerList:    ["pcluster"]
+      ReferenceProducerList: ["semantics_reco"]
+      OutputProducerList:    ["pcluster_reco"]
     }
 
     Tensor3DFromCluster3D: {
@@ -132,10 +159,14 @@ ProcessDriver: {
       #OutputProducerList:    ["mcst_dedx"]
       #PITypeList: [1]
       #FixedPIList: [0.]
-      Cluster3DProducerList: ["mcst_true","mcst_true","mcst_dx","mcst_dedx","mcst_reco","mcst_reco"]
-      OutputProducerList:    ["mcst","mcst_group","mcst_dx","mcst_dedx","mcst_reco","mcst_reco_group"]
-      PITypeList:  [1,2,1,1,1,2]
-      FixedPIList: [0.,0.,0.,0.,0.,0.]
+      #Cluster3DProducerList: ["mcst_true","mcst_true","mcst_dx","mcst_dedx","mcst_reco","mcst_reco"]
+      #OutputProducerList:    ["mcst","mcst_group","mcst_dx","mcst_dedx","mcst_reco","mcst_reco_group"]
+      #PITypeList:  [1,2,1,1,1,2]
+      #FixedPIList: [0.,0.,0.,0.,0.,0.]
+      Cluster3DProducerList: ["pcluster"]
+      OutputProducerList:    ["pcluster"]
+      PITypeList:  [1]
+      FixedPIList: [0.]
     }
 
 
@@ -145,6 +176,7 @@ ProcessDriver: {
       Verbosity: 2
       SpacePointProducer: "cluster3d"
       OutputLabel       : "reco"
+      TPCList: [0,1]
     }
 
   }

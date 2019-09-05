@@ -16,7 +16,7 @@
 //#ifndef __CINT__
 //#ifndef __CLING__
 #include "SuperaBase.h"
-
+#include "larcv/core/DataFormat/BBox.h"
 namespace larcv {
 
   /**
@@ -45,6 +45,7 @@ namespace larcv {
     static float get_common_charge(const std::vector<art::Ptr<recob::Hit>>& hits);
 
   private:
+    larcv::BBox3D _world_bounds;
     std::string _output_label, _producer_label;
     size_t _max_debug_dropping = 0; // Max debug message for dropping space points
     unsigned short _n_planes = 3;

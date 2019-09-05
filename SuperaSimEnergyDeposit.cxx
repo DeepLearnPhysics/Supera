@@ -24,7 +24,26 @@ namespace larcv {
     _store_dt = cfg.get<bool>("StoreDiffTime");
     _store_at = cfg.get<bool>("StoreAbsTime");
     _store_dedx = cfg.get<bool>("StoreDEDX");
- 
+
+    auto tpc_v = cfg.get<std::vector<unsigned short> >("TPCList");
+    larcv::Point3D min_pt(1.e9,1.e9,1.e9);
+    larcv::Point3D max_pt(-1.e9,-1.e9,-1.e9);
+    for(auto const& tpc_id : tpc_v) {
+      auto geop = lar::providerFrom<geo::Geometry>();
+      for(size_t c=0; c<geop->Ncryostats(); ++c) {
+	auto const& cryostat = geop->Cryostat(c);
+	if(!cryostat.HasTPC(tpc_id)) continue;
+	auto const& tpcabox = cryostat.TPC(tpc_id).ActiveBoundingBox();
+	if(min_pt.x > tpcabox.MinX()) min_pt.x = tpcabox.MinX();
+	if(min_pt.y > tpcabox.MinY()) min_pt.y = tpcabox.MinY();
+	if(min_pt.z > tpcabox.MinZ()) min_pt.z = tpcabox.MinZ();
+	if(max_pt.x < tpcabox.MaxX()) max_pt.x = tpcabox.MaxX();
+	if(max_pt.y < tpcabox.MaxY()) max_pt.y = tpcabox.MaxY();
+	if(max_pt.z < tpcabox.MaxZ()) max_pt.z = tpcabox.MaxZ();
+	break;
+      }
+    }
+    _world_bounds.update(min_pt,max_pt); 
   }
 
   void SuperaSimEnergyDeposit::initialize()
@@ -124,7 +143,7 @@ namespace larcv {
 
       larcv::Point3D pt;
       VoxelID_t vox_id = meta.id(sedep.X(), sedep.Y(), sedep.Z());
-      if(vox_id == larcv::kINVALID_VOXELID) {
+      if(vox_id == larcv::kINVALID_VOXELID || !_world_bounds.contains(sedep.X(),sedep.Y(),sedep.Z())) {
 	LARCV_DEBUG() << "Skipping sedep from track id " << sedep.TrackID() 
 		      << " E=" << sedep.Energy()
 		      << " pos=(" << sedep.X() << "," << sedep.Y() << "," << sedep.Z() << ")" << std::endl;
