@@ -75,9 +75,9 @@ physics:
  out_stream: [ out1   ]
   
  trigger_paths: [simulate]
- #end_paths:     [ana_stream, out_stream]
+ end_paths:     [ana_stream, out_stream]
  #end_paths:     [out_stream]
- end_paths:     [ana_stream]
+ #end_paths:     [ana_stream]
 }
 
 physics.producers.generator.DebugMode    : 1

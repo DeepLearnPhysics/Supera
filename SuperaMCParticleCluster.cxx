@@ -858,16 +858,19 @@ namespace larcv {
 
     // now loop over to create VoxelSet for compton/photoelectron
     std::vector<larcv::Particle> part_v; part_v.resize(output2trackid.size());
-    auto event_cluster_he = (EventClusterVoxel3D*)(mgr.get_data("cluster3d",_output_label));
+    auto event_cluster    = (EventClusterVoxel3D*)(mgr.get_data("cluster3d",_output_label));
+    auto event_cluster_he = (EventClusterVoxel3D*)(mgr.get_data("cluster3d",_output_label + "_highE"));
     auto event_cluster_le = (EventClusterVoxel3D*)(mgr.get_data("cluster3d",_output_label + "_lowE"));
     auto event_leftover   = (EventSparseTensor3D*)(mgr.get_data("sparse3d",_output_label + "_leftover"));
+    event_cluster->resize(output2trackid.size());
     event_cluster_he->resize(output2trackid.size());
     event_cluster_le->resize(output2trackid.size());
     for(size_t index=0; index<output2trackid.size(); ++index) {
       int trackid = output2trackid[index];
       auto& grp   = combined_grp_v[trackid];
-      std::swap(grp.part, part_v[index]);
+      event_cluster->writeable_voxel_set(index) = grp.vs;
       std::swap(grp.vs, event_cluster_he->writeable_voxel_set(index));
+      std::swap(grp.part, part_v[index]);
       grp.valid=false;
     }
 
@@ -891,8 +894,13 @@ namespace larcv {
       }
       if(output_index<0) continue;
 
-      auto& vs = event_cluster_le->writeable_voxel_set(output_index);
-      for(auto const& vox : grp.vs.as_vector()) vs.emplace(vox.id(),vox.value(),true);
+      auto& vs_le = event_cluster_le->writeable_voxel_set(output_index);
+      auto& vs    = event_cluster->writeable_voxel_set(output_index);
+      for(auto const& vox : grp.vs.as_vector()) {
+	vs_le.emplace(vox.id(),vox.value(),true);
+	vs.emplace(vox.id(),vox.value(),true);
+      }
+      
       grp.vs.clear_data();
     }
 
@@ -1053,7 +1061,7 @@ namespace larcv {
     for(auto const& vs : event_cluster_le->as_vector()) {
       for(auto const& vox : vs.as_vector()) semantic_vs.emplace(vox.id(),(float)(kSemanticCompton),false);
     }
-    for(auto const& vox : event_leftover->as_vector()) semantic_vs.emplace(vox.id(),(float)(kSemanticCompton),false);
+    //for(auto const& vox : event_leftover->as_vector()) semantic_vs.emplace(vox.id(),(float)(kSemanticCompton),false);
 
     for(size_t index=0; index<output2trackid.size(); ++index) {
       int trackid = output2trackid[index];
@@ -1087,6 +1095,8 @@ namespace larcv {
       }
     }
     event_segment->emplace(std::move(semantic_vs),meta);
+
+    std::cout<<event_segment->as_vector().size() << " " << event_cindex->as_vector().size() << std::endl;
 
     return true;
   }
