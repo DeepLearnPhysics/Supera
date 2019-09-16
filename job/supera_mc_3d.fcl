@@ -5,8 +5,8 @@ ProcessDriver: {
   RandomAccess: false
   #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaShowerCluster","SegLabelFiveTypes","SegLabelFiveTypes","MaskTensor3D","MaskCluster3D","Tensor3DFromCluster3D","ParticleCorrector"]
   #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaShowerCluster","SegLabelFiveTypes0","SegLabelFiveTypes1","MaskTensor3D","MaskCluster3D","Tensor3DFromCluster3D","ParticleCorrector"]
-  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","MaskCluster3D","MaskTensor3D","ParticleCorrector"]
-  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","MaskCluster3D","MaskTensor3D","ParticleCorrector"]
+  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaWire","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","MaskCluster3D","MaskTensor3D","ParticleCorrector","MaskTensor2D"]
+  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaWire","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","MaskCluster3D","MaskTensor3D","ParticleCorrector","MaskTensor2D"]
 
   IOManager: {
     Verbosity:   2
@@ -20,6 +20,19 @@ ProcessDriver: {
   }
 
   ProcessList: {
+    SuperaWire: {
+      LArWireProducer: "decon1droi"
+      Verbosity: 2
+      CryostatList: [0]
+      TPCList: [0,1]
+      PlaneList: [0,1,2]
+      OutputProducer: "wire"
+      RowCount: 768
+      ColumnCount: 768
+      TimeCompression: 4
+      Meta3DFromCluster3D: "mcst"
+      ADCThreshold: -1000.
+    }
     ThresholdTensor3D: {
       TargetProducer: "reco"
       OutputProducer: "semantics_reco"
@@ -38,9 +51,12 @@ ProcessDriver: {
       LArSimEnergyDepositProducer: "largeant TPCActive"
       LArSimChProducer: "largeant"
       Meta3DFromCluster3D: "mcst"
+      Meta2DFromTensor2D:  "wire"
       Verbosity: 2
       UseSimEnergyDeposit: false
+      CryostatList: [0]
       TPCList: [0,1]
+      PlaneList: [0,1,2]
     }
     SuperaMCTruth: {
       Profile: true
@@ -125,6 +141,14 @@ ProcessDriver: {
       TargetProducerList:    ["pcluster","reco","semantics_reco","reco_chi2","reco_inv_chi2","reco_hit_charge0","reco_hit_charge1","reco_hit_charge2","reco_hit_time0","reco_hit_time1","reco_hit_time2","reco_hit_rms0","reco_hit_rms1","reco_hit_rms2","reco_occupancy"]
       ReferenceProducerList: ["reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco"]
       OutputProducerList:    ["pcluster_reco","reco","semantics_reco","reco_chi2","reco_inv_chi2","reco_hit_charge0","reco_hit_charge1","reco_hit_charge2","reco_hit_time0","reco_hit_time1","reco_hit_time2","reco_hit_rms0","reco_hit_rms1","reco_hit_rms2","reco_occupancy"]
+    }
+
+    MaskTensor2D: {
+      Profile: true
+      MinVoxelValueList:     [-1000,-1000,-1000,-1000,-1000,-1000]
+      TargetProducerList:    ["wire_0_0_0","wire_0_0_1","wire_0_0_2","pcluster_semantics2d_0_0_0","pcluster_semantics2d_0_0_1","pcluster_semantics2d_0_0_2"]
+      ReferenceProducerList: ["pcluster_semantics2d_0_0_0","pcluster_semantics2d_0_0_1","pcluster_semantics2d_0_0_2","wire_0_0_0","wire_0_0_1","wire_0_0_2"]
+      OutputProducerList:    ["wire_0_0_0","wire_0_0_1","wire_0_0_2","pcluster_semantics2d_0_0_0","pcluster_semantics2d_0_0_1","pcluster_semantics2d_0_0_2"]
     }
 
     SegLabelFiveTypes0: {

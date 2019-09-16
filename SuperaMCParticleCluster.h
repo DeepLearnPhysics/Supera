@@ -69,9 +69,11 @@ namespace larcv {
     void MergeShowerDeltas(std::vector<supera::ParticleGroup>& shower_grp_v,
 			   std::vector<supera::ParticleGroup>& track_grp_v);
   private:
+    int plane_index(unsigned int cryo_id, unsigned int tpc_id, unsigned int plane_id);
     supera::MCParticleList _mcpl;
     std::string _ref_meta3d_cluster3d;
     std::string _ref_meta3d_tensor3d;
+    std::string _ref_meta2d_tensor2d;
     std::string _output_label;
     size_t _eioni_size;
     size_t _delta_size;
@@ -82,6 +84,9 @@ namespace larcv {
     bool _use_sed;
     larcv::ProjectionID_t _projection_id;
     larcv::BBox3D _world_bounds;
+    std::vector<std::vector<std::vector<int> > > _scan;
+    size_t _valid_nplanes;
+    std::vector<larcv::ImageMeta> _meta2d_v;
   };
 
   /**

@@ -151,7 +151,7 @@ void LArSoftSuperaDriver::analyze(art::Event const & e)
     }
     _supera.SetDataPointer(*data_h,label);
   }
-
+  */
   // wire
   for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArWire_t)) {
     if(label.empty()) continue;
@@ -169,6 +169,7 @@ void LArSoftSuperaDriver::analyze(art::Event const & e)
   }
 
   // opdigit
+  /*
   for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArOpDigit_t)) {
     if(label.empty()) continue;
     art::Handle<std::vector<raw::OpDetWaveform> > data_h;

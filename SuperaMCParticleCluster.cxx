@@ -5,6 +5,7 @@
 #include "SuperaMCParticleClusterData.h"
 #include "larcv/core/DataFormat/EventParticle.h"
 #include "larcv/core/DataFormat/EventVoxel3D.h"
+#include "larcv/core/DataFormat/EventVoxel2D.h"
 
 namespace larcv {
   
@@ -48,12 +49,54 @@ namespace larcv {
       }
     }
     _world_bounds.update(min_pt,max_pt);
+
+    _ref_meta2d_tensor2d = cfg.get<std::string>("Meta2DFromTensor2D","");
+    auto cryostat_v   = cfg.get<std::vector<unsigned short> >("CryostatList");
+    //auto tpc_v        = cfg.get<std::vector<unsigned short> >("TPCList"     );
+    auto plane_v      = cfg.get<std::vector<unsigned short> >("PlaneList"   );
+
+    _scan.clear();
+    auto geop = lar::providerFrom<geo::Geometry>();
+    _scan.resize(geop->Ncryostats());
+    //for(size_t cryo_id=0; cryo_id<_scan.size(); ++cryo_id){
+    _valid_nplanes = 0;
+    for(auto const& cryo_id : cryostat_v) {
+      auto const& cryostat = geop->Cryostat(cryo_id);
+      if(_scan.size()<=cryo_id)
+	_scan.resize(cryo_id+1);
+      for(auto const& tpc_id : tpc_v) {
+	if(!cryostat.HasTPC(tpc_id)) continue;
+	auto const& tpc = cryostat.TPC(tpc_id);
+	if(_scan[cryo_id].size() <= tpc_id)
+	  _scan[cryo_id].resize(tpc_id+1);
+	for(auto const& plane_id : plane_v) {
+	  if(!tpc.HasPlane(plane_id)) continue;
+	  if(_scan[cryo_id][tpc_id].size()<=plane_id)
+	    _scan[cryo_id][tpc_id].resize(plane_id+1);
+	  _scan[cryo_id][tpc_id][plane_id] = _valid_nplanes;
+	  ++_valid_nplanes;
+	}
+      }
+    }
+
   }
   
   
   void SuperaMCParticleCluster::initialize()
   {
     SuperaBase::initialize();
+  }
+
+  int SuperaMCParticleCluster::plane_index(unsigned int cryo_id, unsigned int tpc_id, unsigned int plane_id)
+  {
+    if(_scan.size() <= cryo_id)
+      return -1;
+    if(_scan[cryo_id].size() <= tpc_id)
+      return -1;
+    if(_scan[cryo_id][tpc_id].size() <= plane_id)
+      return -1;
+
+    return _scan[cryo_id][tpc_id][plane_id];
   }
   
   void SuperaMCParticleCluster::FillParticleGroups(const std::vector<simb::MCParticle>& larmcp_v,
@@ -76,7 +119,7 @@ namespace larcv {
       //if(pdg_code != -11 && pdg_code != 11 && pdg_code != 22) continue;
       if(pdg_code > 1000000) continue;
 
-      supera::ParticleGroup grp;
+      supera::ParticleGroup grp(_valid_nplanes);
       grp.part = this->MakeParticle(mcpart);
       if(mother_index >= 0)
 	grp.part.parent_pdg_code(parent_pdg_v[index]);
@@ -182,10 +225,11 @@ namespace larcv {
   }
 
 
-  void SuperaMCParticleCluster::AnalyzeSimChannel(const larcv::Voxel3DMeta& meta,
+  void SuperaMCParticleCluster::AnalyzeSimChannel(const larcv::Voxel3DMeta& meta3d,
 						  std::vector<supera::ParticleGroup>& shower_grp_v,
 						  std::vector<supera::ParticleGroup>& track_grp_v)
   {
+    auto geop = lar::providerFrom<geo::Geometry>();
     auto const& sch_v = LArData<supera::LArSimCh_t>();
     auto const& larmcp_v = LArData<supera::LArMCParticle_t>();
     auto const& trackid2index = _mcpl.TrackIdToIndex();
@@ -193,19 +237,27 @@ namespace larcv {
     size_t bad_sch_counter = 0;
     std::set<size_t> missing_trackid;
 
+    bool analyze3d = false;
+    bool analyze2d = false;
+
     for(auto const& sch : sch_v) {
 
       auto ch = sch.Channel();
-      // Only use specified projection id, if specified
-      if(_projection_id != ::supera::ChannelToProjectionID(ch)) {
-	//std::cout << "Skipping channel " << ch << " projection " << ::supera::ChannelToProjectionID(ch) << std::endl;
-        continue;
-      }
-      else{
-	//std::cout << "Analyzing channel " << ch << " projection " << ::supera::ChannelToProjectionID(ch) << std::endl;
-      }
+      // Check if should use this channel (3d)
+      analyze3d = (_projection_id == ::supera::ChannelToProjectionID(ch));
+      // Check if should use this channel (2d)
+      auto wid_v = geop->ChannelToWire(ch);
+      assert(wid_v.size() == 1);
+      auto const& wid = wid_v[0];
+      auto vs2d_idx = this->plane_index(wid.Cryostat,wid.TPC,wid.Plane);
+      analyze2d = (vs2d_idx >= 0 && _meta2d_v[vs2d_idx].min_x() <= wid.Wire && wid.Wire < _meta2d_v[vs2d_idx].max_x());
+
+      //if(ch!=267) continue;
+      //std::cout<<"Analyze? ch " << ch << " 2d " << analyze2d << " 3d " << analyze3d << std::endl;
+      if(!analyze2d && !analyze3d) continue;
+
       for (auto const tick_ides : sch.TDCIDEMap()) {
-	
+
 	//x_pos = (supera::TPCTDC2Tick(tick_ides.first) + time_offset) * supera::TPCTickPeriod()  * supera::DriftVelocity();
 	double x_pos = supera::TPCTDC2Tick(tick_ides.first) * supera::TPCTickPeriod()  * supera::DriftVelocity();
         //std::cout << tick_ides.first << " : " << supera::TPCTDC2Tick(tick_ides.first) << " : " << time_offset << " : " << x_pos << std::flush;
@@ -216,28 +268,25 @@ namespace larcv {
 
         for (auto const& edep : tick_ides.second) {
 
-	  if(_use_true_pos)
-	    x_pos = edep.x;
-
 	  supera::EDep pt;
 	  pt.x = x_pos;
 	  pt.y = edep.y;
 	  pt.z = edep.z;
 	  pt.e = edep.energy;
 
+	  if(_use_true_pos)
+	    pt.x = edep.x;
+
           //supera::ApplySCE(x,y,z);
           //std::cout << " ... " << x << std::endl;
-
-	  VoxelID_t vox_id = meta.id(pt.x, pt.y, pt.z);
+	  VoxelID_t vox_id = meta3d.id(pt.x, pt.y, pt.z);
 	  if (vox_id == larcv::kINVALID_VOXELID) {
 	    LARCV_DEBUG() << "Skipping IDE from track id " << edep.trackID
 			  << " E=" << edep.energy << " Q=" << edep.numElectrons
 			  << " pos=(" << pt.x << "," << pt.y << "," << pt.z << ")" << std::endl;
-	    continue;
 	  }
-	  
 	  int track_id = abs(edep.trackID);
-	  if(track_id >= ((int)(trackid2index.size()))) {
+	  if( (analyze2d || vox_id != larcv::kINVALID_VOXELID) && track_id >= ((int)(trackid2index.size()))) {
 	    bad_sch_counter++;
 	    missing_trackid.insert(track_id);
 	    continue;
@@ -245,24 +294,46 @@ namespace larcv {
 
 	  LARCV_DEBUG() << "Recording IDE from track id " << edep.trackID
 			<< " E=" << edep.energy << std::endl;
+
 	  auto const& mcpart = larmcp_v[trackid2index[track_id]];
 	  int pdg_code = abs(mcpart.PdgCode());
-	  //if(pdg_code == 2112) std::cout << "Neutron: " << edep.energy << std::endl;
+
+	  VoxelID_t vox2d_id = larcv::kINVALID_VOXELID;
+
+	  if(analyze2d) {
+	    auto const& meta2d = _meta2d_v[vs2d_idx];
+	    double wire_pos = wid.Wire;
+	    double time_pos = supera::TPCTDC2Tick(tick_ides.first);
+	    if( (meta2d.min_x() <= wire_pos && wire_pos < meta2d.max_x()) &&
+		(meta2d.min_y() <= time_pos && time_pos < meta2d.max_y()) )
+	      vox2d_id = meta2d.id(wire_pos,time_pos);
+	    //if(track_id == 7305 || track_id == 7311)
+	    //std::cout << "track " << track_id << " (wire,time) = (" << wire_pos << "," << time_pos << ") ... vox2d id " << vox2d_id << std::endl;
+	  }
 	  
 	  if(pdg_code == 22 || pdg_code == 11) {
 	    auto& grp = shower_grp_v[track_id];
 	    if(!grp.valid) continue;
-	    grp.vs.emplace(vox_id,pt.e,true);
-	    //grp.vs.emplace(vox_id,edep.energy,true);
-	    grp.AddEDep(pt);
+
+	    if(analyze3d && vox_id != larcv::kINVALID_VOXELID) {
+	      grp.vs.emplace(vox_id,pt.e,true);
+	      grp.AddEDep(pt);
+	    }
+	    if(vox2d_id != larcv::kINVALID_VOXELID)
+	      grp.vs2d_v[vs2d_idx].emplace(vox2d_id,edep.numElectrons);
 	  }else{
 	    auto& grp = track_grp_v[track_id];
 	    if(!grp.valid) continue;
-	    grp.vs.emplace(vox_id,pt.e,true);
-	    grp.AddEDep(pt);
+	    if(analyze3d && vox_id != larcv::kINVALID_VOXELID) {
+	      grp.vs.emplace(vox_id,pt.e,true);
+	      grp.AddEDep(pt);
+	    }
+	    if(vox2d_id != larcv::kINVALID_VOXELID)
+	      grp.vs2d_v[vs2d_idx].emplace(vox2d_id,edep.numElectrons);
 	  }
 	}
       }
+      //std::cout<<" done" << std::endl;
     }
     if(bad_sch_counter) {
       LARCV_WARNING() << bad_sch_counter << " SimChannel "
@@ -272,7 +343,7 @@ namespace larcv {
     size_t ctr=0;
     for(auto const& grp : shower_grp_v) ctr += grp.vs.size();
     for(auto const& grp : track_grp_v ) ctr += grp.vs.size();
-    std::cout<<"voxel count " << ctr << std::endl;
+    //std::cout<<"voxel count " << ctr << std::endl;
   }
 
 
@@ -323,6 +394,8 @@ namespace larcv {
 	// if parent is found, merge
 	if(parent_found) {
 	  auto& parent = shower_grp_v[parent_index];
+	  parent.Merge(grp);
+	  /*
 	  for(auto const& vox : grp.vs.as_vector())
 	    parent.vs.emplace(vox.id(),vox.value(),true);
 	  for(auto const& pt : grp.start.pts)
@@ -333,6 +406,7 @@ namespace larcv {
 	    parent.trackid_v.push_back(trackid);
 	  grp.vs.clear_data();
 	  grp.valid=false;
+	  */
 	  merge_ctr++;
 	  /*
 	  std::cout<<"Track " << grp.part.track_id() << " PDG " << grp.part.pdg_code()
@@ -420,6 +494,8 @@ namespace larcv {
 	// if parent is found, merge
 	if(parent_found) {
 	  auto& parent = shower_grp_v[parent_index];
+	  parent.Merge(grp);
+	  /*
 	  for(auto const& vox : grp.vs.as_vector())
 	    parent.vs.emplace(vox.id(),vox.value(),true);
 	  for(auto const& pt : grp.start.pts)
@@ -430,6 +506,7 @@ namespace larcv {
 	    parent.trackid_v.push_back(trackid);
 	  grp.vs.clear_data();
 	  grp.valid=false;
+	  */
 	  merge_ctr++;
 	  /*
 	  std::cout<<"Track " << grp.part.track_id() << " PDG " << grp.part.pdg_code() << " " << grp.part.creation_process()
@@ -474,7 +551,9 @@ namespace larcv {
 	if(parent_trackid >= 0 && parent_trackid != ((int)(grp.part.track_id()))) {
 	  auto& parent = shower_grp_v[parent_trackid];
 	  if(this->IsTouching(meta,grp.vs,parent.vs)) {
-	    // merge
+	    // if parent is found, merge
+	    parent.Merge(grp);
+	    /*
 	    for(auto const& vox : grp.vs.as_vector())
 	      parent.vs.emplace(vox.id(),vox.value(),true);
 	    for(auto const& pt : grp.start.pts)
@@ -485,7 +564,9 @@ namespace larcv {
 	      parent.trackid_v.push_back(trackid);
 	    grp.vs.clear_data();
 	    grp.valid=false;
+	    */
 	    merge_ctr++;
+
 	    /*
 	    std::cout<<"Track " << grp.part.track_id() << " PDG " << grp.part.pdg_code() << " " << grp.part.creation_process()
 		     <<" ... parent found " << parent.part.track_id() << " PDG " << parent.part.pdg_code() << " " << parent.part.creation_process()
@@ -506,8 +587,24 @@ namespace larcv {
       int parent_trackid = grp.part.parent_track_id();
       auto& parent = track_grp_v[parent_trackid];
       if(!parent.valid) continue;
+
       // if voxel count is smaller than delta ray requirement, simply merge
       if(grp.vs.size() < _delta_size) {
+	// if parent is found, merge
+	/*
+	if(grp.vs.size()>0) {
+	  std::cout<<"Track " << grp.part.track_id() << " PDG " << grp.part.pdg_code() 
+		   << " " << grp.part.creation_process() << " vox count " << grp.vs.size() << std::endl
+		   <<" ... parent found " << parent.part.track_id() 
+		   << " PDG " << parent.part.pdg_code() << " " << parent.part.creation_process()
+		   << std::endl;
+	  for(auto const& vs : grp.vs2d_v)
+	    std::cout<<vs.size() << " " << std::flush;
+	  std::cout<<std::endl;	  
+	}
+	*/
+	parent.Merge(grp);
+	/*
 	for(auto const& vox : grp.vs.as_vector())
 	  parent.vs.emplace(vox.id(),vox.value(),true);
 	for(auto const& pt : grp.start.pts)
@@ -518,6 +615,7 @@ namespace larcv {
 	  parent.trackid_v.push_back(trackid);
 	grp.vs.clear_data();
 	grp.valid=false;
+	*/
       }else{
 	// check unique number of voxels
 	size_t unique_voxel_count = 0;
@@ -527,6 +625,21 @@ namespace larcv {
 	  ++unique_voxel_count;
 	}
 	if(unique_voxel_count < _delta_size) {
+	  // if parent is found, merge
+	  /*
+	  if(unique_voxel_count>0) {
+	    std::cout<<"Track " << grp.part.track_id() << " PDG " << grp.part.pdg_code() 
+		     << " " << grp.part.creation_process() << " vox count " << grp.vs.size() << std::endl
+		     <<" ... parent found " << parent.part.track_id() 
+		     << " PDG " << parent.part.pdg_code() << " " << parent.part.creation_process()
+		     << std::endl;
+	    for(auto const& vs : grp.vs2d_v)
+	      std::cout<<vs.size() << " " << std::flush;
+	    std::cout<<std::endl;
+	  }
+	  */
+	  parent.Merge(grp);
+	  /*
 	  for(auto const& vox : grp.vs.as_vector())
 	    parent.vs.emplace(vox.id(),vox.value(),true);
 	  for(auto const& pt : grp.start.pts)
@@ -537,7 +650,28 @@ namespace larcv {
 	    parent.trackid_v.push_back(trackid);
 	  grp.vs.clear_data();
 	  grp.valid=false;
+	  */
+	  /*
+	  if(unique_voxel_count>0)
+	    std::cout<<"Track " << grp.part.track_id() << " PDG " << grp.part.pdg_code() 
+		     << " " << grp.part.creation_process() << " vox count " << grp.vs.size() << std::endl
+		     <<" ... parent found " << parent.part.track_id() 
+		     << " PDG " << parent.part.pdg_code() << " " << parent.part.creation_process()
+		     << std::endl;
+	  */
 	}
+	/*
+	else{
+	  std::cout<<"Track " << grp.part.track_id() << " PDG " << grp.part.pdg_code() 
+		   << " " << grp.part.creation_process() << " vox count " << grp.vs.size() << std::endl
+		   <<" ... parent found " << parent.part.track_id() 
+		   << " PDG " << parent.part.pdg_code() << " " << parent.part.creation_process()
+		   << std::endl;
+	  for(auto const& vs : grp.vs2d_v)
+	    std::cout<<vs.size() << " " << std::flush;
+	  std::cout<<std::endl;
+	}
+	*/
       }
     }
   }
@@ -546,16 +680,37 @@ namespace larcv {
   {
 
     SuperaBase::process(mgr);
-    larcv::Voxel3DMeta meta;
+    larcv::Voxel3DMeta meta3d;
 
     if(!_ref_meta3d_cluster3d.empty()) {
       auto const& ev_cluster3d = mgr.get_data<larcv::EventClusterVoxel3D>(_ref_meta3d_cluster3d);
-      meta = ev_cluster3d.meta();
+      meta3d = ev_cluster3d.meta();
     }
     else if(!_ref_meta3d_tensor3d.empty()) {
       auto const& ev_tensor3d = mgr.get_data<larcv::EventSparseTensor3D>(_ref_meta3d_tensor3d);
-      meta = ev_tensor3d.meta();
+      meta3d = ev_tensor3d.meta();
     }
+
+    // fill 2d meta if needed
+    _meta2d_v.clear();
+    _meta2d_v.resize(_valid_nplanes);
+    for(size_t cryo_id=0; cryo_id < _scan.size(); cryo_id++) {
+      for(size_t tpc_id=0; tpc_id < _scan[cryo_id].size(); tpc_id++) {
+	for(size_t plane_id=0; plane_id < _scan[cryo_id][tpc_id].size(); ++plane_id) {
+	  auto meta2d_idx = _scan[cryo_id][tpc_id][plane_id];
+	  if(meta2d_idx < 0) continue;
+	  std::string product_name = _ref_meta2d_tensor2d + "_";
+	  product_name = product_name + std::to_string(cryo_id) + "_" + std::to_string(tpc_id) + "_" + std::to_string(plane_id);
+	  larcv::ProducerName_t product_id("sparse2d",product_name);
+	  if(mgr.producer_id(product_id) == larcv::kINVALID_PRODUCER) {
+	    LARCV_CRITICAL() << "Could not find tensor2d with a name: " << product_name << std::endl;
+	    throw larbys();
+	  }
+	  _meta2d_v[meta2d_idx] = mgr.get_data<larcv::EventSparseTensor2D>(product_name).as_vector().front().meta();
+	}
+      }
+    }
+
     // Build MCParticle List
     auto const& larmcp_v = LArData<supera::LArMCParticle_t>();
     auto const *ev = GetEvent();
@@ -569,9 +724,9 @@ namespace larcv {
 
     // Fill Voxel Information
     if(_use_sed)
-      this->AnalyzeSimEnergyDeposit(meta,shower_grp_v, track_grp_v);
+      this->AnalyzeSimEnergyDeposit(meta3d,shower_grp_v, track_grp_v);
     else
-      this->AnalyzeSimChannel(meta,shower_grp_v, track_grp_v);
+      this->AnalyzeSimChannel(meta3d,shower_grp_v, track_grp_v);
 
     // Merge fragments of showers
     this->MergeShowerIonizations(shower_grp_v);
@@ -583,11 +738,20 @@ namespace larcv {
     this->MergeShowerConversion(shower_grp_v);
 
     // Merge touching shower fragments
-    this->MergeShowerTouching(meta,shower_grp_v);
+    this->MergeShowerTouching(meta3d,shower_grp_v);
 
     // merge too small deltas into tracks
     this->MergeShowerDeltas(shower_grp_v,track_grp_v);
-
+    /*
+    for(auto const& grp : shower_grp_v) {
+      if(grp.type != supera::kDelta) continue;
+      std::cout << "Track ID " << grp.part.track_id() << " PDG " << grp.part.pdg_code() 
+		<< " valid? " << grp.valid
+		<< " 3D voxels " << grp.vs.size() << " 2D voxels " << std::flush;
+      for(auto const& vs2d : grp.vs2d_v) std::cout << vs2d.size() << " " << std::flush;
+      std::cout<<std::endl;
+    }
+    */    
     // Assign output IDs
     std::vector<int> trackid2output(trackid2index.size(),-1);
     std::vector<int> output2trackid;
@@ -845,7 +1009,7 @@ namespace larcv {
       double min_dist = std::fabs(larcv::kINVALID_DOUBLE);
       larcv::Point3D min_pt;
       for(auto const& vox : grp.vs.as_vector()) {
-	auto const pt = meta.position(vox.id());
+	auto const pt = meta3d.position(vox.id());
 	double dist = pt.squared_distance(vtx);
 	if(dist > min_dist) continue;
 	min_dist = dist;
@@ -862,6 +1026,20 @@ namespace larcv {
     auto event_cluster_he = (EventClusterVoxel3D*)(mgr.get_data("cluster3d",_output_label + "_highE"));
     auto event_cluster_le = (EventClusterVoxel3D*)(mgr.get_data("cluster3d",_output_label + "_lowE"));
     auto event_leftover   = (EventSparseTensor3D*)(mgr.get_data("sparse3d",_output_label + "_leftover"));
+
+    // 2d semantic info is prepared here (since it won't have "leftover", "he", "le")
+    // Construct the segmentation
+    enum SemanticType_t {
+      kSemanticTrack,
+      kSemanticShower,
+      kSemanticDelta,
+      kSemanticMichel,
+      kSemanticCompton
+    };
+    std::vector<larcv::VoxelSet> semantic2d_vs_v; 
+    semantic2d_vs_v.resize(_valid_nplanes);
+    for(auto& vs : semantic2d_vs_v) vs.reserve(total_vs_size);
+    
     event_cluster->resize(output2trackid.size());
     event_cluster_he->resize(output2trackid.size());
     event_cluster_le->resize(output2trackid.size());
@@ -900,7 +1078,13 @@ namespace larcv {
 	vs_le.emplace(vox.id(),vox.value(),true);
 	vs.emplace(vox.id(),vox.value(),true);
       }
-      
+
+      // 2d LE to be tagged as compton
+      for(size_t plane_id=0; plane_id < _valid_nplanes; ++plane_id) {
+	auto& semantic2d_vs = semantic2d_vs_v[plane_id];
+	auto& vs2d = grp.vs2d_v[plane_id];
+	for(auto const& vox : vs2d.as_vector()) semantic2d_vs.emplace(vox.id(),(float)(kSemanticCompton),false);
+      }      
       grp.vs.clear_data();
     }
 
@@ -913,7 +1097,7 @@ namespace larcv {
       auto const& vs = main_vs[index];
       for(auto const& vox : vs.as_vector()) cid_vs.emplace(vox.id(),(float)(index),false);
     }
-    event_cindex->emplace(std::move(cid_vs),meta);
+    event_cindex->emplace(std::move(cid_vs),meta3d);
 
     // Count output voxel count and x-check
     size_t output_vs_size = 0;
@@ -956,6 +1140,7 @@ namespace larcv {
       for(auto& grp : shower_grp_v) {
 	if(grp.vs.as_vector().empty()) continue;
 	for(auto const& vox : grp.vs.as_vector()) leftover_vs.emplace(vox.id(),vox.value(),true);
+	
 	ctr++;
 	auto const& part = grp.part;
 	LARCV_INFO() << "Particle ID " << part.id() << " Track ID " << part.track_id() << " PDG " << part.pdg_code() 
@@ -1010,7 +1195,7 @@ namespace larcv {
       }
       LARCV_INFO() << "... " << ctr << " particles" << std::endl;
     }
-    event_leftover->emplace(std::move(leftover_vs),meta);
+    event_leftover->emplace(std::move(leftover_vs),meta3d);
 
     // Loop over to find any "stil valid" supera::kIonization supera::kConversion supera::kComptonHE
     LARCV_INFO() << "Particle list" << std::endl;
@@ -1048,16 +1233,10 @@ namespace larcv {
     auto event_mcp = (EventParticle*)(mgr.get_data("particle",_output_label));
     event_mcp->emplace(std::move(part_v));
 
-    // Construct the segmentation
-    enum SemanticType_t {
-      kSemanticTrack,
-      kSemanticShower,
-      kSemanticDelta,
-      kSemanticMichel,
-      kSemanticCompton
-    };
+    // Prep semantic segmentation output
     auto event_segment = (EventSparseTensor3D*)(mgr.get_data("sparse3d",_output_label + "_semantics"));
     larcv::VoxelSet semantic_vs; semantic_vs.reserve(total_vs_size);
+
     for(auto const& vs : event_cluster_le->as_vector()) {
       for(auto const& vox : vs.as_vector()) semantic_vs.emplace(vox.id(),(float)(kSemanticCompton),false);
     }
@@ -1077,6 +1256,7 @@ namespace larcv {
       case supera::kConversion:
 	semantic=(float)kSemanticShower; break;
       case supera::kDelta:
+	//std::cout<<"Delta found!"<<std::endl;
 	semantic=(float)kSemanticDelta; break;
       case supera::kDecay:
 	semantic=(float)kSemanticMichel; break;
@@ -1093,10 +1273,46 @@ namespace larcv {
 	if(prev.id() == larcv::kINVALID_VOXELID || prev.value() > semantic) 
 	  semantic_vs.emplace(vox.id(),semantic,false);
       }
+      for(size_t plane_id=0; plane_id < _valid_nplanes; ++plane_id) {
+	auto& semantic2d_vs = semantic2d_vs_v[plane_id];
+	auto& vs2d = grp.vs2d_v[plane_id];
+	size_t recorded=0;
+	for(auto const& vox : vs2d.as_vector()) {
+	  auto const& prev = semantic2d_vs.find(vox.id());
+	  if(prev.id() == larcv::kINVALID_VOXELID || prev.value() > semantic) {
+	    semantic2d_vs.emplace(vox.id(),semantic,false);
+	    recorded++;
+	  }
+	}
+	/*
+	if(semantic == (float)(kSemanticDelta))
+	  std::cout<<"Delta track " << trackid << " voxel " <<vs2d.as_vector().size() << " recorded " << recorded << " plane " << plane_id << std::endl;
+	*/
+      }
     }
-    event_segment->emplace(std::move(semantic_vs),meta);
+    event_segment->emplace(std::move(semantic_vs),meta3d);
 
-    std::cout<<event_segment->as_vector().size() << " " << event_cindex->as_vector().size() << std::endl;
+    for(size_t cryo_id=0; cryo_id<_scan.size(); ++cryo_id) {
+      auto const& tpcs = _scan[cryo_id];
+      for(size_t tpc_id=0; tpc_id<tpcs.size(); ++tpc_id) {
+	auto const& planes = tpcs[tpc_id];
+	for(size_t plane_id=0; plane_id<planes.size(); ++plane_id) {
+	  auto const& idx = planes.at(plane_id);
+	  if(idx < 0) continue;
+	  if(idx >= (int)(_meta2d_v.size())) {
+	    LARCV_CRITICAL() <<idx << "Unexpected: " << _meta2d_v.size() << " " << semantic2d_vs_v.size() << std::endl;
+	    throw larbys();
+	  }
+	  std::string semantic2d_output_producer = _output_label + "_semantics2d";
+	  semantic2d_output_producer = semantic2d_output_producer + "_" + std::to_string(cryo_id);
+	  semantic2d_output_producer = semantic2d_output_producer + "_" + std::to_string(tpc_id);
+	  semantic2d_output_producer = semantic2d_output_producer + "_" + std::to_string(plane_id);
+	  auto& semantic2d_output = mgr.get_data<larcv::EventSparseTensor2D>(semantic2d_output_producer);
+	  semantic2d_output.emplace(std::move(semantic2d_vs_v[idx]),std::move(_meta2d_v[idx]));
+	  //std::cout<<cryo_id<<" "<<tpc_id<<" "<<plane_id<<" ... " << semantic2d_output.as_vector().size() << " " << semantic2d_output.as_vector().front().meta().id() <<std::endl;
+	}
+      }
+    }
 
     return true;
   }
@@ -1136,6 +1352,7 @@ namespace larcv {
     size_t ix1,iy1,iz1;
     size_t ix2,iy2,iz2;
     size_t diffx, diffy, diffz;
+
     for(auto const& vox1 : vs1.as_vector()) {
       meta.id_to_xyz_index(vox1.id(), ix1, iy1, iz1);
       for(auto const& vox2 : vs2.as_vector()) {
@@ -1148,6 +1365,7 @@ namespace larcv {
       }
       if(touching) break;
     }
+
     return touching;
   }
   

@@ -76,12 +76,33 @@ namespace supera {
     ProcessType type;
     bool add_to_parent;
     larcv::VoxelSet vs;
+    std::vector<larcv::VoxelSet> vs2d_v;
     EarlyPoints start;
     EDep last_pt;
-    ParticleGroup()
-    { valid=false; add_to_parent=false; type=kInvalidProcess; last_pt.t = -1.e9; start.pts.resize(10);}
+    ParticleGroup(size_t num_planes=0)
+    { valid=false; add_to_parent=false; type=kInvalidProcess; last_pt.t = -1.e9; start.pts.resize(10); vs2d_v.resize(num_planes);}
     void AddEDep(const EDep& pt)
     { if(pt.x == larcv::kINVALID_DOUBLE) return; start.AddEDep(pt); if(pt.t > last_pt.t) last_pt = pt; }
+
+    void Merge(ParticleGroup& child) {
+      for(auto const& vox : child.vs.as_vector())
+	this->vs.emplace(vox.id(),vox.value(),true);
+      for(auto const& pt : child.start.pts)
+	this->AddEDep(pt);
+      this->AddEDep(child.last_pt);
+      this->trackid_v.push_back(child.part.track_id());
+      for(auto const& trackid : child.trackid_v)
+	this->trackid_v.push_back(trackid);
+      for(size_t plane_id=0; plane_id < vs2d_v.size(); ++plane_id) {
+	auto& vs2d = vs2d_v[plane_id];
+	auto& child_vs2d = child.vs2d_v[plane_id];
+	for(auto const& vox : child_vs2d.as_vector())
+	  vs2d.emplace(vox.id(),vox.value(),true);
+	child_vs2d.clear_data();
+      }
+      child.vs.clear_data();
+      child.valid=false;
+    }
   };
 }
 

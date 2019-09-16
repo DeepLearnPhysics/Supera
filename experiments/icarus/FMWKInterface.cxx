@@ -52,7 +52,7 @@ namespace supera {
   
   unsigned int NumberTimeSamples()
   {
-    throw ::larcv::larbys("NumberTimeSamples function not available!");
+    //throw ::larcv::larbys("NumberTimeSamples function not available!");
     auto const* detp = ::lar::providerFrom<detinfo::DetectorPropertiesService>();
     return detp->NumberTimeSamples(); 
   }
@@ -80,7 +80,7 @@ namespace supera {
     auto const* geom = ::lar::providerFrom<geo::Geometry>();
     return geom->Nwires(plane); 
   }
-  
+
   unsigned int NearestWire(const TVector3& xyz, unsigned int plane)
   {
     double min_wire=0;
@@ -173,6 +173,7 @@ namespace supera {
     static double tick_period = ::lar::providerFrom<detinfo::DetectorClocksService>()->TPCClock().TickPeriod();
     return (plane1 - plane0) * pitch / DriftVelocity() / tick_period;
   }
+
 
   void ApplySCE(double& x, double& y, double& z)
   {
