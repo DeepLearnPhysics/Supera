@@ -70,10 +70,10 @@ private:
 
 LArSoftSuperaDriver::LArSoftSuperaDriver(fhicl::ParameterSet const & p)
   : EDAnalyzer(p)
-  , fFlatEngine(art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "Gen", p, "Seed"))
+  , fFlatEngine(art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "Supera"))
  // More initializers here.
 {
-
+  //fEfficiencyEngine(art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "Efficiencies"))
   _verbosity = p.get<unsigned int>("Verbosity",3);
   // Setup random number generator
   supera::GenRandom::get().SetFlatGen(new CLHEP::RandFlat(fFlatEngine,0,1));

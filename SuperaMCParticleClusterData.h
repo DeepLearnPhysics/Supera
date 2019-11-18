@@ -26,7 +26,7 @@ namespace supera {
     EDep()
     { x = y = z = t = e = larcv::kINVALID_DOUBLE; }
   };
-  
+  /*
   struct EarlyPoints {
     std::vector<EDep> pts;
     void AddEDep(const EDep& pt) {
@@ -68,7 +68,7 @@ namespace supera {
       z = dir[2] / esum;
     }
   };
-  
+  */  
   struct ParticleGroup {
     larcv::Particle part;
     std::vector<size_t> trackid_v;
@@ -77,19 +77,33 @@ namespace supera {
     bool add_to_parent;
     larcv::VoxelSet vs;
     std::vector<larcv::VoxelSet> vs2d_v;
-    EarlyPoints start;
+    //EarlyPoints start;
     EDep last_pt;
+    EDep first_pt;
     ParticleGroup(size_t num_planes=0)
-    { valid=false; add_to_parent=false; type=kInvalidProcess; last_pt.t = -1.e9; start.pts.resize(10); vs2d_v.resize(num_planes);}
+    { valid=false; add_to_parent=false; type=kInvalidProcess; last_pt.t = -1.e9; vs2d_v.resize(num_planes); }//start.pts.resize(10); }
     void AddEDep(const EDep& pt)
-    { if(pt.x == larcv::kINVALID_DOUBLE) return; start.AddEDep(pt); if(pt.t > last_pt.t) last_pt = pt; }
-
+    { 
+      if(pt.x == larcv::kINVALID_DOUBLE) return; 
+      //start.AddEDep(pt); 
+      if(pt.t < first_pt.t) first_pt = pt; 
+      if(pt.t > last_pt.t) last_pt = pt; 
+    }
+    size_t size_all() const
+    { 
+      size_t res=vs.size(); 
+      for(auto const& vs2d : vs2d_v) res += vs2d.size();
+      return res;
+    }
     void Merge(ParticleGroup& child) {
       for(auto const& vox : child.vs.as_vector())
 	this->vs.emplace(vox.id(),vox.value(),true);
+      /*
       for(auto const& pt : child.start.pts)
 	this->AddEDep(pt);
+      */
       this->AddEDep(child.last_pt);
+      this->AddEDep(child.first_pt);
       this->trackid_v.push_back(child.part.track_id());
       for(auto const& trackid : child.trackid_v)
 	this->trackid_v.push_back(trackid);

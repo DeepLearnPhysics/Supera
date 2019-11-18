@@ -29,9 +29,10 @@ namespace larcv {
   {
     SuperaBase::configure(cfg);
     //_image_time_ticks = cfg.get<size_t>      ("ImageTimeTicks",4);
-    _npx_rows = cfg.get<size_t>("RowCount");
-    _npx_columns = cfg.get<size_t>("ColumnCount");
-    _time_compression = cfg.get<size_t>("TimeCompression");
+    _npx_rows = cfg.get<int>("RowCount");
+    _npx_columns = cfg.get<int>("ColumnCount");
+    _time_compression = cfg.get<int>("TimeCompression");
+    assert(_npx_rows>0 && _npx_columns>0 && _time_compression>0);
     _output_producer  = cfg.get<std::string> ("OutputProducer");
 
     _ref_meta3d_cluster3d = cfg.get<std::string>("Meta3DFromCluster3D", "");
@@ -44,7 +45,18 @@ namespace larcv {
     auto plane_v      = cfg.get<std::vector<unsigned short> >("PlaneList");
 
     auto geop = lar::providerFrom<geo::Geometry>();
-    _scan.clear();
+    _scan.resize(geop->Ncryostats());
+    for(size_t cryoid=0; cryoid<_scan.size(); ++cryoid) {
+      auto const& cryostat = geop->Cryostat(cryoid);
+      auto& scan_cryo = _scan[cryoid];
+      scan_cryo.resize(cryostat.NTPC());
+      for(size_t tpcid=0; tpcid<scan_cryo.size(); ++tpcid) {
+	auto const& tpc = cryostat.TPC(tpcid);
+	auto& scan_tpc = scan_cryo[tpcid];
+	scan_tpc.resize(tpc.Nplanes(),-1);
+      }
+    }
+
     _valid_nplanes = 0;
     for(auto const& cryo_id : cryostat_v) {
       auto const& cryostat = geop->Cryostat(cryo_id);
@@ -74,16 +86,21 @@ namespace larcv {
 						  const double x_max)
   {
     LARCV_INFO() << "(xmin,xmax) = (" << x_min << "," << x_max << ")" << std::endl;
+    auto pt = tpc_geo.ReferencePlane().GetCenter();
+    pt.SetXYZ(x_min,pt.Y(),pt.Z());
+    double dist_min = tpc_geo.DistanceFromReferencePlane(pt);
+    pt.SetXYZ(x_max,pt.Y(),pt.Z());
+    double dist_max = tpc_geo.DistanceFromReferencePlane(pt);
+    if(dist_min > dist_max) std::swap(dist_min,dist_max);
 
-    //auto geop = lar::providerFrom<geo::Geometry>();
-    double min_time = ((x_min - tpc_geo.MinX())/supera::DriftVelocity() - supera::TriggerOffsetTPC()) / supera::TPCTickPeriod();
-    double max_time = ((x_max - tpc_geo.MinX())/supera::DriftVelocity() - supera::TriggerOffsetTPC()) / supera::TPCTickPeriod();
+    double min_time = (dist_min/supera::DriftVelocity() - supera::TriggerOffsetTPC()) / supera::TPCTickPeriod();
+    double max_time = (dist_max/supera::DriftVelocity() - supera::TriggerOffsetTPC()) / supera::TPCTickPeriod();
     assert(min_time < max_time);
 
     LARCV_INFO() << "(tmin,tmax) = (" << min_time << "," << max_time << ")" << std::endl;
 
-    double mid_time = min_time + (max_time - min_time) / 2.;
-    double num_time_half = _npx_rows / 2 * _time_compression;
+    double mid_time = min_time + (max_time - min_time) / 2.; 
+    double num_time_half = _npx_rows * _time_compression / 2;
 
     size_t min_tick, max_tick;
 
@@ -99,7 +116,7 @@ namespace larcv {
       LARCV_INFO() << "mid_time+1 (" << mid_time + 1 << ") too small"
 		   << " ... tick range " << min_tick << " => " << max_tick <<std::endl;
     }else{
-      max_tick = (size_t)(mid_time + num_time_half) - 1;
+      max_tick = (int)(mid_time + num_time_half) - 1;
       min_tick = max_tick - _npx_rows + 1;
       LARCV_INFO() << " ... tick range " << min_tick << " => " << max_tick <<std::endl;
     }
@@ -270,7 +287,7 @@ namespace larcv {
 	}
       }
     }
-      
+
     // Store data
     for(unsigned int cryo_id=0; cryo_id<_scan.size(); ++cryo_id) {
       auto const& tpcs =  _scan.at(cryo_id);

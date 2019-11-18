@@ -55,7 +55,7 @@ namespace larcv {
     size_t _valid_nplanes;
     std::string _ref_meta3d_cluster3d;
     std::string _ref_meta3d_tensor3d;
-    size_t _npx_rows, _npx_columns;
+    int _npx_rows, _npx_columns;
     double _time_compression;
     double _adc_threshold;
   };
