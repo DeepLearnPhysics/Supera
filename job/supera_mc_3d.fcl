@@ -5,8 +5,8 @@ ProcessDriver: {
   RandomAccess: false
   #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaShowerCluster","SegLabelFiveTypes","SegLabelFiveTypes","MaskTensor3D","MaskCluster3D","Tensor3DFromCluster3D","ParticleCorrector"]
   #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaShowerCluster","SegLabelFiveTypes0","SegLabelFiveTypes1","MaskTensor3D","MaskCluster3D","Tensor3DFromCluster3D","ParticleCorrector"]
-  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaWire","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","MaskCluster3D","MaskTensor3D","ParticleCorrector"]
-  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaWire","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","MaskCluster3D","MaskTensor3D","ParticleCorrector"]
+  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","MaskCluster3D","MaskTensor3D","ParticleCorrector"]
+  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","MaskCluster3D","MaskTensor3D","ParticleCorrector"]
   #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaWire","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","ParticleCorrector"]
   #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaWire","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","ParticleCorrector"]
 
