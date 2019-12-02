@@ -72,6 +72,7 @@ namespace larcv {
 
   private:
     int plane_index(unsigned int cryo_id, unsigned int tpc_id, unsigned int plane_id);
+    size_t SemanticPriority(size_t a, size_t b) const;
     supera::MCParticleList _mcpl;
     std::string _ref_meta3d_cluster3d;
     std::string _ref_meta3d_tensor3d;
@@ -88,6 +89,7 @@ namespace larcv {
     larcv::ProjectionID_t _projection_id;
     larcv::BBox3D _world_bounds;
     std::vector<std::vector<std::vector<int> > > _scan;
+    std::vector<size_t> _semantic_priority;
     size_t _valid_nplanes;
     std::vector<larcv::ImageMeta> _meta2d_v;
   };

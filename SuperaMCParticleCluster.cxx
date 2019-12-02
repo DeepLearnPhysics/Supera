@@ -14,6 +14,16 @@ namespace larcv {
   SuperaMCParticleCluster::SuperaMCParticleCluster(const std::string name)
     : SuperaBase(name)
   {}
+
+  size_t SuperaMCParticleCluster::SemanticPriority(size_t a, size_t b) const
+  {
+    if(a==b) return a;
+    for(auto const& semantic : _semantic_priority) {
+      if(a == semantic) return a;
+      if(b == semantic) return b;
+    }
+    return a;
+  }
   
   void SuperaMCParticleCluster::configure(const PSet& cfg)
   {
@@ -21,6 +31,10 @@ namespace larcv {
     _output_label = cfg.get<std::string>("OutputLabel");
     _ref_meta3d_cluster3d = cfg.get<std::string>("Meta3DFromCluster3D","mcst");
     _ref_meta3d_tensor3d = cfg.get<std::string>("Meta3DFromTensor3D","");
+    _semantic_priority.resize((size_t)(larcv::kShapeUnknown));
+    for(size_t i=0; i<_semantic_priority.size(); ++i)
+      _semantic_priority[i]=i;
+    _semantic_priority = cfg.get<std::vector<size_t> >("SemanticPriority",_semantic_priority);
     _delta_size = cfg.get<size_t>("DeltaSize",5);
     _eioni_size = cfg.get<size_t>("IonizationSize",5);
     _compton_size = cfg.get<size_t>("ComptonSize",10);
@@ -1132,6 +1146,28 @@ namespace larcv {
     for(size_t index=0; index<output2trackid.size(); ++index) {
       int trackid = output2trackid[index];
       auto& grp   = part_grp_v[trackid];
+      // set semantic type
+      larcv::ShapeType_t semantic = larcv::kShapeUnknown;
+      switch(grp.type) {
+      case supera::kTrack:
+	semantic=larcv::kShapeTrack; break;
+      case supera::kPrimary:
+      case supera::kPhoton:
+      case supera::kComptonHE:
+      case supera::kConversion:
+	semantic=larcv::kShapeShower; break;
+      case supera::kDelta:
+	semantic=larcv::kShapeDelta; break;
+      case supera::kDecay:
+	semantic=larcv::kShapeMichel; break;
+	//case supera::kNeutron:
+	//semantic=larcv::kShapeUnknown; break;
+      default:
+	LARCV_CRITICAL() << "Unexpected type while assigning semantic class: " << grp.type << std::endl;
+	break;
+      }
+      // store the shape (semantic) type in particle
+      grp.part.shape(semantic);
       // set particle
       std::swap(grp.part, part_v[index]);
       // fill 3d cluster
@@ -1282,71 +1318,39 @@ namespace larcv {
     }
     LARCV_INFO() << "... " << part_v.size() << " particles" << std::endl;
 
-    // Store output
-    auto event_mcp = (EventParticle*)(mgr.get_data("particle",_output_label));
-    event_mcp->emplace(std::move(part_v));
-
-    // Prep semantic segmentation output
-    enum SemanticType_t {
-      kSemanticTrack,
-      kSemanticMichel,
-      kSemanticShower,
-      kSemanticDelta,
-      kSemanticCompton
-    };
-    // semantic in 3d
+    // create semantic output in 3d
     auto event_segment = (EventSparseTensor3D*)(mgr.get_data("sparse3d",_output_label + "_semantics"));
     event_segment->meta(meta3d);
     larcv::VoxelSet semantic_vs; semantic_vs.reserve(total_vs_size);
-    // semantic in 2d
+    // create semantic output in 2d
     std::vector<larcv::VoxelSet> semantic2d_vs_v; 
     semantic2d_vs_v.resize(_valid_nplanes);
     for(auto& vs : semantic2d_vs_v) vs.reserve(total_vs_size);
+
+    
     // Comptons in 3d
     for(auto const& vs : event_cluster_le->as_vector()) {
-      for(auto const& vox : vs.as_vector()) semantic_vs.emplace(vox.id(),(float)(kSemanticCompton),false);
+      for(auto const& vox : vs.as_vector()) semantic_vs.emplace(vox.id(),(float)(larcv::kShapeLEScatter),false);
     }
-    //for(auto const& vox : event_leftover->as_vector()) semantic_vs.emplace(vox.id(),(float)(kSemanticCompton),false);
-
     // Comptons in 2d
     for(size_t plane_idx=0; plane_idx<_valid_nplanes; ++plane_idx) {
       auto& semantic2d = semantic2d_vs_v[plane_idx];
       auto& vsa2d_le   = vsa2d_le_v[plane_idx];
       for(auto const& vs : vsa2d_le.as_vector()) {
-	for(auto const& vox : vs.as_vector()) semantic2d.emplace(vox.id(),(float)(kSemanticCompton),false);
+	for(auto const& vox : vs.as_vector()) semantic2d.emplace(vox.id(),(float)(larcv::kShapeLEScatter),false);
       }
     }
     
-    // Loop over "high energy" depositions
+    // Loop over "high energy" depositions, set semantic labels
     for(size_t index=0; index<output2trackid.size(); ++index) {
-      int trackid = output2trackid[index];
-      auto const& grp = part_grp_v[trackid];
       auto const& vs  = event_cluster_he->as_vector()[index];
-      float semantic = -1;
-      switch(grp.type) {
-      case supera::kTrack:
-	semantic=(float)kSemanticTrack; break;
-      case supera::kPrimary:
-      case supera::kPhoton:
-      case supera::kComptonHE:
-      case supera::kConversion:
-	semantic=(float)kSemanticShower; break;
-      case supera::kDelta:
-	//std::cout<<"Delta found!"<<std::endl;
-	semantic=(float)kSemanticDelta; break;
-      case supera::kDecay:
-	semantic=(float)kSemanticMichel; break;
-	//case supera::kNeutron:
-	//semantic=(float)kSemanticCompton; break;
-      default:
-	LARCV_CRITICAL() << "Unexpected type while assigning semantic class: " << grp.type << std::endl;
-	break;
-      }
-      std::cout<<semantic<<" "<<std::flush;
+      size_t semantic = (size_t)(part_v[index].shape());
       for(auto const& vox : vs.as_vector()) {
 	auto const& prev = semantic_vs.find(vox.id());
-	if(prev.id() == larcv::kINVALID_VOXELID || prev.value() > semantic) 
+	if(prev.id() == larcv::kINVALID_VOXELID)
 	  semantic_vs.emplace(vox.id(),semantic,false);
+	else
+	  semantic_vs.emplace(vox.id(),this->SemanticPriority(prev.value(),semantic),false);
       }
       for(size_t plane_id=0; plane_id < _valid_nplanes; ++plane_id) {
 	auto& semantic2d_vs = semantic2d_vs_v[plane_id];
@@ -1354,16 +1358,14 @@ namespace larcv {
 	auto const& vs2d = vsa2d_he.as_vector()[index];
 	for(auto const& vox : vs2d.as_vector()) {
 	  auto const& prev = semantic2d_vs.find(vox.id());
-	  if(prev.id() == larcv::kINVALID_VOXELID || prev.value() > semantic) {
+	  if(prev.id() == larcv::kINVALID_VOXELID)
 	    semantic2d_vs.emplace(vox.id(),semantic,false);
-	  }
+	  else
+	    semantic2d_vs.emplace(vox.id(),this->SemanticPriority(((size_t)(prev.value())),semantic),false);
 	}
-	/*
-	if(semantic == (float)(kSemanticDelta))
-	  std::cout<<"Delta track " << trackid << " voxel " <<vs2d.as_vector().size() << " recorded " << recorded << " plane " << plane_id << std::endl;
-	*/
       }
     }
+
     event_segment->emplace(std::move(semantic_vs),meta3d);
 
     for(size_t cryo_id=0; cryo_id<_scan.size(); ++cryo_id) {
@@ -1402,6 +1404,10 @@ namespace larcv {
 	}
       }
     }
+
+    // Store output
+    auto event_mcp = (EventParticle*)(mgr.get_data("particle",_output_label));
+    event_mcp->emplace(std::move(part_v));
 
     return true;
   }

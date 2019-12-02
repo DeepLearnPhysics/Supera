@@ -61,6 +61,7 @@ ProcessDriver: {
       CryostatList: [0]
       TPCList: [0,1]
       PlaneList: []
+      SemanticPriority: [2,1,0,3,4] # 0-4 for shower track michel delta LE-scattering
     }
     SuperaMCTruth: {
       Profile: true
