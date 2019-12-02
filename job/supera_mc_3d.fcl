@@ -5,8 +5,8 @@ ProcessDriver: {
   RandomAccess: false
   #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaShowerCluster","SegLabelFiveTypes","SegLabelFiveTypes","MaskTensor3D","MaskCluster3D","Tensor3DFromCluster3D","ParticleCorrector"]
   #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaShowerCluster","SegLabelFiveTypes0","SegLabelFiveTypes1","MaskTensor3D","MaskCluster3D","Tensor3DFromCluster3D","ParticleCorrector"]
-  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","MaskCluster3D","MaskTensor3D","ParticleCorrector"]
-  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","MaskCluster3D","MaskTensor3D","ParticleCorrector"]
+  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","MaskTensor3D","MaskCluster3D","ParticleCorrector"]
+  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","MaskTensor3D","MaskCluster3D","ParticleCorrector"]
   #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaWire","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","ParticleCorrector"]
   #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaWire","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","ParticleCorrector"]
 
@@ -135,7 +135,7 @@ ProcessDriver: {
       #Cluster3DProducer: "mcst_true"
       #ParticleProducer: "mcst"
       #Cluster3DProducer: "pcluster_reco"
-      Cluster3DProducer: "pcluster_reco"
+      Cluster3DProducer: "pcluster_highE_reco"
       ParticleProducer:  "pcluster"
       OutputProducer:    "corrected"
       VoxelMinValue:     -1000
@@ -167,10 +167,10 @@ ProcessDriver: {
 
     MaskCluster3D: {
       Profile: true
-      MinVoxelValueList: [-1000]
-      TargetProducerList:    ["pcluster"]
-      ReferenceProducerList: ["semantics_reco"]
-      OutputProducerList:    ["pcluster_reco"]
+      MinVoxelValueList: [-1000, -1000]
+      TargetProducerList:    ["pcluster","pcluster_highE"]
+      ReferenceProducerList: ["semantics_reco","semantics_reco"]
+      OutputProducerList:    ["pcluster_reco","pcluster_highE_reco"]
     }
 
     SegLabelFiveTypes0: {
