@@ -75,9 +75,9 @@ physics:
  out_stream: [ out1   ]
   
  trigger_paths: [simulate]
- end_paths:     [ana_stream, out_stream]
+ #end_paths:     [ana_stream, out_stream]
  #end_paths:     [out_stream]
- #end_paths:     [ana_stream]
+ end_paths:     [ana_stream]
 }
 
 physics.producers.generator.DebugMode    : 1
@@ -86,8 +86,9 @@ physics.producers.generator.G4TimeJitter : 0
 physics.producers.generator.XRange       : [20,20]
 physics.producers.generator.YRange       : [20,20]
 physics.producers.generator.ZRange       : [20,20]
-physics.producers.generator.TPCRange     : [0,1]
-physics.producers.generator.MultiMax     : 4
+#physics.producers.generator.TPCRange     : [0,1]
+physics.producers.generator.TPCRange     : [0]
+physics.producers.generator.MultiMax     : 5
 physics.producers.generator.MultiMin     : 1
 physics.producers.generator.ParticleParameter.PDGCode      : [    [11,13],    [111,22], [211,-211],      [2212]]
 physics.producers.generator.ParticleParameter.MinMulti     : [          0,           0,          0,           0]
@@ -104,13 +105,14 @@ physics.producers.generator.ParticleParameter.MomRange     : []
 physics.producers.rain.DebugMode    : 1
 physics.producers.rain.G4Time       : 0
 physics.producers.rain.G4TimeJitter : 0
-physics.producers.rain.XRange       : [-20,-20]
-physics.producers.rain.YRange       : [-20,-20]
-physics.producers.rain.ZRange       : [-20,-20]
-physics.producers.rain.TPCRange     : [0,1]
-physics.producers.rain.MultiMax     : 40
-physics.producers.rain.MultiMin     : 40
-physics.producers.rain.ParticleParameter.PDGCode      : [       [13],     [11,22],     [2212]]
+physics.producers.rain.XRange       : [-30,-30]
+physics.producers.rain.YRange       : [-30,-30]
+physics.producers.rain.ZRange       : [-30,-30]
+#physics.producers.rain.TPCRange     : [0,1]
+physics.producers.rain.TPCRange     : [0]
+physics.producers.rain.MultiMax     : 20
+physics.producers.rain.MultiMin     : 20
+physics.producers.rain.ParticleParameter.PDGCode      : [   [-13,13],     [11,22],     [2212]]
 physics.producers.rain.ParticleParameter.MinMulti     : [          0,           0,          0]
 physics.producers.rain.ParticleParameter.MaxMulti     : [         30,          30,         30]
 physics.producers.rain.ParticleParameter.ProbWeight   : [          3,           1,          1]

@@ -20,29 +20,9 @@ namespace larcv {
     _output_label       = cfg.get<std::string>("OutputLabel");
     _max_debug_dropping = cfg.get<size_t>("MaxDebugForDropping", 0);
     _n_planes           = cfg.get<size_t>("NumOfPlanes", 3);
+    _store_wire_info    = cfg.get<bool>("StoreWireInfo", false);
 
     Request(supera::LArDataType_t::kLArSpacePoint_t, _producer_label);
-
-    auto tpc_v = cfg.get<std::vector<unsigned short> >("TPCList");
-    larcv::Point3D min_pt(1.e9,1.e9,1.e9);
-    larcv::Point3D max_pt(-1.e9,-1.e9,-1.e9);
-    for(auto const& tpc_id : tpc_v) {
-      auto geop = lar::providerFrom<geo::Geometry>();
-      for(size_t c=0; c<geop->Ncryostats(); ++c) {
-	auto const& cryostat = geop->Cryostat(c);
-	if(!cryostat.HasTPC(tpc_id)) continue;
-	auto const& tpcabox = cryostat.TPC(tpc_id).ActiveBoundingBox();
-	if(min_pt.x > tpcabox.MinX()) min_pt.x = tpcabox.MinX();
-	if(min_pt.y > tpcabox.MinY()) min_pt.y = tpcabox.MinY();
-	if(min_pt.z > tpcabox.MinZ()) min_pt.z = tpcabox.MinZ();
-	if(max_pt.x < tpcabox.MaxX()) max_pt.x = tpcabox.MaxX();
-	if(max_pt.y < tpcabox.MaxY()) max_pt.y = tpcabox.MaxY();
-	if(max_pt.z < tpcabox.MaxZ()) max_pt.z = tpcabox.MaxZ();
-	break;
-      }
-    }
-    _world_bounds.update(min_pt,max_pt);
-
   }
 
   void SuperaSpacePoint::initialize()
@@ -65,6 +45,7 @@ namespace larcv {
 
     larcv::VoxelSet v_occupancy;
     larcv::VoxelSet v_charge;
+    larcv::VoxelSet v_charge_asym;
     larcv::VoxelSet v_chi2;
     larcv::VoxelSet v_inv_chi2;
 
@@ -96,16 +77,16 @@ namespace larcv {
     // reserve
     v_occupancy.reserve(points.size());
     v_charge.reserve(points.size());
+    v_charge_asym.reserve(points.size());
     v_chi2.reserve(points.size());
     v_inv_chi2.reserve(points.size());
 
     size_t n_dropped = 0;
     for (size_t i_pt = 0; i_pt < points.size(); ++i_pt) {
         auto const &pt = points[i_pt];
-	//for (auto const &pt : points) {
         auto *xyz = pt.XYZ();
         VoxelID_t vox_id = meta.id(xyz[0], xyz[1], xyz[2]);
-        if(vox_id == larcv::kINVALID_VOXELID || !_world_bounds.contains(xyz[0],xyz[1],xyz[2])) {
+        if(vox_id == larcv::kINVALID_VOXELID) { 
             if (n_dropped < _max_debug_dropping)
                 LARCV_DEBUG() << "Dropping space point ("
                     << xyz[0] << ","
@@ -114,15 +95,12 @@ namespace larcv {
                     << std::endl;
             ++n_dropped;
             continue;
-        }
+        } 
 
-        /* Calculuate charge by averaging common overlaps of 3 wire
-         * FIXME(kvtsang) should be provided by SpacePoint
-         */ 
         std::vector<art::Ptr<recob::Hit>> hits;
         find_hits.get(i_pt, hits);
 
-        if (hits.size() != _n_planes) {
+        if (hits.size() > _n_planes) {
             LARCV_WARNING() 
                 << "Dropping space point - "
                 << "Wrong number of hits: "
@@ -138,25 +116,31 @@ namespace larcv {
         if (!(v_chi2.find(vox_id) == larcv::kINVALID_VOXEL))
             continue;
 
-        //bool is_replaced = false;
-        float charge = get_common_charge(hits);
-        for (const auto& hit : hits) {
-            size_t plane = hit->WireID().Plane;
-            if (plane < 0 || plane >= _n_planes) {
-                LARCV_CRITICAL() << "Invalid plane " << plane << std::endl;
-                continue;
-            }
-
-            float charge  = hit->Integral();
-            v_hit_charge[plane].emplace(vox_id, charge,               true);
-            v_hit_amp   [plane].emplace(vox_id, hit->PeakAmplitude(), true);
-            v_hit_time  [plane].emplace(vox_id, hit->PeakTime(),      true);
-            v_hit_rms   [plane].emplace(vox_id, hit->RMS(),           true);
-        }
+        // calculation from Tracys' Cluster3D
+        float charge = pt.ErrXYZ()[1];
+        float charge_asym = pt.ErrXYZ()[3];
 
         v_chi2.emplace(vox_id, pt.Chisq(), true);
         v_inv_chi2.emplace(vox_id, 1. / pt.Chisq(), true);
         v_charge.emplace(vox_id, charge, true);
+        v_charge_asym.emplace(vox_id, charge_asym, true);
+
+        if (_store_wire_info) {
+          for (const auto& hit : hits) {
+              size_t plane = hit->WireID().Plane;
+              if (plane < 0 || plane >= _n_planes) {
+                  LARCV_CRITICAL() << "Invalid plane " << plane << std::endl;
+                  continue;
+              }
+
+              float charge  = hit->Integral();
+              v_hit_charge[plane].emplace(vox_id, charge,               true);
+              v_hit_amp   [plane].emplace(vox_id, hit->PeakAmplitude(), true);
+              v_hit_time  [plane].emplace(vox_id, hit->PeakTime(),      true);
+              v_hit_rms   [plane].emplace(vox_id, hit->RMS(),           true);
+          }
+        }
+
     }
 
     LARCV_INFO() << n_dropped << " out of " << points.size() 
@@ -178,15 +162,18 @@ namespace larcv {
             store(vec[i], name + std::to_string(i));
     };
 
-    store(v_charge,    "");
-    store(v_chi2,      "_chi2");
-    store(v_inv_chi2,  "_inv_chi2");
-    store(v_occupancy, "_occupancy");
+    store(v_charge,      "");
+    store(v_charge_asym, "_charge_asym");
+    store(v_chi2,        "_chi2");
+    store(v_inv_chi2,    "_inv_chi2");
+    store(v_occupancy,   "_occupancy");
 
-    store_vec(v_hit_charge, "_hit_charge");
-    store_vec(v_hit_amp,    "_hit_charge");
-    store_vec(v_hit_time,   "_hit_time");
-    store_vec(v_hit_rms,    "_hit_rms");
+    if (_store_wire_info) {
+      store_vec(v_hit_charge, "_hit_charge");
+      store_vec(v_hit_amp,    "_hit_amp");
+      store_vec(v_hit_time,   "_hit_time");
+      store_vec(v_hit_rms,    "_hit_rms");
+    }
 
     return true;
   }
