@@ -70,19 +70,19 @@ ProcessDriver: {
       Origin: 0
     }
     SuperaBBoxInteraction: {
-      Verbosity: 1
+      Verbosity: 2
       Profile: true
       LArMCTruthProducer: "generator"
       LArSimEnergyDepositProducer: "largeant TPCActive"
       Origin: 0
-      Cluster3DLabels: ["mcst","pcluster","pcluster_lowE"]
+      Cluster3DLabels: ["mcst","pcluster"]
       Tensor3DLabels:  ["reco","pcluster_index"]
       BBoxSize: [230.4,230.4,230.4]
       VoxelSize: [0.3,0.3,0.3]
       TPCList: [0]
     }
     SuperaMCParticle: {
-      Verbosity: 1
+      Verbosity: 2
       Profile: true
       OutParticleLabel:    "mcst"
       LArMCTruthProducer:  "generator"
@@ -131,7 +131,7 @@ ProcessDriver: {
       Threshold: 0.2
     }
     ParticleCorrector: {
-      Verbosity: 0
+      Verbosity: 2
       Profile: true
       #Cluster3DProducer: "mcst_true"
       #ParticleProducer: "mcst"
@@ -168,10 +168,10 @@ ProcessDriver: {
 
     MaskCluster3D: {
       Profile: true
-      MinVoxelValueList: [-1000, -1000]
-      TargetProducerList:    ["pcluster","pcluster_highE"]
-      ReferenceProducerList: ["semantics_reco","semantics_reco"]
-      OutputProducerList:    ["pcluster_reco","pcluster_highE_reco"]
+      MinVoxelValueList: [-1000, -1000,-1000]
+      TargetProducerList:    ["pcluster","pcluster_highE","pcluster_lowE"]
+      ReferenceProducerList: ["semantics_reco","semantics_reco","semantics_reco"]
+      OutputProducerList:    ["pcluster_reco","pcluster_highE_reco","pcluster_lowE_reco"]
     }
 
     SegLabelFiveTypes0: {
