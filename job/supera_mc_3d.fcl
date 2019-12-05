@@ -5,8 +5,8 @@ ProcessDriver: {
   RandomAccess: false
   #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaShowerCluster","SegLabelFiveTypes","SegLabelFiveTypes","MaskTensor3D","MaskCluster3D","Tensor3DFromCluster3D","ParticleCorrector"]
   #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaShowerCluster","SegLabelFiveTypes0","SegLabelFiveTypes1","MaskTensor3D","MaskCluster3D","Tensor3DFromCluster3D","ParticleCorrector"]
-  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","MaskTensor3D","MaskCluster3D","ParticleCorrector"]
-  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","MaskTensor3D","MaskCluster3D","ParticleCorrector"]
+  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","ThresholdTensor3D","CombineTensor3D","MaskTensor3D","MaskCluster3D","ParticleCorrector"]
+  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","GhostMask","CombineTensor3D","MaskTensor3D","MaskCluster3D","ParticleCorrector"]
   #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaWire","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","ParticleCorrector"]
   #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaWire","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","ParticleCorrector"]
 
@@ -37,8 +37,16 @@ ProcessDriver: {
     }
     ThresholdTensor3D: {
       TargetProducer: "reco"
+      OutputProducer: "reco"
+      MinThreshold: -1000
+      MaxThreshold: 40000
+      PaintValue: 5
+    }
+    GhostMask: {
+      TargetProducer: "reco"
       OutputProducer: "semantics_reco"
       MinThreshold: -1000
+      MaxThreshold: 40000
       PaintValue: 5
     }
     CombineTensor3D: {

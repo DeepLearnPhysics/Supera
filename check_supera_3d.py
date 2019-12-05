@@ -130,31 +130,32 @@ def check_supera():
         sys.stdout.write('%d/%d\r' % (entry,entries))
         sys.stdout.flush()
         blob.get_entry(entry)
+        error=False
         # sparse3d_reco and sparse3d_semantics_reco
         s1, s2 = 'sparse3d_reco', 'sparse3d_semantics_reco'
         if not same_tensor3d(blob.get_data(s1),blob.get_data(s2)):
-            print('\nNot same tensor3d',s1,'(%d)' % s1.size(),s2,'(%d)' % s2.size())
-            sys.exit(1)
+            print('\nNot same tensor3d',s1,'(%d)' % blob.get_data(s1).size(),s2,'(%d)' % blob.get_data(s2).size())
+            error=True
         # sparse3d_pcluster and sparse3d_pcluster_semantics
         s1, s2 = 'sparse3d_pcluster', 'sparse3d_pcluster_semantics'
         if not same_tensor3d(blob.get_data(s1),blob.get_data(s2)):
-            print('\nNot same tensor3d',s1,'(%d)' % s1.size(),s2,'(%d)' % s2.size())
-            sys.exit(1)
+            print('\nNot same tensor3d',s1,'(%d)' % blob.get_data(s1).size(),s2,'(%d)' % blob.get_data(s2).size())
+            error=True
         # cluster3d_pcluster and cluster3d_pcluster_highE
         c1, c2 = 'cluster3d_pcluster', 'cluster3d_pcluster_highE'
         if not subset_cluster3d(blob.get_data(c1),blob.get_data(c2)):
             print('\nNot a subset cluster3d',c1,c2);
-            sys.exit(1)
+            error=True
         # cluster3d_pcluster and cluster3d_pcluster_lowE
         c1, c2 = 'cluster3d_pcluster', 'cluster3d_pcluster_lowE'
         if not subset_cluster3d(blob.get_data(c1),blob.get_data(c2)):
             print('\nNot a subset cluster3d',c1,c2);
-            sys.exit(1)
+            error=True
         # cluster3d_pcluster_reco and cluster3d_pcluster_highE_reco
         c1, c2 = 'cluster3d_pcluster_reco', 'cluster3d_pcluster_highE_reco'
         if not subset_cluster3d(blob.get_data(c1),blob.get_data(c2)):
             print('\nNot a subset cluster3d',c1,c2);
-            sys.exit(1)
+            error=True
         # make sure the size is same
         p='particle_pcluster'
         part_count = blob.get_data(p).as_vector().size()
@@ -162,7 +163,11 @@ def check_supera():
             if not n.startswith('cluster3d_'): continue
             if not blob.get_data(n).as_vector().size() == part_count:
                 print('\nParticle count mismatch',p,n)
-                sys.exit(1)
+                error=True
+        if error:
+            d = blob.get_data(p)
+            print('Bad entry',entry,'run',d.run(),'subrun',d.subrun(),'event',d.event())
+
 
 if __name__ == '__main__':
     check_supera()
