@@ -41,7 +41,7 @@ physics:
 		out_filename: "larcv.root"
 		unique_filename: false
 		stream: "mc"
-		Verbosity: 1
+		Verbosity: 2
 	}
  }
 

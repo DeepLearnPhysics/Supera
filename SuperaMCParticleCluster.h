@@ -64,12 +64,16 @@ namespace larcv {
     void MergeShowerIonizations(std::vector<supera::ParticleGroup>& part_grp_v);
     void ApplyEnergyThreshold(std::vector<supera::ParticleGroup>& part_grp_v);
     void MergeShowerConversion(std::vector<supera::ParticleGroup>& part_grp_v);
+    void MergeShowerFamilyTouching(const larcv::Voxel3DMeta& meta,
+				   std::vector<supera::ParticleGroup>& part_grp_v);
     void MergeShowerTouching(const larcv::Voxel3DMeta& meta,
 			     std::vector<supera::ParticleGroup>& part_grp_v);
     void MergeShowerTouching2D(std::vector<supera::ParticleGroup>& part_grp_v);
 			       
     void MergeShowerDeltas(std::vector<supera::ParticleGroup>& part_grp_v);
-
+    void DumpHierarchy(size_t trackid,
+		       const std::vector<supera::ParticleGroup>& part_grp_v) const;
+    std::vector<unsigned int> ParentTrackIDs(size_t trackid) const;
   private:
     int plane_index(unsigned int cryo_id, unsigned int tpc_id, unsigned int plane_id);
     size_t SemanticPriority(size_t a, size_t b) const;
@@ -86,6 +90,7 @@ namespace larcv {
     double _edep_threshold;
     bool _use_true_pos;
     bool _use_sed;
+    bool _check_particle_validity;
     larcv::ProjectionID_t _projection_id;
     larcv::BBox3D _world_bounds;
     std::vector<std::vector<std::vector<int> > > _scan;

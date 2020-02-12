@@ -133,13 +133,13 @@ physics.producers.rain.YRange       : [-30,-30]
 physics.producers.rain.ZRange       : [750,750]
 physics.producers.rain.DirectInward : true
 physics.producers.rain.TPCRange     : [[0,0]]
-physics.producers.rain.MultiMax     : 10
-physics.producers.rain.MultiMin     : 10
+physics.producers.rain.MultiMax     : 8
+physics.producers.rain.MultiMin     : 3
 physics.producers.rain.ParticleParameter.PDGCode      : [   [-13,13],     [11,22],     [2212]]
 physics.producers.rain.ParticleParameter.MinMulti     : [          0,           0,          0]
 physics.producers.rain.ParticleParameter.MaxMulti     : [         30,          30,         30]
-physics.producers.rain.ParticleParameter.ProbWeight   : [          3,           1,          1]
-physics.producers.rain.ParticleParameter.KERange      : [  [0.5,2.0],  [0.05,0.6], [0.05,0.4]]
+physics.producers.rain.ParticleParameter.ProbWeight   : [          5,           1,          1]
+physics.producers.rain.ParticleParameter.KERange      : [  [0.2,1.0],   [0.1,0.6], [0.05,0.4]]
 #physics.producers.rain.ParticleParameter.PDGCode      : [       [13],      [2212]]
 #physics.producers.rain.ParticleParameter.MinMulti     : [          0,           0]
 #physics.producers.rain.ParticleParameter.MaxMulti     : [          1,           1]

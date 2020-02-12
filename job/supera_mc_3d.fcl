@@ -5,10 +5,11 @@ ProcessDriver: {
   RandomAccess: false
   #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaShowerCluster","SegLabelFiveTypes","SegLabelFiveTypes","MaskTensor3D","MaskCluster3D","Tensor3DFromCluster3D","ParticleCorrector"]
   #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaShowerCluster","SegLabelFiveTypes0","SegLabelFiveTypes1","MaskTensor3D","MaskCluster3D","Tensor3DFromCluster3D","ParticleCorrector"]
-  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","ThresholdTensor3D","CombineTensor3D","MaskTensor3D","MaskCluster3D","ParticleCorrector"]
-  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","GhostMask","CombineTensor3D","MaskTensor3D","MaskCluster3D","ParticleCorrector"]
-  #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaWire","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","ParticleCorrector"]
-  #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaWire","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","CombineTensor3D","ParticleCorrector"]
+  #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","ThresholdTensor3D","CombineTensor3D","MaskTensor3D","MaskCluster3D","ParticleCorrector","ParticleCorrector"]
+  #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","GhostMask","CombineTensor3D","MaskTensor3D","MaskCluster3D","ParticleCorrectorReco","ParticleCorrector"]
+  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaSimEnergyDeposit","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector"]
+  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaSimEnergyDeposit","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector"]
+ 
 
   IOManager: {
     Verbosity:   2
@@ -40,7 +41,6 @@ ProcessDriver: {
       OutputProducer: "reco"
       MinThreshold: -1000
       MaxThreshold: 40000
-      PaintValue: 5
     }
     GhostMask: {
       TargetProducer: "reco"
@@ -125,7 +125,7 @@ ProcessDriver: {
       StoreCharge: false
       StorePhoton: false
       StoreDiffTime: false
-      StoreAbsTime: false
+      StoreAbsTime: true
       StoreDEDX: true
       TPCList: [0]
     }
@@ -138,13 +138,24 @@ ProcessDriver: {
       OutputProducer:   "mcst"
       Threshold: 0.2
     }
-    ParticleCorrector: {
+    ParticleCorrectorReco: {
       Verbosity: 2
       Profile: true
       #Cluster3DProducer: "mcst_true"
       #ParticleProducer: "mcst"
       #Cluster3DProducer: "pcluster_reco"
       Cluster3DProducer: "pcluster_highE_reco"
+      ParticleProducer:  "pcluster"
+      OutputProducer:    "corrected_reco"
+      VoxelMinValue:     -1000
+   } 
+    ParticleCorrector: {
+      Verbosity: 2
+      Profile: true
+      #Cluster3DProducer: "mcst_true"
+      #ParticleProducer: "mcst"
+      #Cluster3DProducer: "pcluster_reco"
+      Cluster3DProducer: "pcluster"
       ParticleProducer:  "pcluster"
       OutputProducer:    "corrected"
       VoxelMinValue:     -1000
@@ -160,10 +171,10 @@ ProcessDriver: {
 
     MaskTensor3D: {
       Profile: true
-      MinVoxelValueList:     [-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000]
-      TargetProducerList:    ["pcluster","reco","semantics_reco","reco_chi2","reco_inv_chi2","reco_hit_charge0","reco_hit_charge1","reco_hit_charge2","reco_hit_time0","reco_hit_time1","reco_hit_time2","reco_hit_rms0","reco_hit_rms1","reco_hit_rms2","reco_occupancy"]
-      ReferenceProducerList: ["reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco"]
-      OutputProducerList:    ["pcluster_reco","reco","semantics_reco","reco_chi2","reco_inv_chi2","reco_hit_charge0","reco_hit_charge1","reco_hit_charge2","reco_hit_time0","reco_hit_time1","reco_hit_time2","reco_hit_rms0","reco_hit_rms1","reco_hit_rms2","reco_occupancy"]
+      MinVoxelValueList:     [-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000]
+      TargetProducerList:    ["pcluster","reco","semantics_reco","reco_chi2","reco_inv_chi2","reco_hit_charge0","reco_hit_charge1","reco_hit_charge2","reco_hit_time0","reco_hit_time1","reco_hit_time2","reco_hit_rms0","reco_hit_rms1","reco_hit_rms2","reco_hit_amp0","reco_hit_amp1","reco_hit_amp2","reco_occupancy","reco_charge_asym"]
+      ReferenceProducerList: ["reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco"]
+      OutputProducerList:    ["pcluster_reco","reco","semantics_reco","reco_chi2","reco_inv_chi2","reco_hit_charge0","reco_hit_charge1","reco_hit_charge2","reco_hit_time0","reco_hit_time1","reco_hit_time2","reco_hit_rms0","reco_hit_rms1","reco_hit_rms2","reco_hit_amp0","reco_hit_amp1","reco_hit_amp2","reco_occupancy","reco_charge_asym"]
     }
 
     MaskCluster2D: {

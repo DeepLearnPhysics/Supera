@@ -117,6 +117,28 @@ namespace supera {
       child.vs.clear_data();
       child.valid=false;
     }
+
+    // semantic classification (larcv::ShapeType_t)
+    larcv::ShapeType_t shape() const
+    {
+      // identify delta ray
+      if(type == kInvalidProcess) return larcv::kShapeUnknown;
+      if(type == kDelta) return larcv::kShapeDelta;
+      if(type == kNeutron) //return larcv::kShapeUnknown;
+	return larcv::kShapeLEScatter;
+      if(part.pdg_code() == 11 || part.pdg_code() == 22 || part.pdg_code() == -11) {
+	if(type == kComptonHE || type == kPhoton || type == kPrimary || type == kConversion)
+	  return larcv::kShapeShower;
+	if(type == kDecay) {
+	  if(part.parent_pdg_code() == 13 || part.parent_pdg_code() == -13)
+	    return larcv::kShapeMichel;
+	  else
+	    return larcv::kShapeShower;
+	}
+	return larcv::kShapeLEScatter;
+      }else
+	return larcv::kShapeTrack;
+    }
   };
 }
 
