@@ -35,6 +35,7 @@ namespace larcv {
     auto producer_mcshower = cfg.get<std::string>("LArMCShowerProducer",   "");
     auto producer_simch    = cfg.get<std::string>("LArSimChProducer",      "");
     auto producer_simedep  = cfg.get<std::string>("LArSimEnergyDepositProducer", "");
+    auto producer_sps      = cfg.get<std::string>("LArSpacePoint",         "");
 
     if(!producer_wire.empty()    ) {
       LARCV_INFO() << "Requesting Wire data product by " << producer_wire << std::endl;
@@ -81,6 +82,10 @@ namespace larcv {
       Request(supera::LArDataType_t::kLArSimEnergyDeposit_t, producer_simedep);
     }
 
+    if(!producer_sps.empty() ) {
+      LARCV_INFO() << "Requesting SpacePoint data product by " << producer_sps << std::endl;
+      Request(supera::LArDataType_t::kLArSpacePoint_t, producer_sps);
+    }
   }
 
   void SuperaBase::initialize()
@@ -150,7 +155,6 @@ namespace larcv {
 
   template <> const std::vector<supera::LArSpacePoint_t>& SuperaBase::LArData<supera::LArSpacePoint_t>() const
   { if(!_ptr_spacepoint_v) throw larbys("SpacePoint data pointer not available"); return *_ptr_spacepoint_v; }
-
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArWire_t>& data_v)
   { _ptr_wire_v = (std::vector<supera::LArWire_t>*)(&data_v); }
