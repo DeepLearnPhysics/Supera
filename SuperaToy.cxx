@@ -1,14 +1,16 @@
 #ifndef __SUPERATOY_CXX__
 #define __SUPERATOY_CXX__
 
+#include <unordered_set>
+#include <fstream>
 #include "SuperaToy.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "larcv/core/DataFormat/EventVoxel3D.h"
 
 namespace larcv {
-  
+
   static SuperaToyProcessFactory __global_SuperaToyProcessFactory__;
-  
+
   SuperaToy::SuperaToy(const std::string name)
     : SuperaBase(name)
   {}
@@ -24,8 +26,8 @@ namespace larcv {
     _ref_meta3d_tensor3d = cfg.get<std::string>("Meta3DFromTensor3D","");
     _nsigma_match_time = cfg.get<double>("NSigmaMatchTime",1.0);
   }
-  
-  
+
+
   void SuperaToy::initialize()
   {
     SuperaBase::initialize();
@@ -52,7 +54,7 @@ namespace larcv {
     SuperaBase::process(mgr);
     //
     // Step 0. get 3D meta
-    // Step 1. create a list of true hits 
+    // Step 1. create a list of true hits
     //   - store an array of hits per channel, each hit contains time and 3D voxel ID)
     // Step 2. Create a map of reco 3D voxel <=> true 3D voxel (per plane, as a representation of matched hits)
     // Step 3. Identify valid reco3D voxels
@@ -65,6 +67,7 @@ namespace larcv {
     LARCV_INFO() << "Retrieving 3D meta..." << std::endl;
     auto meta3d = get_meta3d(mgr);
 
+		std::unordered_set<unsigned int> true_vox_id_v;
     //
     // Step 1. ... create a list of true hits
     //
@@ -87,16 +90,17 @@ namespace larcv {
       // Get a corresponding container
       auto& true_hit_v = true_hit_vv[ch];
       auto& true_hit_monitor_v = true_hit_monitor_vv[ch];
-      // Loop over hits and store 
+      // Loop over hits and store
       for (auto const tick_ides : sch.TDCIDEMap()) {
 	double x_pos = supera::TPCTDC2Tick(tick_ides.first) * supera::TPCTickPeriod()  * supera::DriftVelocity();
 	TrueHit_t hit;
-	hit.time = supera::TPCTDC2Tick(tick_ides.first);	
+	hit.time = supera::TPCTDC2Tick(tick_ides.first);
 	for (auto const& edep : tick_ides.second) {
 	  if(_use_true_pos) x_pos = edep.x;
 	  auto vox_id = meta3d.id(x_pos, edep.y, edep.z);
 	  if(vox_id == larcv::kINVALID_VOXELID) continue;
 	  hit.vox_id_s.insert(vox_id);
+		true_vox_id_v.insert(vox_id);
 	}
 	if(hit.vox_id_s.size()) {
 	  true_hit_v.push_back(hit);
@@ -146,7 +150,7 @@ namespace larcv {
       for(auto const& ptr : ptr_coll) {
 	auto *xyz = ptr->XYZ();
 	VoxelID_t vox_id = meta3d.id(xyz[0], xyz[1], xyz[2]);
-	if(vox_id == larcv::kINVALID_VOXELID) { 
+	if(vox_id == larcv::kINVALID_VOXELID) {
 	  LARCV_WARNING() << "Invalid voxel ID at " << xyz[0] << " " << xyz[1] << " " << xyz[2] << std::endl;
 	  continue;
 	}
@@ -162,8 +166,9 @@ namespace larcv {
 	}
       }
     }
-    
+
     LARCV_INFO() << "Created " << reco2true_m.size() << " recob::SpacePoint <=> true 3D voxel ID mapping" << std::endl;
+
     if(_debug) {
       size_t matched_true_hit = 0;
       size_t total_true_hit   = 0;
@@ -179,10 +184,77 @@ namespace larcv {
     //
     // Step 3 to be implemented by Laura!
     //
+		std::ofstream outfile;
+		outfile.open("out.csv");
+		outfile << "id,keep,x,y,z\n";
+		std::map<unsigned int, bool> reco2ghost_m;
+		for (std::pair<unsigned int, std::vector<std::set<unsigned int> > > elt : reco2true_m) {
+			reco2ghost_m[elt.first] = this->findOverlap(elt.second);
+			larcv::Point3D p = meta3d.position(elt.first);
+			outfile << elt.first << "," << reco2ghost_m[elt.first] << ",";
+			outfile << (p.x - meta3d.min_x())/meta3d.size_voxel_x() << ",";
+			outfile << (p.y - meta3d.min_y())/meta3d.size_voxel_y() << ",";
+			outfile << (p.z - meta3d.min_z())/meta3d.size_voxel_z() << "\n";
 
-
+			if (!reco2ghost_m[elt.first]) {
+				std::cout << std::endl;
+				std::cout << elt.first << " wrong reco " << std::endl;
+				std::cout << "Plane 0 - ";
+				for (auto e : elt.second[0]) std::cout << e << " ";
+				std::cout << std::endl;
+				std::cout << "Plane 1 - ";
+				for (auto e : elt.second[1]) std::cout << e << " ";
+				std::cout << std::endl;
+				std::cout << "Plane 2 - ";
+				for (auto e : elt.second[2]) std::cout << e << " ";
+				std::cout << std::endl;
+			}
+		}
+		outfile.close();
+		std::ofstream outfile2;
+		outfile2.open("true.csv");
+		outfile2 << "id,x,y,z\n";
+		//auto& tensor = mgr.get_data<larcv::EventClusterVoxel3D>(_sps_producer);
+		for (auto vox : true_vox_id_v) {
+			larcv::Point3D p = meta3d.position(vox);
+			outfile2 << vox << ",";
+			outfile2 << (p.x - meta3d.min_x())/meta3d.size_voxel_x() << ",";
+			outfile2 << (p.y - meta3d.min_y())/meta3d.size_voxel_y() << ",";
+			outfile2 << (p.z - meta3d.min_z())/meta3d.size_voxel_z() << "\n";
+		}
+		outfile2.close();
     return true;
-  }  
+  }
+
+	bool SuperaToy::findOverlap(std::vector<std::set<unsigned int> > planes) {
+		if (planes.size() != 3) {
+			LARCV_CRITICAL() << "Need 3 planes" << std::endl;
+			throw larbys();
+		}
+
+		std::unordered_set<unsigned int> plane0;
+		std::unordered_set<unsigned int> plane1;
+		for (auto trueVoxId : planes[0]) {
+			plane0.insert(trueVoxId);
+		}
+		for (auto trueVoxId : planes[1]) {
+			if (plane0.find(trueVoxId) == plane0.end()) {
+				plane1.insert(trueVoxId);
+			}
+			else {
+				return true;
+			}
+		}
+		for (auto trueVoxId : planes[2]) {
+			if (plane0.find(trueVoxId) != plane0.end()) {
+				return true;
+			}
+			if (plane1.find(trueVoxId) != plane1.end()) {
+				return true;
+			}
+		}
+		return false;
+	}
 
   void SuperaToy::finalize()
   {}

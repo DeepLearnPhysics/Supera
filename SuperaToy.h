@@ -39,10 +39,11 @@ namespace larcv {
 
     void initialize();
 
-    bool process(IOManager& mgr);
+ 		bool findOverlap(std::vector<std::set<unsigned int> > planes);
+	 	bool process(IOManager& mgr);
 
     void finalize();
-    
+
   private:
 
     larcv::Voxel3DMeta get_meta3d(IOManager& mgr) const;
