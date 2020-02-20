@@ -64,6 +64,7 @@ namespace larcv {
     //
     // Step 0. ... get meta3d
     //
+		auto event_id = mgr.event_id().event();
     LARCV_INFO() << "Retrieving 3D meta..." << std::endl;
     auto meta3d = get_meta3d(mgr);
 
@@ -127,13 +128,16 @@ namespace larcv {
     GetEvent()->getByLabel(_hit_producer, hit_h);
     // Get the list of associated pointers
     art::FindManyP<recob::SpacePoint> ass_v(hit_h, *(GetEvent()), _sps_producer);
+
+		std::ofstream outfile_hits;
+		outfile_hits.open("hits_"+std::to_string(event_id)+".csv");
     // loop over to register in the map
     for(size_t idx=0; idx < hit_h->size(); ++idx) {
       // create a unique art::Ptr
       art::Ptr<::recob::Hit> hit_ptr(hit_h,idx);
       // match against true hits: use the channel number + mean timing & width * margin factor
-      double tstart = hit_ptr->PeakTime() - hit_ptr->SigmaPeakTime() * _nsigma_match_time;
-      double tend   = hit_ptr->PeakTime() + hit_ptr->SigmaPeakTime() * _nsigma_match_time;
+      double tstart = hit_ptr->PeakTime() - hit_ptr->RMS() * _nsigma_match_time;
+      double tend   = hit_ptr->PeakTime() + hit_ptr->RMS() * _nsigma_match_time;
       auto const& true_hit_v = true_hit_vv[hit_ptr->Channel()];
       auto& true_hit_monitor_v = true_hit_monitor_vv[hit_ptr->Channel()];
       std::vector<size_t> true_hit_index_v;
@@ -143,6 +147,7 @@ namespace larcv {
 	true_hit_monitor_v[true_hit_index] = true;
 	true_hit_index_v.push_back(true_hit_index);
       }
+			outfile_hits << true_hit_index_v.size() << "\n";
       if(true_hit_index_v.empty()) continue;
       // get associated 3D point information
       const std::vector<art::Ptr<recob::SpacePoint> >& ptr_coll = ass_v.at(idx);
@@ -166,6 +171,7 @@ namespace larcv {
 	}
       }
     }
+		outfile_hits.close();
 
     LARCV_INFO() << "Created " << reco2true_m.size() << " recob::SpacePoint <=> true 3D voxel ID mapping" << std::endl;
 
@@ -185,7 +191,7 @@ namespace larcv {
     // Step 3 to be implemented by Laura!
     //
 		std::ofstream outfile;
-		outfile.open("out.csv");
+		outfile.open("out_"+std::to_string(event_id)+".csv");
 		outfile << "id,keep,x,y,z\n";
 		std::map<unsigned int, bool> reco2ghost_m;
 		for (std::pair<unsigned int, std::vector<std::set<unsigned int> > > elt : reco2true_m) {
@@ -196,7 +202,7 @@ namespace larcv {
 			outfile << (p.y - meta3d.min_y())/meta3d.size_voxel_y() << ",";
 			outfile << (p.z - meta3d.min_z())/meta3d.size_voxel_z() << "\n";
 
-			if (!reco2ghost_m[elt.first]) {
+			/*if (_debug && !reco2ghost_m[elt.first]) {
 				std::cout << std::endl;
 				std::cout << elt.first << " wrong reco " << std::endl;
 				std::cout << "Plane 0 - ";
@@ -208,11 +214,11 @@ namespace larcv {
 				std::cout << "Plane 2 - ";
 				for (auto e : elt.second[2]) std::cout << e << " ";
 				std::cout << std::endl;
-			}
+			}*/
 		}
 		outfile.close();
 		std::ofstream outfile2;
-		outfile2.open("true.csv");
+		outfile2.open("true_"+std::to_string(event_id)+".csv");
 		outfile2 << "id,x,y,z\n";
 		//auto& tensor = mgr.get_data<larcv::EventClusterVoxel3D>(_sps_producer);
 		for (auto vox : true_vox_id_v) {
