@@ -93,10 +93,12 @@ namespace larcv {
       auto& true_hit_monitor_v = true_hit_monitor_vv[ch];
       // Loop over hits and store
       for (auto const tick_ides : sch.TDCIDEMap()) {
-	double x_pos = supera::TPCTDC2Tick(tick_ides.first) * supera::TPCTickPeriod()  * supera::DriftVelocity();
+	double x_pos = (-supera::TPCTDC2Tick(tick_ides.first) + supera::TriggerOffsetTPC() - supera::TriggerTime()) * supera::TPCTickPeriod()  * supera::DriftVelocity();
 	TrueHit_t hit;
 	hit.time = supera::TPCTDC2Tick(tick_ides.first);
 	for (auto const& edep : tick_ides.second) {
+	//std::cout << supera::TPCTDC2Tick(tick_ides.first) << " " << supera::TPCTickPeriod() << " " << supera::DriftVelocity() << " " << edep.x << " " << supera::TriggerOffsetTPC() << " " << supera::PlaneTickOffset(0, 1) << " " << supera::PlaneTickOffset(1, 2) << std::endl;
+	//std::cout << edep.x << " " << (-supera::TPCTDC2Tick(tick_ides.first)+supera::TriggerOffsetTPC() - supera::TriggerTime()) * supera::TPCTickPeriod()  * supera::DriftVelocity() << std::endl;
 	  if(_use_true_pos) x_pos = edep.x;
 	  auto vox_id = meta3d.id(x_pos, edep.y, edep.z);
 	  if(vox_id == larcv::kINVALID_VOXELID) continue;
@@ -202,7 +204,7 @@ namespace larcv {
 			outfile << (p.y - meta3d.min_y())/meta3d.size_voxel_y() << ",";
 			outfile << (p.z - meta3d.min_z())/meta3d.size_voxel_z() << "\n";
 
-			/*if (_debug && !reco2ghost_m[elt.first]) {
+			if (_debug && event_id == 8 && elt.first == 225478183) {
 				std::cout << std::endl;
 				std::cout << elt.first << " wrong reco " << std::endl;
 				std::cout << "Plane 0 - ";
@@ -214,7 +216,7 @@ namespace larcv {
 				std::cout << "Plane 2 - ";
 				for (auto e : elt.second[2]) std::cout << e << " ";
 				std::cout << std::endl;
-			}*/
+			}
 		}
 		outfile.close();
 		std::ofstream outfile2;
