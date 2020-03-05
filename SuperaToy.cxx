@@ -125,57 +125,87 @@ namespace larcv {
     //
     // Key = reco 3D voxel, value = 3 set (per plane) of true 3D voxel ID
     std::map<unsigned int, std::vector<std::set<unsigned int> > > reco2true_m;
+		// Key = reco 3D voxel, value = whether to keep it or not
+		std::map<unsigned int, bool> reco2ghost_m;
     // create data handler (art::Handle) to retrieve reconstructed hits
-    art::Handle<std::vector<recob::Hit> > hit_h;
-    GetEvent()->getByLabel(_hit_producer, hit_h);
+    //art::Handle<std::vector<recob::Hit> > hit_h;
+    //GetEvent()->getByLabel(_hit_producer, hit_h);
     // Get the list of associated pointers
-    art::FindManyP<recob::SpacePoint> ass_v(hit_h, *(GetEvent()), _sps_producer);
+    //art::FindManyP<recob::SpacePoint> ass_v(hit_h, *(GetEvent()), _sps_producer);
+		art::Handle<std::vector<recob::SpacePoint> > sps_h;
+		GetEvent()-> getByLabel(_sps_producer, sps_h);
+		art::FindManyP<recob::Hit> ass_v(sps_h, *(GetEvent()), _sps_producer);
 
-		std::ofstream outfile_hits;
-		outfile_hits.open("hits_"+std::to_string(event_id)+".csv");
-    // loop over to register in the map
-    for(size_t idx=0; idx < hit_h->size(); ++idx) {
-      // create a unique art::Ptr
-      art::Ptr<::recob::Hit> hit_ptr(hit_h,idx);
-      // match against true hits: use the channel number + mean timing & width * margin factor
-      double tstart = hit_ptr->PeakTime() - hit_ptr->RMS() * _nsigma_match_time;
-      double tend   = hit_ptr->PeakTime() + hit_ptr->RMS() * _nsigma_match_time;
-      auto const& true_hit_v = true_hit_vv[hit_ptr->Channel()];
-      auto& true_hit_monitor_v = true_hit_monitor_vv[hit_ptr->Channel()];
-      std::vector<size_t> true_hit_index_v;
-      for(size_t true_hit_index=0; true_hit_index < true_hit_v.size(); ++true_hit_index) {
-	auto const& true_hit = true_hit_v[true_hit_index];
-	if(true_hit.time < tstart || true_hit.time > tend) continue;
-	true_hit_monitor_v[true_hit_index] = true;
-	true_hit_index_v.push_back(true_hit_index);
-      }
-			outfile_hits << true_hit_index_v.size() << "\n";
-      if(true_hit_index_v.empty()) continue;
-      // get associated 3D point information
-      const std::vector<art::Ptr<recob::SpacePoint> >& ptr_coll = ass_v.at(idx);
-      assert(ptr_coll.size()>0);
-      for(auto const& ptr : ptr_coll) {
-	auto *xyz = ptr->XYZ();
-	VoxelID_t vox_id = meta3d.id(xyz[0], xyz[1], xyz[2]);
-	if(vox_id == larcv::kINVALID_VOXELID) {
-	  LARCV_WARNING() << "Invalid voxel ID at " << xyz[0] << " " << xyz[1] << " " << xyz[2] << std::endl;
-	  continue;
-	}
-	// register
-	if(reco2true_m.find(vox_id) == reco2true_m.end())
-	  reco2true_m[vox_id] = std::vector<std::set<unsigned int> >();
-	auto& match_info_v = reco2true_m[vox_id];
-	match_info_v.resize(3);
-	auto& match_info = match_info_v[hit_ptr->WireID().Plane];
-	for(auto const& true_hit_index : true_hit_index_v) {
-	  auto const& true_hit = true_hit_v[true_hit_index];
-	  for(auto const& vox_id : true_hit.vox_id_s) match_info.insert(vox_id);
-	}
-      }
-    }
-		outfile_hits.close();
+		std::ofstream outfile;
+		outfile.open("out_"+std::to_string(event_id)+".csv");
+		outfile << "id,keep,x,y,z\n";
+		std::ofstream outfile_overlap;
+		outfile_overlap.open("overlap_"+std::to_string(event_id)+".csv");
+		outfile_overlap << "true,reco\n";
 
-    LARCV_INFO() << "Created " << reco2true_m.size() << " recob::SpacePoint <=> true 3D voxel ID mapping" << std::endl;
+		// Loop over 3D reco space points
+		for (size_t idx = 0; idx < sps_h->size(); ++idx) {
+			art::Ptr<recob::SpacePoint> sps_ptr(sps_h, idx);
+			// Make 3-planes vector
+			std::vector<std::set<unsigned int> > reco_hits(3);
+			// Get associated reco hit information
+			const std::vector<art::Ptr<recob::Hit> >& ptr_coll = ass_v.at(idx);
+			assert(ptr_coll.size() > 0);
+			assert(ptr_coll.size() < 4);
+			// Looping over planes (1 hit/plane)
+			for (auto const& hit_ptr : ptr_coll) {
+				double tstart = hit_ptr->PeakTime() - hit_ptr->RMS() * _nsigma_match_time;
+				double tend   = hit_ptr->PeakTime() + hit_ptr->RMS() * _nsigma_match_time;
+				// Get all true hits associated with this reco hit
+				auto const& true_hit_v   = true_hit_vv[hit_ptr->Channel()];
+				auto& true_hit_monitor_v = true_hit_monitor_vv[hit_ptr->Channel()];
+				std::vector<size_t> true_hit_index_v;
+				for (size_t true_hit_index = 0; true_hit_index < true_hit_v.size(); ++true_hit_index) {
+					auto const& true_hit = true_hit_v[true_hit_index];
+					if (true_hit.time < tstart || true_hit.time > tend) continue;
+					// Now this true hit meets our time requirements.
+					true_hit_monitor_v[true_hit_index] = true;
+					true_hit_index_v.push_back(true_hit_index);
+					for (auto const& vox_id : true_hit.vox_id_s) {
+						reco_hits[hit_ptr->WireID().Plane].insert(vox_id);
+					}
+				}
+			}
+			// Find if same true vox ID appears at least across 2 different planes
+			auto * xyz = sps_ptr->XYZ();
+			VoxelID_t reco_vox_id = meta3d.id(xyz[0], xyz[1], xyz[2]);
+			if (reco_vox_id == larcv::kINVALID_VOXELID) {
+				LARCV_WARNING() << "Invalid voxel ID at " << xyz[0] << " " << xyz[1] << " " << xyz[2] << std::endl;
+				continue;
+			}
+			if (reco2ghost_m.find(reco_vox_id) == reco2ghost_m.end() || !reco2ghost_m[reco_vox_id]) {
+				reco2ghost_m[reco_vox_id] = this->findOverlap<unsigned int>(reco_hits);
+			}
+
+			// Save in CSV
+			larcv::Point3D p = meta3d.position(reco_vox_id);
+			outfile << reco_vox_id << "," << reco2ghost_m[reco_vox_id] << ",";
+			outfile << (p.x - meta3d.min_x())/meta3d.size_voxel_x() << ",";
+			outfile << (p.y - meta3d.min_y())/meta3d.size_voxel_y() << ",";
+			outfile << (p.z - meta3d.min_z())/meta3d.size_voxel_z() << "\n";
+
+			// Save overlaps
+			std::vector<unsigned int> edges_true;
+			std::vector<unsigned int> edges_reco;
+			for (auto vox_id: reco_hits[0]) {
+				if (reco_hits[1].find(vox_id) != reco_hits[1].end() && reco_hits[2].find(vox_id) != reco_hits[2].end()) {
+					edges_true.push_back(vox_id);
+					edges_reco.push_back(reco_vox_id);
+				}
+			}
+			for (size_t i_edge = 0; i_edge < edges_true.size(); ++i_edge) {
+				outfile_overlap << edges_true[i_edge] << "," << edges_reco[i_edge] << "\n";
+			}
+		}
+		outfile.close();
+		outfile_overlap.close();
+
+    //LARCV_INFO() << "Created " << reco2true_m.size() << " recob::SpacePoint <=> true 3D voxel ID mapping" << std::endl;
 
     if(_debug) {
       size_t matched_true_hit = 0;
@@ -189,36 +219,7 @@ namespace larcv {
       LARCV_INFO() << "... where " << matched_true_hit << " / " << total_true_hit << " true hits are matched w/ reco hit" << std::endl;
     }
 
-    //
-    // Step 3 to be implemented by Laura!
-    //
-		std::ofstream outfile;
-		outfile.open("out_"+std::to_string(event_id)+".csv");
-		outfile << "id,keep,x,y,z\n";
-		std::map<unsigned int, bool> reco2ghost_m;
-		for (std::pair<unsigned int, std::vector<std::set<unsigned int> > > elt : reco2true_m) {
-			reco2ghost_m[elt.first] = this->findOverlap(elt.second);
-			larcv::Point3D p = meta3d.position(elt.first);
-			outfile << elt.first << "," << reco2ghost_m[elt.first] << ",";
-			outfile << (p.x - meta3d.min_x())/meta3d.size_voxel_x() << ",";
-			outfile << (p.y - meta3d.min_y())/meta3d.size_voxel_y() << ",";
-			outfile << (p.z - meta3d.min_z())/meta3d.size_voxel_z() << "\n";
-
-			if (_debug && event_id == 8 && elt.first == 225478183) {
-				std::cout << std::endl;
-				std::cout << elt.first << " wrong reco " << std::endl;
-				std::cout << "Plane 0 - ";
-				for (auto e : elt.second[0]) std::cout << e << " ";
-				std::cout << std::endl;
-				std::cout << "Plane 1 - ";
-				for (auto e : elt.second[1]) std::cout << e << " ";
-				std::cout << std::endl;
-				std::cout << "Plane 2 - ";
-				for (auto e : elt.second[2]) std::cout << e << " ";
-				std::cout << std::endl;
-			}
-		}
-		outfile.close();
+		// Save to CSV true voxels
 		std::ofstream outfile2;
 		outfile2.open("true_"+std::to_string(event_id)+".csv");
 		outfile2 << "id,x,y,z\n";
@@ -234,14 +235,14 @@ namespace larcv {
     return true;
   }
 
-	bool SuperaToy::findOverlap(std::vector<std::set<unsigned int> > planes) {
+	template <class T> bool SuperaToy::findOverlap(std::vector<std::set<T> > planes) {
 		if (planes.size() != 3) {
 			LARCV_CRITICAL() << "Need 3 planes" << std::endl;
 			throw larbys();
 		}
 
-		std::unordered_set<unsigned int> plane0;
-		std::unordered_set<unsigned int> plane1;
+		std::unordered_set<T> plane0;
+		std::unordered_set<T> plane1;
 		for (auto trueVoxId : planes[0]) {
 			plane0.insert(trueVoxId);
 		}
@@ -263,6 +264,8 @@ namespace larcv {
 		}
 		return false;
 	}
+
+	//template <VoxelID_t> bool SuperaToy::findOverlap(std::vector<std::set<VoxelID_t> > planes);
 
   void SuperaToy::finalize()
   {}

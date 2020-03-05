@@ -39,7 +39,7 @@ namespace larcv {
 
     void initialize();
 
- 		bool findOverlap(std::vector<std::set<unsigned int> > planes);
+ 		template <class T> bool findOverlap(std::vector<std::set<T> > planes);
 	 	bool process(IOManager& mgr);
 
     void finalize();
