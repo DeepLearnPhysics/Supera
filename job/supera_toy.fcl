@@ -5,7 +5,7 @@ ProcessDriver: {
   RandomAccess: false
   ProcessType:  ["SuperaBBoxInteraction","SuperaToy"]
   ProcessName:  ["SuperaBBoxInteraction","SuperaToy"]
- 
+
 
   IOManager: {
     Verbosity:   2
@@ -33,11 +33,11 @@ ProcessDriver: {
     }
     SuperaToy: {
       DebugMode: true
-      Verbosity: 1
+      Verbosity: 0
       LArSimChProducer: "largeant"
       LArHitProducer:   "cluster3d"
       LArSpacePointProducer: "cluster3d"
-      NSigmaMatchTime: 2.0
+      NSigmaMatchTime: 0.3
       UseTruePosition: true
     }
 

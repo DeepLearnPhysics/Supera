@@ -35,7 +35,7 @@ namespace supera {
 // Utility functions (geometry, lar properties, etc.)
 //
 namespace supera {
-  
+
   //typedef ::fhicl::ParameterSet Config_t;
 
   //
@@ -66,7 +66,7 @@ namespace supera {
 
   /// Number of projections
   unsigned int NProjections();
-  
+
   /// Number of wires
   unsigned int Nwires(unsigned int plane);
 
@@ -94,10 +94,10 @@ namespace supera {
   //
   // DetectorClockService
   //
-  
+
   /// Number of time ticks
   unsigned int NumberTimeSamples();
-  
+
   /// G4 time to TPC tick
   int TPCG4Time2Tick(double ns);
 
@@ -106,7 +106,7 @@ namespace supera {
 
   /// per-plane tick offset
   double PlaneTickOffset(size_t plane0, size_t plane1);
-  
+
   /// TPC TDC to Tick
   double TPCTDC2Tick(double tdc);
 
@@ -116,16 +116,19 @@ namespace supera {
   /// TPC sampling period
   double TPCTickPeriod();
 
+  /// Trigger time
+  double TriggerTime();
+
   //
   // SpaceChargeService
-  // 
+  //
   /// Truth position to shifted
   void ApplySCE(double& x, double& y, double& z);
   /// Truth position to shifted
   void ApplySCE(double* xyz);
   /// Truth position to shifted
   void ApplySCE(TVector3& xyz);
-  
+
 }
 
 #endif
