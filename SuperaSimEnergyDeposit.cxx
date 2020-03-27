@@ -100,7 +100,7 @@ namespace larcv {
     larcv::EventClusterVoxel3D* event_dt_v   = nullptr;
     larcv::EventClusterVoxel3D* event_at_v   = nullptr;
     larcv::EventClusterVoxel3D* event_dedx_v = nullptr;
-    std::cout<<mcp_v.size()<<std::endl;
+
     if(_store_dx || _store_dedx)
       { event_dx_v   = (larcv::EventClusterVoxel3D*)(mgr.get_data("cluster3d", _output_label + "_dx"));
 	event_dx_v->resize(mcp_v.size()+1);   event_dx_v->meta(meta);   }

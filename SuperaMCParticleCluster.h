@@ -46,20 +46,21 @@ namespace larcv {
     bool process(IOManager& mgr);
 
     void finalize();
-    
+
     larcv::Particle MakeParticle(const supera::LArMCParticle_t& larmcp);
 
     bool IsTouching(const Voxel3DMeta& meta, const VoxelSet& vs1, const VoxelSet& vs2) const;
     bool IsTouching2D(const ImageMeta& meta, const VoxelSet& vs1, const VoxelSet& vs2) const;
 
     std::vector<supera::ParticleGroup> CreateParticleGroups();
-      
+
     void AnalyzeSimEnergyDeposit(const larcv::Voxel3DMeta& meta,
-				 std::vector<supera::ParticleGroup>& part_grp_v);
+				 std::vector<supera::ParticleGroup>& part_grp_v,
+         larcv::IOManager& mgr);
     void AnalyzeSimChannel(const larcv::Voxel3DMeta& meta,
 			   std::vector<supera::ParticleGroup>& part_grp_v,
 			   larcv::IOManager& mgr);
-    void AnalyzeFirstLastStep(const larcv::Voxel3DMeta& meta, 
+    void AnalyzeFirstLastStep(const larcv::Voxel3DMeta& meta,
 			      std::vector<supera::ParticleGroup>& part_grp_v);
     void MergeShowerIonizations(std::vector<supera::ParticleGroup>& part_grp_v);
     void ApplyEnergyThreshold(std::vector<supera::ParticleGroup>& part_grp_v);
@@ -69,7 +70,7 @@ namespace larcv {
     void MergeShowerTouching(const larcv::Voxel3DMeta& meta,
 			     std::vector<supera::ParticleGroup>& part_grp_v);
     void MergeShowerTouching2D(std::vector<supera::ParticleGroup>& part_grp_v);
-			       
+
     void MergeShowerDeltas(std::vector<supera::ParticleGroup>& part_grp_v);
     void DumpHierarchy(size_t trackid,
 		       const std::vector<supera::ParticleGroup>& part_grp_v) const;
@@ -82,6 +83,8 @@ namespace larcv {
     std::string _ref_meta3d_tensor3d;
     std::string _ref_meta2d_tensor2d;
     std::string _output_label;
+    std::string _masked_true2reco_cluster3d;
+    std::string _masked_true_tensor3d;
     bool _use_sed_points;
     size_t _eioni_size;
     size_t _delta_size;
@@ -118,4 +121,3 @@ namespace larcv {
 //#endif
 #endif
 /** @} */ // end of doxygen group
-
