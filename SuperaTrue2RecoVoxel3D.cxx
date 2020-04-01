@@ -239,7 +239,7 @@ namespace larcv {
     LARCV_INFO() << "Retrieving 3D meta..." << std::endl;
     auto meta3d = get_meta3d(mgr);
 
-		std::unordered_set<unsigned int> true_voxel_ids;
+		std::unordered_set<VoxelID_t> true_voxel_ids;
 
     //
     // Step 1. ... create a list of true hits
@@ -306,7 +306,7 @@ namespace larcv {
     art::FindManyP<recob::Hit> hit_finder(space_pts, *ev, _sps_producer);
 
     // reco2true : reco_voxel_id -> [(true_voxel_id, track_id)]
-    std::map<unsigned int, std::set<TrackVoxel_t>> reco2true;
+    std::map<VoxelID_t, std::set<TrackVoxel_t>> reco2true;
 
     for (size_t i = 0; i < space_pts->size(); ++i) {
       auto const &pt = space_pts->at(i);
@@ -384,16 +384,16 @@ namespace larcv {
     } // end looping reco pts
 
     // FIXME(2020-03-20 kvtsang) output ghost point labels to VoxelSet
-    std::map<unsigned int, bool> ghosts;
+    std::map<VoxelID_t, bool> ghosts;
     for (auto const& key_value : reco2true) ghosts.emplace(key_value.first, true);
 
     // true2reco : true_voxel_id -> [reco_voxel_id]
     // inverting reco2true for non-ghost points, track_id contracted
-    std::map<unsigned int, std::unordered_set<unsigned int>> true2reco;
-    auto insert_true2reco = [&](unsigned int true_id, unsigned int reco_id) {
+    std::map<VoxelID_t, std::unordered_set<VoxelID_t>> true2reco;
+    auto insert_true2reco = [&](VoxelID_t true_id, VoxelID_t reco_id) {
       auto itr = true2reco.find(true_id);
       if (itr == true2reco.end())
-        true2reco.emplace(true_id, std::unordered_set<unsigned int>({reco_id}));
+        true2reco.emplace(true_id, std::unordered_set<VoxelID_t>({reco_id}));
       else
         itr->second.insert(reco_id);
     };
@@ -472,21 +472,21 @@ namespace larcv {
 
 
   void SuperaTrue2RecoVoxel3D::set_ghost_with_averaging(
-      const std::map<unsigned int, std::set<TrackVoxel_t>>& reco2true,
+      const std::map<VoxelID_t, std::set<TrackVoxel_t>>& reco2true,
       const larcv::Voxel3DMeta& meta3d,
-      std::map<unsigned int, bool>& ghosts,
-      std::function<void(unsigned int, unsigned int)> const& insert_true2reco)
+      std::map<VoxelID_t, bool>& ghosts,
+      std::function<void(VoxelID_t, VoxelID_t)> const& insert_true2reco)
   {
     double threshold2 = pow(_post_averaging_threshold, 2);
 
     // build inverse map (true_voxel_id, track_id) -> [reco_voxel_id]
     // use later for averaging
-    std::map<TrackVoxel_t, std::unordered_set<unsigned int>> true2reco;
+    std::map<TrackVoxel_t, std::unordered_set<VoxelID_t>> true2reco;
     for (auto const& [reco_id, true_hits] : reco2true) {
       for (auto const& hit : true_hits) {
           auto itr = true2reco.find(hit);
           if (itr == true2reco.end())
-            true2reco.emplace(hit, std::unordered_set<unsigned int>({reco_id}));
+            true2reco.emplace(hit, std::unordered_set<VoxelID_t>({reco_id}));
           else
             itr->second.insert(reco_id);
       } // loop true hits
@@ -508,7 +508,7 @@ namespace larcv {
       // 1-to-many match
       // calcuate the mean reco. position (per true voxel + track_id)
       // mark a subset as non-ghost near mean
-      std::vector<unsigned int> ids;
+      std::vector<VoxelID_t> ids;
       std::vector<double> x, y, z;
 
       // convert reco voxel ids to xyz
@@ -542,9 +542,9 @@ namespace larcv {
   }
 
   void SuperaTrue2RecoVoxel3D::set_ghost(
-        const std::map<unsigned int, std::set<TrackVoxel_t>>& reco2true,
-        std::map<unsigned int, bool>& ghosts,
-        std::function<void(unsigned int, unsigned int)> const& insert_true2reco)
+        const std::map<VoxelID_t, std::set<TrackVoxel_t>>& reco2true,
+        std::map<VoxelID_t, bool>& ghosts,
+        std::function<void(VoxelID_t, VoxelID_t)> const& insert_true2reco)
   {
     for (auto const& [reco_id, true_hits] : reco2true) {
       if (true_hits.size() == 0) continue; // no overlapping hit
@@ -558,9 +558,9 @@ namespace larcv {
   {
     std::map<int, size_t> track_idx;
     std::vector<double> n_electrons;
-    std::vector<unsigned int> voxel_ids;
+    std::vector<VoxelID_t> voxel_ids;
 
-    auto update = [&](int track_id, unsigned int voxel_id, double ne) {
+    auto update = [&](int track_id, VoxelID_t voxel_id, double ne) {
       auto itr = track_idx.find(track_id);
       if (itr == track_idx.end()) {
         size_t idx = track_idx.size();
