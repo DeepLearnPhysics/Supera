@@ -43,7 +43,7 @@ ProcessDriver: {
       HitWindowTicks: 5
       HitPeakFinding: false
       PostAveraging: true
-      PostAveragingThreshold_mm: 0.3
+      PostAveragingThreshold_cm: 0.3
       DumpToCSV: false
     }
     SuperaWire: {
