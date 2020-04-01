@@ -174,7 +174,7 @@ namespace larcv {
     _hit_peak_finding = cfg.get<bool>("HitPeakFinding", false);
     _dump_to_csv = cfg.get<bool>("DumpToCSV", false);
     _post_averaging = cfg.get<bool>("PostAveraging", false);
-    _post_averaging_threshold = cfg.get<double>("PostAveragingThreshold_mm", 0.3);
+    _post_averaging_threshold = cfg.get<double>("PostAveragingThreshold_cm", 0.3);
   }
 
 
