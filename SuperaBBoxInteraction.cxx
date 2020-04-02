@@ -33,6 +33,10 @@ namespace larcv {
     _xvox = voxel_size.at(0);
     _yvox = voxel_size.at(1);
     _zvox = voxel_size.at(2);
+
+    _use_fixed_bbox = cfg.get<bool>("UseFixedBBox", false);
+    _bbox_bottom = cfg.get<std::vector<double>>("BBoxBottom", {0, 0, 0});
+    assert(_box_start_at.size() == 3);
     
     auto tpc_v = cfg.get<std::vector<unsigned short> >("TPCList");
     larcv::Point3D min_pt(1.e9,1.e9,1.e9);
@@ -64,6 +68,21 @@ namespace larcv {
   {
     SuperaBase::process(mgr);
     larcv::BBox3D bbox(0, 0, 0, 0, 0, 0);
+
+    if (_use_fixed_bbox) {
+      double x0 = _bbox_bottom[0];
+      double y0 = _bbox_bottom[1];
+      double z0 = _bbox_bottom[2];
+
+      double x1 = x0 + _xlen;
+      double y1 = y0 + _ylen;
+      double z1 = z0 + _zlen;
+
+      larcv::Point3D p0(x0, y0, z0);
+      larcv::Point3D p1(x1, y1, z1);
+      bbox.update(p0, p1);
+    }
+    else {
     /*
     // Retrieve mcparticles
     art::Handle<std::vector<simb::MCParticle> > mcpHandle;
@@ -82,46 +101,48 @@ namespace larcv {
     const std::vector<simb::MCParticle>& mcp_array(*mcpHandle);
     fPart.AddParticles(mcp_array,orig_array);
     */
-    // Register primary vertex points
-    auto const& mct_v = LArData<supera::LArMCTruth_t>();
-    LARCV_INFO() << "Processing MCTruth: Loaded MCTruth array: " << mct_v.size() << std::endl;
-    for(size_t mct_index=0; mct_index<mct_v.size(); ++mct_index) {
-      
-      auto const& mct = mct_v[mct_index];
-      if(_origin && mct.Origin() != _origin) {
-	LARCV_INFO() << "Skipping MCTruth of oritin type: " << (int)(mct.Origin()) << std::endl;
-	continue;
+      // Register primary vertex points
+      auto const& mct_v = LArData<supera::LArMCTruth_t>();
+      LARCV_INFO() << "Processing MCTruth: Loaded MCTruth array: " << mct_v.size() << std::endl;
+      for(size_t mct_index=0; mct_index<mct_v.size(); ++mct_index) {
+        auto const& mct = mct_v[mct_index];
+        if(_origin && mct.Origin() != _origin) {
+          LARCV_INFO() << "Skipping MCTruth of oritin type: " << (int)(mct.Origin()) << std::endl;
+          continue;
+        }
+
+        for(int i=0; i<mct.NParticles(); ++i) {
+          auto const& mcp = mct.GetParticle(i);
+          if(mcp.StatusCode() != 1) {
+            LARCV_INFO() << "Skipping MCTruth::MCParticle of status code: " 
+              << (int)(mcp.StatusCode()) << std::endl;
+            continue;
+          }
+
+          auto const& pos = mcp.Position(0);
+          larcv::Point3D pt;
+          pt.x = pos.X(); pt.y = pos.Y(); pt.z = pos.Z();
+          LARCV_INFO() << "Registering MCTruth::MCParticle vertex: ("
+            << pt.x << "," << pt.y << "," << pt.z << ")"
+            << " ... PDG " << mcp.PdgCode() << std::endl;
+          this->update_bbox(bbox,pt);
+        }
       }
-      
-      for(int i=0; i<mct.NParticles(); ++i) {
-	auto const& mcp = mct.GetParticle(i);
-	if(mcp.StatusCode() != 1) {
-	  LARCV_INFO() << "Skipping MCTruth::MCParticle of status code: " << (int)(mcp.StatusCode()) << std::endl;
-	  continue;
-	}
-	
-	auto const& pos = mcp.Position(0);
-	larcv::Point3D pt;
-	pt.x = pos.X(); pt.y = pos.Y(); pt.z = pos.Z();
-	LARCV_INFO() << "Registering MCTruth::MCParticle vertex: (" 
-		     << pt.x << "," << pt.y << "," << pt.z << ")"
-		     << " ... PDG " << mcp.PdgCode() << std::endl;
-	this->update_bbox(bbox,pt);
+
+      // Register particle energy deposition coordinates
+      auto const& sedep_v = LArData<supera::LArSimEnergyDeposit_t>();
+      LARCV_INFO() << "Processing SimEnergyDeposit array: " << sedep_v.size() << std::endl;
+      for(size_t sedep_idx=0; sedep_idx<sedep_v.size(); ++sedep_idx) {
+        auto const& sedep = sedep_v.at(sedep_idx);
+        larcv::Point3D pt;
+        pt.x = sedep.X(); pt.y = sedep.Y(); pt.z=sedep.Z();
+        if(!update_bbox(bbox,pt)) break;
       }
-    }
-    // Register particle energy deposition coordinates
-    auto const& sedep_v = LArData<supera::LArSimEnergyDeposit_t>();
-    LARCV_INFO() << "Processing SimEnergyDeposit array: " << sedep_v.size() << std::endl;
-    for(size_t sedep_idx=0; sedep_idx<sedep_v.size(); ++sedep_idx) {
-      auto const& sedep = sedep_v.at(sedep_idx);
-      larcv::Point3D pt;
-      pt.x = sedep.X(); pt.y = sedep.Y(); pt.z=sedep.Z();
-      if(!update_bbox(bbox,pt)) break;
-    }
     
-    // Randomize BBox location
-    randomize_bbox_center(bbox);
-    
+      // Randomize BBox location
+      randomize_bbox_center(bbox);
+    }
+
     // Create 3D meta
     larcv::Voxel3DMeta meta;
     auto const& min_pt = bbox.bottom_left();
