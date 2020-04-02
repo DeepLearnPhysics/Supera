@@ -260,7 +260,7 @@ namespace larcv {
           larcv::Point3D edep_pos(pt.x,pt.y,pt.z);
           larcv::Point3D position(0.,0.,0.);
           double dist_min = 1.e20;
-          double reco_sum = vs.sum();
+          //double reco_sum = vs.sum();
           for(size_t i=0; i<vs.size(); ++i) {
             auto const& vox = vs.as_vector()[i];
             auto vox_position = meta.position(vox.id());
@@ -274,7 +274,8 @@ namespace larcv {
                 position = vox_position;
               }
             }
-            grp.vs.emplace(vox.id(),pt.e * vox.value()/reco_sum,true);
+            //grp.vs.emplace(vox.id(),pt.e * vox.value()/reco_sum,true);
+            grp.vs.emplace(vox.id(),pt.e / vs.size(),true);
           }
           pt.x = position.x;
           pt.y = position.y;
@@ -484,7 +485,7 @@ namespace larcv {
 		    larcv::Point3D edep_pos(pt.x,pt.y,pt.z);
 		    larcv::Point3D position(0.,0.,0.);
 		    double dist_min = 1.e20;
-		    double reco_sum = vs.sum();
+		    //double reco_sum = vs.sum();
 		    for(size_t i=0; i<vs.size(); ++i) {
 		      auto const& vox = vs.as_vector()[i];
 		      auto vox_position = meta3d.position(vox.id());
@@ -498,7 +499,8 @@ namespace larcv {
 			  position = vox_position;
 			}
 		      }
-		      grp.vs.emplace(vox.id(),pt.e * vox.value()/reco_sum,true);
+		      //grp.vs.emplace(vox.id(),pt.e * vox.value()/reco_sum,true);
+		      grp.vs.emplace(vox.id(),pt.e/vs.size(),true);
 		    }
 		    pt.x = position.x;
 		    pt.y = position.y;

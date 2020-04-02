@@ -43,14 +43,14 @@ ProcessDriver: {
       HitWindowTicks: 5
       HitPeakFinding: false
       PostAveraging: true
-      PostAveragingThreshold_mm: 0.3
+      PostAveragingThreshold_mm: 0.5
       DumpToCSV: false
     }
     SuperaWire: {
       LArWireProducer: "decon1droi"
       Verbosity: 2
       CryostatList: [0]
-      TPCList: [0]
+      TPCList: [0,1]
       PlaneList: [0,1,2]
       OutputProducer: "wire"
       RowCount: 768
@@ -95,7 +95,7 @@ ProcessDriver: {
       UseSimEnergyDeposit: false
       UseSimEnergyDepositPoints: false
       CryostatList: [0]
-      TPCList: [0]
+      TPCList: [0,1]
       PlaneList: []
       #SemanticPriority: [2,1,0,3,4] # 0-4 for shower track michel delta LE-scattering
       SemanticPriority: [1,2,0,3,4] # 0-4 for shower track michel delta LE-scattering
@@ -116,7 +116,7 @@ ProcessDriver: {
       Tensor3DLabels:  ["reco","pcluster_index"]
       BBoxSize: [230.4,230.4,230.4]
       VoxelSize: [0.3,0.3,0.3]
-      TPCList: [0]
+      TPCList: [0,1]
     }
     SuperaMCParticle: {
       Verbosity: 2
@@ -156,7 +156,7 @@ ProcessDriver: {
       StoreDiffTime: false
       StoreAbsTime: true
       StoreDEDX: true
-      TPCList: [0]
+      TPCList: [0,1]
     }
 
     BBoxFromCluster3D: {
@@ -261,7 +261,7 @@ ProcessDriver: {
       Verbosity: 2
       SpacePointProducer: "cluster3d"
       OutputLabel       : "reco"
-      TPCList: [0]
+      TPCList: [0,1]
       StoreWireInfo: true
     }
 
