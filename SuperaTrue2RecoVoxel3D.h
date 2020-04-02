@@ -63,10 +63,10 @@ namespace larcv {
     // composite index of (voxel_id, track_id)
     struct TrackVoxel_t
     {
-      unsigned int voxel_id;
+      VoxelID_t voxel_id;
       int track_id;
 
-      TrackVoxel_t(unsigned int v, int t) : voxel_id(v), track_id(t) {}
+      TrackVoxel_t(VoxelID_t v, int t) : voxel_id(v), track_id(t) {}
       friend inline bool operator< (const TrackVoxel_t &lhs, const TrackVoxel_t &rhs){
         if (lhs.voxel_id == rhs.voxel_id)
           return lhs.track_id < rhs.track_id;
@@ -95,16 +95,16 @@ namespace larcv {
 
     // make ghost labels with simple overlapping 2 or 3 true hits
     void set_ghost(
-        const std::map<unsigned int, std::set<TrackVoxel_t>>& reco2true,
-        std::map<unsigned int, bool>& ghosts,
-        std::function<void(unsigned int, unsigned int)> const& insert_true2reco);
+        const std::map<VoxelID_t, std::set<TrackVoxel_t>>& reco2true,
+        std::map<VoxelID_t, bool>& ghosts,
+        std::function<void(VoxelID_t, VoxelID_t)> const& insert_true2reco);
 
     // make ghost labels with averaging over reco pts for each true pt
     void set_ghost_with_averaging(
-        const std::map<unsigned int, std::set<TrackVoxel_t>>& reco2true,
+        const std::map<VoxelID_t, std::set<TrackVoxel_t>>& reco2true,
         const larcv::Voxel3DMeta& meta3d,
-        std::map<unsigned int, bool>& ghosts,
-        std::function<void(unsigned int, unsigned int)> const& insert_true2reco);
+        std::map<VoxelID_t, bool>& ghosts,
+        std::function<void(VoxelID_t, VoxelID_t)> const& insert_true2reco);
   };
 
   /**

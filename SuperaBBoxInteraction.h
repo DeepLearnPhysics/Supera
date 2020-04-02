@@ -52,6 +52,9 @@ namespace larcv {
     std::vector<std::string> _cluster3d_labels;
     std::vector<std::string> _tensor3d_labels;
 
+    bool _use_fixed_bbox;
+    std::vector<double> _bbox_bottom;
+
     bool update_bbox(larcv::BBox3D& bbox, const larcv::Point3D& pt);
     void randomize_bbox_center(larcv::BBox3D& bbox);
   };
