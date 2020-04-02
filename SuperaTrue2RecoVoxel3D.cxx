@@ -5,6 +5,7 @@
 #include <fstream>
 #include <algorithm>
 #include "SuperaTrue2RecoVoxel3D.h"
+#include "RecoVoxel3D.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "larcv/core/DataFormat/EventVoxel3D.h"
 
@@ -139,8 +140,9 @@ inline void dump_true2reco(T const& true2reco, std::string fname)
 {
   std::ofstream out(fname);
   out << "true_id,reco_id\n";
-  for (auto& [true_id, reco_ids] : true2reco) {
-    for (auto reco_id : reco_ids) {
+  for (auto& [true_id, reco_pts] : true2reco) {
+    for (auto reco_pt : reco_pts) {
+      auto reco_id = reco_pt.get_id();
       out
         << true_id << ','
         << reco_id << '\n';
@@ -389,13 +391,15 @@ namespace larcv {
 
     // true2reco : true_voxel_id -> [reco_voxel_id]
     // inverting reco2true for non-ghost points, track_id contracted
-    std::map<VoxelID_t, std::unordered_set<VoxelID_t>> true2reco;
+    std::map<VoxelID_t, std::unordered_set<RecoVoxel3D>> true2reco;
     auto insert_true2reco = [&](VoxelID_t true_id, VoxelID_t reco_id) {
+      RecoVoxel3D reco_pt(reco_id);
+
       auto itr = true2reco.find(true_id);
       if (itr == true2reco.end())
-        true2reco.emplace(true_id, std::unordered_set<VoxelID_t>({reco_id}));
+        true2reco.emplace(true_id, std::unordered_set<RecoVoxel3D>({reco_pt}));
       else
-        itr->second.insert(reco_id);
+        itr->second.insert(reco_pt);
     };
 
     if (_post_averaging)
@@ -416,14 +420,14 @@ namespace larcv {
         event_cluster3d = (larcv::EventClusterVoxel3D*)(mgr.get_data("cluster3d",_output_cluster3d));
         event_cluster3d->resize(true2reco.size());
       }
-
+      
       size_t cluster_ctr=0;
       for(auto const& keyval : true2reco) {
         if(event_cluster3d && keyval.second.empty()) continue;
         if(event_tensor3d) event_tensor3d->emplace(keyval.first, 0., true);
         auto& vs = event_cluster3d->writeable_voxel_set(cluster_ctr);
         vs.reserve(keyval.second.size());
-        for(auto const& vid : keyval.second) vs.emplace(vid, 0., true);
+        for(auto const& pt: keyval.second) vs.emplace(pt.get_id(), 0., true);
         ++cluster_ctr;
       }
     }
