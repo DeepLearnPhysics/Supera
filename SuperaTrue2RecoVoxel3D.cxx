@@ -382,7 +382,12 @@ namespace larcv {
         }
       }
 
-      reco2true[reco_voxel_id] = std::move(overlaps);
+      auto itr = reco2true.find(reco_voxel_id);
+      if (itr == reco2true.end())
+        reco2true[reco_voxel_id] = std::move(overlaps);
+      else
+        itr->second.insert(overlaps.begin(), overlaps.end());
+
     } // end looping reco pts
 
     // FIXME(2020-03-20 kvtsang) output ghost point labels to VoxelSet
