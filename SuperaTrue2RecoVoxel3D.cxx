@@ -420,10 +420,12 @@ namespace larcv {
       if(!_output_tensor3d.empty()) {
         event_tensor3d = (larcv::EventSparseTensor3D*)(mgr.get_data("sparse3d",_output_tensor3d));
         event_tensor3d->reserve(true2reco.size());
+        event_tensor3d->meta(meta3d);
       }
       if(!_output_cluster3d.empty()) {
         event_cluster3d = (larcv::EventClusterVoxel3D*)(mgr.get_data("cluster3d",_output_cluster3d));
         event_cluster3d->resize(true2reco.size());
+        event_cluster3d->meta(meta3d);
       }
       
       size_t cluster_ctr=0;
