@@ -43,7 +43,7 @@ ProcessDriver: {
       HitWindowTicks: 5
       HitPeakFinding: false
       PostAveraging: true
-      PostAveragingThreshold_mm: 0.5
+      PostAveragingThreshold_cm: 0.425
       DumpToCSV: false
     }
     SuperaWire: {
@@ -85,15 +85,16 @@ ProcessDriver: {
       LArMCTrackProducer:  "mcreco"
       MaskedTrueTensor3D: "masked_true"
       MaskedTrue2RecoCluster3D: "masked_true2reco"
-      #LArSimEnergyDepositProducer: "largeant TPCActive"
-      #LArSimChProducer: ""
-      LArSimEnergyDepositProducer: ""
-      LArSimChProducer: "largeant"
+      DeltaSize: 5
+      LArSimEnergyDepositProducer: "largeant TPCActive"
+      LArSimChProducer: ""
+      #ArSimEnergyDepositProducer: ""
+      #ArSimChProducer: "largeant"
       Meta3DFromCluster3D: "mcst"
       Meta2DFromTensor2D:  ""
       Verbosity: 2
-      UseSimEnergyDeposit: false
-      UseSimEnergyDepositPoints: false
+      UseSimEnergyDeposit: true
+      UseSimEnergyDepositPoints: true
       CryostatList: [0]
       TPCList: [0,1]
       PlaneList: []
@@ -112,8 +113,8 @@ ProcessDriver: {
       LArMCTruthProducer: "generator"
       LArSimEnergyDepositProducer: "largeant TPCActive"
       Origin: 0
-      Cluster3DLabels: ["mcst","pcluster","sed"]
-      Tensor3DLabels:  ["reco","pcluster_index"]
+      Cluster3DLabels: ["mcst","pcluster","sed","masked_true2reco"]
+      Tensor3DLabels:  ["reco","pcluster_index","masked_true"]
       BBoxSize: [230.4,230.4,230.4]
       VoxelSize: [0.3,0.3,0.3]
       TPCList: [0,1]
