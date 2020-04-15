@@ -94,7 +94,7 @@ namespace larcv {
     bool _use_true_pos;
     bool _use_sed;
     bool _check_particle_validity;
-    larcv::ProjectionID_t _projection_id;
+    int  _projection_id;
     larcv::BBox3D _world_bounds;
     std::vector<std::vector<std::vector<int> > > _scan;
     std::vector<size_t> _semantic_priority;

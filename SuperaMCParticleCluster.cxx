@@ -37,12 +37,12 @@ namespace larcv {
     for(size_t i=0; i<_semantic_priority.size(); ++i)
       _semantic_priority[i]=i;
     _semantic_priority = cfg.get<std::vector<size_t> >("SemanticPriority",_semantic_priority);
-    _delta_size = cfg.get<size_t>("DeltaSize",5);
+    _delta_size = cfg.get<size_t>("DeltaSize",10);
     _eioni_size = cfg.get<size_t>("IonizationSize",5);
     _compton_size = cfg.get<size_t>("ComptonSize",10);
     _compton_energy = cfg.get<double>("ComptonEnergy",4);
-    _edep_threshold = cfg.get<double>("EnergyDepositThreshold",0.05);
-    _projection_id = cfg.get<int>("ProjectionID",0);
+    _edep_threshold = cfg.get<double>("EnergyDepositThreshold",0.01);
+    _projection_id = cfg.get<int>("ProjectionID",-1);
     _use_sed = cfg.get<bool>("UseSimEnergyDeposit");
     _use_sed_points = cfg.get<bool>("UseSimEnergyDepositPoints");
     _use_true_pos = cfg.get<bool>("UseTruePosition",true);
@@ -190,8 +190,9 @@ namespace larcv {
 
   void SuperaMCParticleCluster::AnalyzeSimEnergyDeposit(const larcv::Voxel3DMeta& meta,
 							std::vector<supera::ParticleGroup>& part_grp_v,
-              larcv::IOManager& mgr)
+							larcv::IOManager& mgr)
   {
+    std::set<size_t> set_a, set_b;
     auto const& sedep_v = LArData<supera::LArSimEnergyDeposit_t>();
     auto const& trackid2index = _mcpl.TrackIdToIndex();
 
@@ -243,14 +244,28 @@ namespace larcv {
 
       auto& grp = part_grp_v[track_id];
       if(!grp.valid) continue;
+      /*
+      static std::set<unsigned long long> kazu;
+      if(vox_id != larcv::kINVALID_VOXELID) {
+	kazu.insert(vox_id);
+	std::cout<<kazu.size()<<std::endl;
+      }
 
+      if(grp.part.track_id() > 1) {
+	std::cout<<grp.part.pdg_code()<<" ... "<<grp.part.creation_process()<<" ... "<<std::flush;
+	if(vox_id == larcv::kINVALID_VOXELID) std::cout<<"INVALID"<<std::endl;
+	else std::cout<<"("<<meta.id_to_x_index(vox_id)<<","<<meta.id_to_y_index(vox_id)<<","<<meta.id_to_z_index(vox_id)<<")"<<std::endl;
+      }
+      */
       // translate voxid if needed
+      set_a.insert(vox_id);
       if(!masked_true) {
         grp.vs.emplace(vox_id,pt.e,true);
         grp.AddEDep(pt);
       } else {
         auto vox_index = masked_true->index(vox_id);
         if(vox_index == larcv::kINVALID_SIZE) continue;
+	set_b.insert(vox_id);
         if(!masked_true2reco) {
           grp.vs.emplace(vox_id,pt.e,true);
           grp.AddEDep(pt);
@@ -290,6 +305,10 @@ namespace larcv {
 		      << "(from " << missing_trackid.size() << " particles) did not find corresponding MCParticle!"
 		      << std::endl;
     }
+
+    std::cout<<set_a.size()<<" : "<<set_b.size()<<std::flush;
+    if(masked_true) std::cout<<" "<<masked_true->size()<<std::endl;
+    else std::cout<<std::endl;
   }
 
   void SuperaMCParticleCluster::AnalyzeFirstLastStep(const larcv::Voxel3DMeta& meta,
@@ -335,6 +354,8 @@ namespace larcv {
 						  std::vector<supera::ParticleGroup>& part_grp_v,
 						  larcv::IOManager& mgr)
   {
+    std::set<size_t> set_a, set_b;
+
     auto geop = lar::providerFrom<geo::Geometry>();
     auto const& sch_v = LArData<supera::LArSimCh_t>();
     LARCV_INFO() << "Processing SimChannel array: " << sch_v.size() << std::endl;
@@ -376,12 +397,12 @@ namespace larcv {
     xrange2d.second = trange2d.second = recorded_xrange2d.second = recorded_trange2d.second = -1.e20;
 
     //larcv::VoxelSet kvs;
-
+    
     for(auto const& sch : sch_v) {
 
       auto ch = sch.Channel();
       // Check if should use this channel (3d)
-      analyze3d = (_projection_id == ::supera::ChannelToProjectionID(ch));
+      analyze3d = (_projection_id < 0 || _projection_id == (int)(::supera::ChannelToProjectionID(ch)));
       // Check if should use this channel (2d)
       auto wid_v = geop->ChannelToWire(ch);
       assert(wid_v.size() == 1);
@@ -389,8 +410,6 @@ namespace larcv {
       auto vs2d_idx = this->plane_index(wid.Cryostat,wid.TPC,wid.Plane);
       analyze2d = (vs2d_idx >= 0 && _meta2d_v[vs2d_idx].min_x() <= wid.Wire && wid.Wire < _meta2d_v[vs2d_idx].max_x());
 
-      //if(ch!=267) continue;
-      //std::cout<<"Analyze? ch " << ch << " 2d " << analyze2d << " 3d " << analyze3d << std::endl;
       if(!analyze2d && !analyze3d) continue;
 
       for (auto const tick_ides : sch.TDCIDEMap()) {
@@ -459,59 +478,74 @@ namespace larcv {
 	  */
 	  if(analyze3d) {
 	    VoxelID_t vox_id = meta3d.id(pt.x, pt.y, pt.z);
+	    /*
+	    static std::set<unsigned long long> kazu;
+	    if(vox_id != larcv::kINVALID_VOXELID) {
+	      kazu.insert(vox_id);
+	      std::cout<<kazu.size()<<std::endl;
+	    }
+
+	    if(grp.part.track_id() > 1) {
+	      std::cout<<grp.part.pdg_code()<<" ... "<<grp.part.creation_process()<<" ... "<<std::flush;
+	      if(vox_id == larcv::kINVALID_VOXELID) std::cout<<"INVALID"<<std::endl;
+	      else std::cout<<"("<<meta3d.id_to_x_index(vox_id)<<","<<meta3d.id_to_y_index(vox_id)<<","<<meta3d.id_to_z_index(vox_id)<<")"<<std::endl;
+	    }
+	    */
 	    if(vox_id == larcv::kINVALID_VOXELID) {
 	      skipped3d = true;
 	      ++ctr_invalid_3d;
-	    }
-	    // translate voxid if needed
-	    if(!masked_true) {
-	      grp.vs.emplace(vox_id,pt.e,true);
-	      grp.AddEDep(pt);
-	    } else {
-	      auto vox_index = masked_true->index(vox_id);
-	      if(vox_index == larcv::kINVALID_SIZE) {
-		skipped3d = true;
-		++ctr_invalid_3d;
-	      }else{
-		if(!masked_true2reco) {
-		  grp.vs.emplace(vox_id,pt.e,true);
-		  grp.AddEDep(pt);
-		} else {
-		  auto vs = masked_true2reco->as_vector()[vox_index];
-		  if(vs.size()<1) {
-		    skipped3d = true;
-		    ++ctr_invalid_3d;
-		  }else{
-		    larcv::Point3D edep_pos(pt.x,pt.y,pt.z);
-		    larcv::Point3D position(0.,0.,0.);
-		    double dist_min = 1.e20;
-		    //double reco_sum = vs.sum();
-		    for(size_t i=0; i<vs.size(); ++i) {
-		      auto const& vox = vs.as_vector()[i];
-		      auto vox_position = meta3d.position(vox.id());
-		      double dist = vox_position.squared_distance(edep_pos);
-		      if(i==0) {
-			position = vox_position;
-			dist_min = dist;
-		      } else {
-			if(dist < dist_min) {
-			  dist_min = dist;
-			  position = vox_position;
-			}
-		      }
-		      //grp.vs.emplace(vox.id(),pt.e * vox.value()/reco_sum,true);
-		      grp.vs.emplace(vox.id(),pt.e/vs.size(),true);
-		    }
-		    pt.x = position.x;
-		    pt.y = position.y;
-		    pt.z = position.z;
+	    }else{
+	      set_a.insert(vox_id);
+	      // translate voxid if needed
+	      if(!masked_true) {
+		grp.vs.emplace(vox_id,pt.e,true);
+		grp.AddEDep(pt);
+	      } else {
+		auto vox_index = masked_true->index(vox_id);
+		if(vox_index == larcv::kINVALID_SIZE) {
+		  skipped3d = true;
+		  ++ctr_invalid_3d;
+		}else{
+		  set_b.insert(vox_index);
+		  if(!masked_true2reco) {
+		    grp.vs.emplace(vox_id,pt.e,true);
 		    grp.AddEDep(pt);
+		  } else {
+		    auto vs = masked_true2reco->as_vector()[vox_index];
+		    if(vs.size()<1) {
+		      skipped3d = true;
+		      ++ctr_invalid_3d;
+		    }else{
+		      larcv::Point3D edep_pos(pt.x,pt.y,pt.z);
+		      larcv::Point3D position(0.,0.,0.);
+		      double dist_min = 1.e20;
+		      //double reco_sum = vs.sum();
+		      for(size_t i=0; i<vs.size(); ++i) {
+			auto const& vox = vs.as_vector()[i];
+			auto vox_position = meta3d.position(vox.id());
+			double dist = vox_position.squared_distance(edep_pos);
+			if(i==0) {
+			  position = vox_position;
+			  dist_min = dist;
+			} else {
+			  if(dist < dist_min) {
+			    dist_min = dist;
+			    position = vox_position;
+			  }
+			}
+			//grp.vs.emplace(vox.id(),pt.e * vox.value()/reco_sum,true);
+			grp.vs.emplace(vox.id(),pt.e/vs.size(),true);
+		      }
+		      pt.x = position.x;
+		      pt.y = position.y;
+		      pt.z = position.z;
+		      grp.AddEDep(pt);
+		    }
 		  }
 		}
 	      }
 	    }
-	  }
-	  
+	  }  
 	  if(analyze2d) {
 	    VoxelID_t vox2d_id = larcv::kINVALID_VOXELID;
 	    auto const& meta2d = _meta2d_v[vs2d_idx];
@@ -580,6 +614,9 @@ namespace larcv {
     auto kmeta = _meta2d_v[0];
     out_data->emplace(std::move(kvs),std::move(kmeta));
     */
+    std::cout<<set_a.size()<<" : "<<set_b.size()<<std::flush;
+    if(masked_true) std::cout<<" "<<masked_true->size()<<std::endl;
+    else std::cout<<std::endl;
   }
 
 
@@ -949,7 +986,7 @@ namespace larcv {
 	// if parent is found, merge
 	/*
 	if(grp.vs.size()>0) {
-	  std::cout<<"Track " << grp.part.track_id() << " PDG " << grp.part.pdg_code()
+	  std::cout<<"Merging delta " << grp.part.track_id() << " PDG " << grp.part.pdg_code()
 		   << " " << grp.part.creation_process() << " vox count " << grp.vs.size() << std::endl
 		   <<" ... parent found " << parent.part.track_id()
 		   << " PDG " << parent.part.pdg_code() << " " << parent.part.creation_process()
@@ -964,15 +1001,14 @@ namespace larcv {
 	// check unique number of voxels
 	size_t unique_voxel_count = 0;
 	for(auto const& vox : grp.vs.as_vector()) {
-	  if(parent.vs.find(vox.id()).id() != larcv::kINVALID_VOXELID)
-	    continue;
-	  ++unique_voxel_count;
+	  if(parent.vs.find(vox.id()).id() == larcv::kINVALID_VOXELID)
+	    ++unique_voxel_count;
 	}
 	if(unique_voxel_count < _delta_size) {
 	  // if parent is found, merge
 	  /*
 	  if(unique_voxel_count>0) {
-	    std::cout<<"Track " << grp.part.track_id() << " PDG " << grp.part.pdg_code()
+	    std::cout<<"Merging delta " << grp.part.track_id() << " PDG " << grp.part.pdg_code()
 		     << " " << grp.part.creation_process() << " vox count " << grp.vs.size() << std::endl
 		     <<" ... parent found " << parent.part.track_id()
 		     << " PDG " << parent.part.pdg_code() << " " << parent.part.creation_process()
@@ -983,18 +1019,8 @@ namespace larcv {
 	  }
 	  */
 	  parent.Merge(grp);
-	  /*
-	  if(unique_voxel_count>0)
-	    std::cout<<"Track " << grp.part.track_id() << " PDG " << grp.part.pdg_code()
-		     << " " << grp.part.creation_process() << " vox count " << grp.vs.size() << std::endl
-		     <<" ... parent found " << parent.part.track_id()
-		     << " PDG " << parent.part.pdg_code() << " " << parent.part.creation_process()
-		     << std::endl;
-	  */
-	}
-	/*
-	else{
-	  std::cout<<"Track " << grp.part.track_id() << " PDG " << grp.part.pdg_code()
+	}else{
+	  std::cout<<"NOT merging delta " << grp.part.track_id() << " PDG " << grp.part.pdg_code()
 		   << " " << grp.part.creation_process() << " vox count " << grp.vs.size() << std::endl
 		   <<" ... parent found " << parent.part.track_id()
 		   << " PDG " << parent.part.pdg_code() << " " << parent.part.creation_process()
@@ -1003,7 +1029,6 @@ namespace larcv {
 	    std::cout<<vs.size() << " " << std::flush;
 	  std::cout<<std::endl;
 	}
-	*/
       }
     }
   }
@@ -1042,7 +1067,7 @@ namespace larcv {
 	}
       }
     }
-    LARCV_INFO() << __LINE__ << std::endl;
+
     // Build MCParticle List
     auto const& larmcp_v = LArData<supera::LArMCParticle_t>();
     auto const *ev = GetEvent();
@@ -1051,8 +1076,6 @@ namespace larcv {
     auto const& trackid2index = _mcpl.TrackIdToIndex();
     // Create ParticleGroup
     auto part_grp_v = this->CreateParticleGroups();
-
-    LARCV_INFO() << __LINE__ << std::endl;
 
     // Fill Voxel Information
     if(_use_sed)
@@ -1069,7 +1092,7 @@ namespace larcv {
 
     // Apply energy threshold
     this->ApplyEnergyThreshold(part_grp_v);
-
+    
     // Merge fragments of showers
     this->MergeShowerConversion(part_grp_v);
 
@@ -1083,7 +1106,8 @@ namespace larcv {
     this->MergeShowerTouching2D(part_grp_v);
 
     // merge too small deltas into tracks
-    this->MergeShowerDeltas(part_grp_v);
+    //this->MergeShowerDeltas(part_grp_v);
+
     /*
     for(auto const& grp : shower_grp_v) {
       if(grp.type != supera::kDelta) continue;
@@ -1548,7 +1572,6 @@ namespace larcv {
       if(add) {children.push_back(grp.part.id()); parent.children_id(children);}
     }
 
-
     // Now loop over otuput particle list and check if any remaining group id needs to be assigned
     // Use its parent to group...
     LARCV_INFO() <<  "Check all output particles for their group id... ("
@@ -1677,7 +1700,7 @@ namespace larcv {
 
     }
 
-    LARCV_INFO() <<  "Start storing " << output2trackid.size() << " particles ..." << std::endl;
+    LARCV_INFO() <<  "Start storing " << output2trackid.size() << " particles ...y" << std::endl;
 
     // now loop over to create VoxelSet for compton/photoelectron
     std::vector<larcv::Particle> part_v; part_v.resize(output2trackid.size());
