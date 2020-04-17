@@ -19,6 +19,8 @@
 #include "SuperaBase.h"
 #include "FMWKInterface.h"
 #include "larcv/core/DataFormat/Voxel3DMeta.h"
+#include "RecoVoxel3D.h"
+
 namespace larcv {
 
   /**
@@ -44,6 +46,15 @@ namespace larcv {
 
     void finalize();
 
+    const std::unordered_set<TrackVoxel_t>&
+    find_true(VoxelID_t reco_id) const;
+
+    const std::unordered_set<RecoVoxel3D>&
+    find_reco(int track_id, VoxelID_t true_id) const;
+
+    const auto& get_reco2true() const { return _reco2true; };
+    const auto& get_true2reco() const { return _true2reco; };
+
   private:
 
     larcv::Voxel3DMeta get_meta3d(IOManager& mgr) const;
@@ -60,30 +71,31 @@ namespace larcv {
     double _hit_threshold_ne;
     double _hit_window_ticks;
 
-    // composite index of (voxel_id, track_id)
-    struct TrackVoxel_t
-    {
-      VoxelID_t voxel_id;
-      int track_id;
+    // Map (true_id, track_id) -> [RecoVoxel3D]
+    std::map<TrackVoxel_t, std::unordered_set<RecoVoxel3D>> _true2reco;
+    
+    // reverse map for RecoVoxel3D -> [true_id, track_id]
+    std::map<RecoVoxel3D, std::unordered_set<TrackVoxel_t>> _reco2true;
 
-      TrackVoxel_t(VoxelID_t v, int t) : voxel_id(v), track_id(t) {}
-      friend inline bool operator< (const TrackVoxel_t &lhs, const TrackVoxel_t &rhs){
-        if (lhs.voxel_id == rhs.voxel_id)
-          return lhs.track_id < rhs.track_id;
-        return lhs.voxel_id < rhs.voxel_id;
-      }
-    };
+    // empty set for lookup return with invalid key
+    std::unordered_set<TrackVoxel_t> _empty_true;
+    std::unordered_set<RecoVoxel3D> _empty_reco;
 
-    // minimal hit info (time, voxel_id, track_id)
-    struct TrueHit_t
+    // helper function to build reco2true and true2reco maps
+    template <typename K, typename V>
+    inline void insert_one_to_many(
+        std::map<K, std::unordered_set<V>>& m,
+        K const& key, V const& value)
     {
-      double time;
-      friend inline bool operator<(const TrueHit_t &lhs, const TrueHit_t &rhs){
-        return lhs.time < rhs.time;
-      }
-      std::vector<TrackVoxel_t> track_voxel_ids;
-      std::vector<double> n_electrons;
-    };
+      auto itr = m.find(key);
+      if (itr == m.end())
+        m.emplace(key, std::unordered_set<V>({value}));
+      else 
+        itr->second.insert(value);
+    }
+
+    // clear contents of reco2true and true2reco maps
+    void clear_maps();
 
     // find true hits in [t_start, t_end]
     void find_hits(const std::vector<TrueHit_t>& hits, double t_start, double t_end,
@@ -92,19 +104,18 @@ namespace larcv {
     // find peak (per track_id) of true hits in [t_start, t_end]
     void find_hit_peaks(const std::vector<TrueHit_t>& hits, double t_start, double t_end,
         std::set<TrackVoxel_t>& track_voxel_ids);
-
+  
     // make ghost labels with simple overlapping 2 or 3 true hits
-    void set_ghost(
-        const std::map<VoxelID_t, std::set<TrackVoxel_t>>& reco2true,
-        std::map<VoxelID_t, bool>& ghosts,
-        std::function<void(VoxelID_t, VoxelID_t)> const& insert_true2reco);
+    void set_ghost();
 
     // make ghost labels with averaging over reco pts for each true pt
-    void set_ghost_with_averaging(
-        const std::map<VoxelID_t, std::set<TrackVoxel_t>>& reco2true,
-        const larcv::Voxel3DMeta& meta3d,
-        std::map<VoxelID_t, bool>& ghosts,
-        std::function<void(VoxelID_t, VoxelID_t)> const& insert_true2reco);
+    void set_ghost_with_averaging(const larcv::Voxel3DMeta& meta3d);
+
+    bool is_ghost(VoxelID_t reco_id) const;
+
+    // build a map of reco_id <-> true_id, ignoring track_id
+    std::map<VoxelID_t, std::unordered_set<VoxelID_t>> contract_true2reco();
+    std::map<VoxelID_t, std::unordered_set<VoxelID_t>> contract_reco2true();
   };
 
   /**
@@ -120,7 +131,6 @@ namespace larcv {
     /// creation method
     ProcessBase* create(const std::string instance_name) { return new SuperaTrue2RecoVoxel3D(instance_name); }
   };
-
 }
 //#endif
 //#endif
