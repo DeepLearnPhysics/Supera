@@ -5,7 +5,6 @@
 #include <fstream>
 #include <algorithm>
 #include "SuperaTrue2RecoVoxel3D.h"
-#include "RecoVoxel3D.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "larcv/core/DataFormat/EventVoxel3D.h"
 
@@ -124,10 +123,10 @@ inline void dump_reco2true(T const& reco2true, std::string fname)
 {
   std::ofstream out(fname);
   out << "reco_id,true_id,track_id\n";
-  for (auto const& [reco_id, true_hits] : reco2true) {
+  for (auto const& [reco_pt, true_hits] : reco2true) {
     for (auto const& hit : true_hits) {
       out
-        << reco_id << ','
+        << reco_pt.get_id() << ','
         << hit.voxel_id << ','
         << hit.track_id << '\n';
     }
@@ -139,12 +138,13 @@ template <typename T>
 inline void dump_true2reco(T const& true2reco, std::string fname)
 {
   std::ofstream out(fname);
-  out << "true_id,reco_id\n";
-  for (auto& [true_id, reco_pts] : true2reco) {
+  out << "true_id,track_id,reco_id\n";
+  for (auto& [true_info, reco_pts] : true2reco) {
     for (auto reco_pt : reco_pts) {
       auto reco_id = reco_pt.get_id();
       out
-        << true_id << ','
+        << true_info.voxel_id << ','
+        << true_info.track_id << ','
         << reco_id << '\n';
     }
   }
@@ -237,11 +237,15 @@ namespace larcv {
     //
     // Step 0. ... get meta3d
     //
+    // clear true2reco, ghosts maps
+    clear_maps();
+
 		auto event_id = mgr.event_id().event();
     LARCV_INFO() << "Retrieving 3D meta..." << std::endl;
     auto meta3d = get_meta3d(mgr);
 
 		std::unordered_set<VoxelID_t> true_voxel_ids;
+		std::vector<VoxelID_t> reco_voxel_ids;
 
     //
     // Step 1. ... create a list of true hits
@@ -307,15 +311,13 @@ namespace larcv {
     if (!space_pts.isValid()) return true;
     art::FindManyP<recob::Hit> hit_finder(space_pts, *ev, _sps_producer);
 
-    // reco2true : reco_voxel_id -> [(true_voxel_id, track_id)]
-    std::map<VoxelID_t, std::set<TrackVoxel_t>> reco2true;
-
     for (size_t i = 0; i < space_pts->size(); ++i) {
       auto const &pt = space_pts->at(i);
       auto *xyz = pt.XYZ();
 
       auto reco_voxel_id = meta3d.id(xyz[0], xyz[1], xyz[2]);
       if(reco_voxel_id == larcv::kINVALID_VOXELID) continue;
+      reco_voxel_ids.push_back(reco_voxel_id);
 
       std::vector<art::Ptr<recob::Hit>> hits;
       hit_finder.get(i, hits);
@@ -381,49 +383,50 @@ namespace larcv {
             overlaps = std::move(overlaps_);
         }
       }
-
-      auto itr = reco2true.find(reco_voxel_id);
-      if (itr == reco2true.end())
-        reco2true[reco_voxel_id] = std::move(overlaps);
-      else
-        itr->second.insert(overlaps.begin(), overlaps.end());
-
+      
+      RecoVoxel3D reco_voxel3d(reco_voxel_id);
+      for (auto const& true_pt: overlaps)
+        insert_one_to_many(_true2reco, true_pt, reco_voxel3d);
     } // end looping reco pts
 
-    // FIXME(2020-03-20 kvtsang) output ghost point labels to VoxelSet
-    std::map<VoxelID_t, bool> ghosts;
-    for (auto const& key_value : reco2true) ghosts.emplace(key_value.first, true);
-
-    // true2reco : true_voxel_id -> [reco_voxel_id]
-    // inverting reco2true for non-ghost points, track_id contracted
-    std::map<VoxelID_t, std::unordered_set<RecoVoxel3D>> true2reco;
-    auto insert_true2reco = [&](VoxelID_t true_id, VoxelID_t reco_id) {
-      RecoVoxel3D reco_pt(reco_id);
-
-      auto itr = true2reco.find(true_id);
-      if (itr == true2reco.end())
-        true2reco.emplace(true_id, std::unordered_set<RecoVoxel3D>({reco_pt}));
-      else
-        itr->second.insert(reco_pt);
+    // debug in csv file
+    auto save_to = [&](std::string prefix) {
+      return prefix + "_" + std::to_string(event_id) + ".csv";
     };
+    if (_dump_to_csv)
+      dump_true2reco(_true2reco, save_to("true2reco_all"));
 
     if (_post_averaging)
-      set_ghost_with_averaging(reco2true, meta3d, ghosts, insert_true2reco);
+      set_ghost_with_averaging(meta3d);
     else
-      set_ghost(reco2true, ghosts, insert_true2reco);
+      set_ghost();
 
-    LARCV_INFO() << true2reco.size() << " true points mapped to " << reco2true.size() << " reco points" << std::endl;
-    // store true energy in VoxelSet
+
+    // -----------------------------------------------------------------------
+    // TODO(2020-04-08 kvtsang) Remove this part?
+    // Write out maksed_true and maske_true2reco in larcv format
+    // It is kept to maintain backward compatibility.
+    // Could be removed if this class is called inside SuperaMCParticleCluster
+    // -----------------------------------------------------------------------
+    auto true2reco = contract_true2reco();
+    auto reco2true = contract_reco2true();
+
+    LARCV_INFO()
+      << true2reco.size() << " true points mapped to " 
+      << reco2true.size() << " reco points" << std::endl;
+
     if(!_output_tensor3d.empty() || !_output_cluster3d.empty()) {
       EventSparseTensor3D* event_tensor3d = nullptr;
       EventClusterVoxel3D* event_cluster3d = nullptr;
       if(!_output_tensor3d.empty()) {
         event_tensor3d = (larcv::EventSparseTensor3D*)(mgr.get_data("sparse3d",_output_tensor3d));
         event_tensor3d->reserve(true2reco.size());
+        event_tensor3d->meta(meta3d);
       }
       if(!_output_cluster3d.empty()) {
         event_cluster3d = (larcv::EventClusterVoxel3D*)(mgr.get_data("cluster3d",_output_cluster3d));
         event_cluster3d->resize(true2reco.size());
+        event_cluster3d->meta(meta3d);
       }
       
       size_t cluster_ctr=0;
@@ -432,7 +435,7 @@ namespace larcv {
         if(event_tensor3d) event_tensor3d->emplace(keyval.first, 0., true);
         auto& vs = event_cluster3d->writeable_voxel_set(cluster_ctr);
         vs.reserve(keyval.second.size());
-        for(auto const& pt: keyval.second) vs.emplace(pt.get_id(), 0., true);
+        for(auto const& reco_id: keyval.second) vs.emplace(reco_id, 0., true);
         ++cluster_ctr;
       }
     }
@@ -449,10 +452,6 @@ namespace larcv {
 
     if (!_dump_to_csv) return true;
 
-    auto save_to = [&](std::string prefix) {
-      return prefix + "_" + std::to_string(event_id) + ".csv";
-    };
-
     // SimChannel
     dump_sim_channels(LArData<supera::LArSimCh_t>(), meta3d, save_to("simch"));
 
@@ -460,6 +459,9 @@ namespace larcv {
     dump_cluster3d(*space_pts, hit_finder, meta3d, save_to("reco3d"));
 
     // ghost label
+    std::map<VoxelID_t, bool> ghosts;
+    for (auto reco_id : reco_voxel_ids)
+      ghosts.emplace(reco_id, is_ghost(reco_id));
     dump_ghosts(ghosts, meta3d, save_to("ghosts"));
 
     // true label (from SimChannels)
@@ -472,45 +474,27 @@ namespace larcv {
     }
 
     // reco2true
-    dump_reco2true(reco2true, save_to("reco2true"));
+    dump_reco2true(_reco2true, save_to("reco2true"));
 
-    // true2reco_nonghost (after averaging)
-    dump_true2reco(true2reco, save_to("true2reco"));
+    // true2reco (after averaging)
+    dump_true2reco(_true2reco, save_to("true2reco"));
     return true;
   }
 
 
   void SuperaTrue2RecoVoxel3D::set_ghost_with_averaging(
-      const std::map<VoxelID_t, std::set<TrackVoxel_t>>& reco2true,
-      const larcv::Voxel3DMeta& meta3d,
-      std::map<VoxelID_t, bool>& ghosts,
-      std::function<void(VoxelID_t, VoxelID_t)> const& insert_true2reco)
+      const larcv::Voxel3DMeta& meta3d)
   {
     double threshold2 = pow(_post_averaging_threshold, 2);
 
-    // build inverse map (true_voxel_id, track_id) -> [reco_voxel_id]
-    // use later for averaging
-    std::map<TrackVoxel_t, std::unordered_set<VoxelID_t>> true2reco;
-    for (auto const& [reco_id, true_hits] : reco2true) {
-      for (auto const& hit : true_hits) {
-          auto itr = true2reco.find(hit);
-          if (itr == true2reco.end())
-            true2reco.emplace(hit, std::unordered_set<VoxelID_t>({reco_id}));
-          else
-            itr->second.insert(reco_id);
-      } // loop true hits
-    } // loop reco2true
-
-    // set ghost label, and
-    for (auto const& [true_hit, reco_voxels] : true2reco) {
-      size_t n = reco_voxels.size();
+    for (auto& [true_pt, reco_pts] : _true2reco) {
+      size_t n = reco_pts.size();
 
       // 1-to-1 match
       // mark as non-ghost
       if (n == 1) {
-        auto reco_id = *reco_voxels.begin();
-        ghosts[reco_id] = false;
-        insert_true2reco(true_hit.voxel_id, reco_id);
+        auto reco_pt = *reco_pts.begin();
+        insert_one_to_many(_reco2true, reco_pt, true_pt);
         continue;
       }
 
@@ -521,7 +505,8 @@ namespace larcv {
       std::vector<double> x, y, z;
 
       // convert reco voxel ids to xyz
-      for (auto id: reco_voxels) {
+      for (auto const& reco_pt: reco_pts) {
+        auto id = reco_pt.get_id();
         ids.push_back(id);
         x.push_back(meta3d.pos_x(id));
         y.push_back(meta3d.pos_y(id));
@@ -542,24 +527,29 @@ namespace larcv {
         double dz = z[i] - z0;
         double dist2 = dx*dx + dy*dy + dz*dz;
 
-        if (dist2 < threshold2) {
-          ghosts[reco_id] = false;
-          insert_true2reco(true_hit.voxel_id, reco_id);
-        }
+        if (dist2 < threshold2) 
+          insert_one_to_many(_reco2true, RecoVoxel3D(reco_id), true_pt);
+        else
+          reco_pts.erase(RecoVoxel3D(reco_id));
       } // average over reco pts
     } // loop true2reco
+
+    // remove empty set in true2reco
+    // TODO(2020-04-08 kvtsang) For c++20
+    //std::erase_if(_true2reco, [](auto& item){return item.second.size() == 0;});
+    for (auto itr = _true2reco.cbegin(), last = _true2reco.cend(); itr != last; ) {
+      if (itr->second.size() == 0)
+        itr = _true2reco.erase(itr);
+      else
+        ++itr;
+    }
   }
 
-  void SuperaTrue2RecoVoxel3D::set_ghost(
-        const std::map<VoxelID_t, std::set<TrackVoxel_t>>& reco2true,
-        std::map<VoxelID_t, bool>& ghosts,
-        std::function<void(VoxelID_t, VoxelID_t)> const& insert_true2reco)
+  void SuperaTrue2RecoVoxel3D::set_ghost()
   {
-    for (auto const& [reco_id, true_hits] : reco2true) {
-      if (true_hits.size() == 0) continue; // no overlapping hit
-      ghosts[reco_id] = false;
-      for (auto const& hit : true_hits) insert_true2reco(hit.voxel_id, reco_id);
-    }
+    for (auto const& [true_pt, reco_pts] : _true2reco) 
+      for (auto const& reco_pt : reco_pts)
+        insert_one_to_many(_reco2true, reco_pt, true_pt);
   }
 
   void SuperaTrue2RecoVoxel3D::find_hit_peaks(const std::vector<TrueHit_t>& hits,
@@ -614,6 +604,53 @@ namespace larcv {
             hit.track_voxel_ids.begin(),
             hit.track_voxel_ids.end());
     }
+  }
+
+  void SuperaTrue2RecoVoxel3D::clear_maps()
+  {
+    _true2reco.clear();
+    _reco2true.clear();
+  }
+
+  const std::unordered_set<TrackVoxel_t>&
+  SuperaTrue2RecoVoxel3D::find_true(VoxelID_t reco_id) const
+  {
+    RecoVoxel3D reco_pt(reco_id);
+    auto itr = _reco2true.find(reco_pt);
+    return itr == _reco2true.end() ? _empty_true : itr->second;
+  }
+
+  const std::unordered_set<RecoVoxel3D>&
+  SuperaTrue2RecoVoxel3D::find_reco(int track_id, VoxelID_t true_id) const
+  {
+    TrackVoxel_t true_pt(true_id, track_id);
+    auto itr = _true2reco.find(true_pt);
+    return itr == _true2reco.end() ? _empty_reco : itr->second;
+  }
+
+  bool SuperaTrue2RecoVoxel3D::is_ghost(VoxelID_t reco_id) const
+  {
+    return find_true(reco_id).size() == 0;
+  }
+
+  std::map<VoxelID_t, std::unordered_set<VoxelID_t>>
+  SuperaTrue2RecoVoxel3D::contract_true2reco() 
+  {
+    std::map<VoxelID_t, std::unordered_set<VoxelID_t>> true2reco;
+    for (auto& [true_pt,  reco_pts] : _true2reco)
+      for (auto& reco_pt : reco_pts)
+        insert_one_to_many(true2reco, true_pt.voxel_id, reco_pt.get_id());
+    return true2reco;
+  }
+
+  std::map<VoxelID_t, std::unordered_set<VoxelID_t>>
+  SuperaTrue2RecoVoxel3D::contract_reco2true()
+  {
+    std::map<VoxelID_t, std::unordered_set<VoxelID_t>> reco2true;
+    for (auto& [reco_pt,  true_pts] : _reco2true)
+      for (auto& true_pt : true_pts)
+        insert_one_to_many(reco2true, reco_pt.get_id(), true_pt.voxel_id);
+    return reco2true;
   }
 
   void SuperaTrue2RecoVoxel3D::finalize()
