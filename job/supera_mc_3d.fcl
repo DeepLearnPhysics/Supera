@@ -9,8 +9,10 @@ ProcessDriver: {
   #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","GhostMask","CombineTensor3D","MaskTensor3D","MaskCluster3D","ParticleCorrectorReco","ParticleCorrector"]
   #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaSimEnergyDeposit","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector"]
   #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaSimEnergyDeposit","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector"]
-  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaTrue2RecoVoxel3D","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ParticleCorrector"]
-  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaTrue2RecoVoxel3D","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ParticleCorrector"]
+  #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaTrue2RecoVoxel3D","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ParticleCorrector"]
+  #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaTrue2RecoVoxel3D","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ParticleCorrector"]
+  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ParticleCorrector"]
+  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ParticleCorrector"]
   #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaTrue2RecoVoxel3D","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector"]
   #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaTrue2RecoVoxel3D","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector"]
  
@@ -83,13 +85,13 @@ ProcessDriver: {
       LArMCParticleProducer: "largeant"
       LArMCShowerProducer: "mcreco"
       LArMCTrackProducer:  "mcreco"
-      MaskedTrueTensor3D: "masked_true"
-      MaskedTrue2RecoCluster3D: "masked_true2reco"
+      #MaskedTrueTensor3D: "masked_true"
+      #MaskedTrue2RecoCluster3D: "masked_true2reco"
       DeltaSize: 5
       LArSimEnergyDepositProducer: "largeant TPCActive"
-      LArSimChProducer: ""
-      #ArSimEnergyDepositProducer: ""
-      #ArSimChProducer: "largeant"
+      #LArSimChProducer: ""
+      #LArSimEnergyDepositProducer: ""
+      LArSimChProducer: "largeant"
       Meta3DFromCluster3D: "mcst"
       Meta2DFromTensor2D:  ""
       Verbosity: 2
@@ -100,6 +102,27 @@ ProcessDriver: {
       PlaneList: []
       #SemanticPriority: [2,1,0,3,4] # 0-4 for shower track michel delta LE-scattering
       SemanticPriority: [1,2,0,3,4] # 0-4 for shower track michel delta LE-scattering
+
+      SuperaTrue2RecoVoxel3D: {
+        DebugMode: false
+        Profile: true
+        Verbosity: 2
+        Meta3DFromCluster3D: "pcluster"
+        LArSimChProducer: "largeant"
+        LArHitProducer:   "cluster3d"
+        LArSpacePointProducer: "cluster3d"
+        OutputTensor3D:  "masked_true"
+        OutputCluster3D: "masked_true2reco"
+        TwofoldMatching: true
+        UseTruePosition: true
+        HitThresholdNe: 100
+        HitWindowTicks: 5
+        HitPeakFinding: false
+        PostAveraging: true
+        PostAveragingThreshold_cm: 0.425
+        DumpToCSV: false
+      }
+
     }
     SuperaMCTruth: {
       Profile: true

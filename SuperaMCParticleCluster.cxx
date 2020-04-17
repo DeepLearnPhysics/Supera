@@ -13,7 +13,7 @@ namespace larcv {
 
   SuperaMCParticleCluster::SuperaMCParticleCluster(const std::string name)
     : SuperaBase(name)
-  {}
+  { _true2reco = nullptr; }
 
   size_t SuperaMCParticleCluster::SemanticPriority(size_t a, size_t b) const
   {
@@ -31,8 +31,8 @@ namespace larcv {
     _output_label = cfg.get<std::string>("OutputLabel");
     _ref_meta3d_cluster3d = cfg.get<std::string>("Meta3DFromCluster3D","mcst");
     _ref_meta3d_tensor3d = cfg.get<std::string>("Meta3DFromTensor3D","");
-    _masked_true_tensor3d = cfg.get<std::string>("MaskedTrueTensor3D","");
-    _masked_true2reco_cluster3d = cfg.get<std::string>("MaskedTrue2RecoCluster3D","");
+    //_masked_true_tensor3d = cfg.get<std::string>("MaskedTrueTensor3D","");
+    //_masked_true2reco_cluster3d = cfg.get<std::string>("MaskedTrue2RecoCluster3D","");
     _semantic_priority.resize((size_t)(larcv::kShapeUnknown));
     for(size_t i=0; i<_semantic_priority.size(); ++i)
       _semantic_priority[i]=i;
@@ -100,12 +100,33 @@ namespace larcv {
 	}
       }
     }
+    
+    if(cfg.contains_pset("SuperaTrue2RecoVoxel3D")) {
+      LARCV_INFO() << "Configuring SuperaTrue2RecoVoxel3D" << std::endl;
+      auto pset = cfg.get<PSet>("SuperaTrue2RecoVoxel3D");
+      _true2reco=new SuperaTrue2RecoVoxel3D("SuperaTrue2RecoVoxel3D");
+      _true2reco->configure(pset);
+      for(size_t i=0; i<(size_t)(::supera::LArDataType_t::kLArDataTypeMax); ++i) {
+	auto dtype = (supera::LArDataType_t)i;
+	auto name1 = this->LArDataLabel(dtype);
+	auto name2 = _true2reco->LArDataLabel(dtype);
+	if(name1.empty() && name2.empty()) continue;
+	else if(name1.empty()) this->Request(dtype,name2);
+	else if(name2.empty() || name1 == name2) continue;
+	else {
+	  LARCV_CRITICAL() << "LArData type " << i << " request conflict: "
+			   << name1 << " vs. " << name2 << std::endl;
+	  throw std::exception();
+	}
+      }
+    }
   }
 
 
   void SuperaMCParticleCluster::initialize()
   {
     SuperaBase::initialize();
+    if(_true2reco) _true2reco->initialize();
   }
 
   int SuperaMCParticleCluster::plane_index(unsigned int cryo_id, unsigned int tpc_id, unsigned int plane_id)
@@ -192,25 +213,13 @@ namespace larcv {
 							std::vector<supera::ParticleGroup>& part_grp_v,
 							larcv::IOManager& mgr)
   {
-    std::set<size_t> set_a, set_b;
     auto const& sedep_v = LArData<supera::LArSimEnergyDeposit_t>();
     auto const& trackid2index = _mcpl.TrackIdToIndex();
 
-    EventSparseTensor3D* masked_true = nullptr;
-    EventClusterVoxel3D* masked_true2reco = nullptr;
-    if(!_masked_true_tensor3d.empty()) {
-      masked_true = (larcv::EventSparseTensor3D*)(mgr.get_data("sparse3d",_masked_true_tensor3d));
-      if(!_masked_true2reco_cluster3d.empty()) {
-        masked_true2reco = (larcv::EventClusterVoxel3D*)(mgr.get_data("cluster3d",_masked_true2reco_cluster3d));
-	if(masked_true->size() != masked_true2reco->size()) {
-	  LARCV_CRITICAL() << "True voxel counts (" << masked_true->size() 
-			   << ", from " << _masked_true_tensor3d << ")"
-			   << " != mapped reco set counts (" << masked_true2reco->size() 
-			   << ", from " << _masked_true2reco_cluster3d << ")" << std::endl;
-	  throw std::exception();
-	}
-      }
-    }
+    std::vector<std::map<VoxelID_t,std::unordered_set<VoxelID_t> > > true2reco_v;
+    bool use_true2reco = !(_true2reco == nullptr);
+    if(use_true2reco) true2reco_v = _true2reco->get_true2reco_bytrack();
+
     LARCV_INFO() << "Processing SimEnergyDeposit array: " << sedep_v.size() << std::endl;
     size_t bad_sedep_counter = 0;
     std::set<size_t> missing_trackid;
@@ -258,57 +267,57 @@ namespace larcv {
       }
       */
       // translate voxid if needed
-      set_a.insert(vox_id);
-      if(!masked_true) {
-        grp.vs.emplace(vox_id,pt.e,true);
-        grp.AddEDep(pt);
-      } else {
-        auto vox_index = masked_true->index(vox_id);
-        if(vox_index == larcv::kINVALID_SIZE) continue;
-	set_b.insert(vox_id);
-        if(!masked_true2reco) {
-          grp.vs.emplace(vox_id,pt.e,true);
-          grp.AddEDep(pt);
-        } else {
-          auto vs = masked_true2reco->as_vector()[vox_index];
-          if(vs.size()<1) continue;
-          larcv::Point3D edep_pos(pt.x,pt.y,pt.z);
-          larcv::Point3D position(0.,0.,0.);
-          double dist_min = 1.e20;
-          //double reco_sum = vs.sum();
-          for(size_t i=0; i<vs.size(); ++i) {
-            auto const& vox = vs.as_vector()[i];
-            auto vox_position = meta.position(vox.id());
-            double dist = vox_position.squared_distance(edep_pos);
-            if(i==0) {
-              position = vox_position;
-              dist_min = dist;
-            } else {
-              if(dist < dist_min) {
-                dist_min = dist;
-                position = vox_position;
-              }
-            }
-            //grp.vs.emplace(vox.id(),pt.e * vox.value()/reco_sum,true);
-            grp.vs.emplace(vox.id(),pt.e / vs.size(),true);
-          }
-          pt.x = position.x;
-          pt.y = position.y;
-          pt.z = position.z;
-          grp.AddEDep(pt);
-        }
-      }
 
+      // translate voxid if needed
+      if(!use_true2reco) {
+	// no need to translate
+	grp.vs.emplace(vox_id,pt.e,true);
+	grp.AddEDep(pt);
+      }
+      else if(track_id >= (int)(true2reco_v.size()) || true2reco_v[track_id].empty()) {
+	// translation doesn't exist for this voxel
+	++bad_sedep_counter;
+      }
+      else {
+	auto const& true2reco_m = true2reco_v[track_id];
+	auto true2reco_iter = true2reco_m.find(vox_id);
+	if(true2reco_iter == true2reco_m.end() || true2reco_iter->second.empty()) {
+	  // translation doesn't exist for this voxel
+	  ++bad_sedep_counter;
+	}
+	else{
+	  // translation exists
+	  larcv::Point3D edep_pos(pt.x,pt.y,pt.z);
+	  larcv::Point3D position(0.,0.,0.);
+	  double dist_min = 1.e20;
+	  //double reco_sum = vs.sum();
+	  for(auto const& reco_vox_id : true2reco_iter->second) {
+	    auto vox_position = meta.position(reco_vox_id);
+	    double dist = vox_position.squared_distance(edep_pos);
+	    if(dist_min == 1.e20) {
+	      position = vox_position;
+	      dist_min = dist;
+	    } else {
+	      if(dist < dist_min) {
+		dist_min = dist;
+		position = vox_position;
+	      }
+	    }
+	    //grp.vs.emplace(vox.id(),pt.e * vox.value()/reco_sum,true);
+	    grp.vs.emplace(reco_vox_id,pt.e/true2reco_iter->second.size(),true);
+	  }
+	  pt.x = position.x;
+	  pt.y = position.y;
+	  pt.z = position.z;
+	  grp.AddEDep(pt);
+	}
+      }
     }
     if(bad_sedep_counter) {
       LARCV_WARNING() << bad_sedep_counter << " / " << sedep_v.size() << " SimEnergyDeposits "
 		      << "(from " << missing_trackid.size() << " particles) did not find corresponding MCParticle!"
 		      << std::endl;
     }
-
-    std::cout<<set_a.size()<<" : "<<set_b.size()<<std::flush;
-    if(masked_true) std::cout<<" "<<masked_true->size()<<std::endl;
-    else std::cout<<std::endl;
   }
 
   void SuperaMCParticleCluster::AnalyzeFirstLastStep(const larcv::Voxel3DMeta& meta,
@@ -354,28 +363,15 @@ namespace larcv {
 						  std::vector<supera::ParticleGroup>& part_grp_v,
 						  larcv::IOManager& mgr)
   {
-    std::set<size_t> set_a, set_b;
-
     auto geop = lar::providerFrom<geo::Geometry>();
     auto const& sch_v = LArData<supera::LArSimCh_t>();
     LARCV_INFO() << "Processing SimChannel array: " << sch_v.size() << std::endl;
 
     auto const& trackid2index = _mcpl.TrackIdToIndex();
-    EventSparseTensor3D* masked_true = nullptr;
-    EventClusterVoxel3D* masked_true2reco = nullptr;
-    if(!_masked_true_tensor3d.empty()) {
-      masked_true = (larcv::EventSparseTensor3D*)(mgr.get_data("sparse3d",_masked_true_tensor3d));
-      if(!_masked_true2reco_cluster3d.empty()) {
-        masked_true2reco = (larcv::EventClusterVoxel3D*)(mgr.get_data("cluster3d",_masked_true2reco_cluster3d));
-	if(masked_true->size() != masked_true2reco->size()) {
-	  LARCV_CRITICAL() << "True voxel counts (" << masked_true->size() 
-			   << ", from " << _masked_true_tensor3d << ")"
-			   << " != mapped reco set counts (" << masked_true2reco->size() 
-			   << ", from " << _masked_true2reco_cluster3d << ")" << std::endl;
-	  throw std::exception();
-	}
-      }
-    }
+
+    std::vector<std::map<VoxelID_t,std::unordered_set<VoxelID_t> > > true2reco_v;
+    bool use_true2reco = !(_true2reco == nullptr);
+    if(use_true2reco) true2reco_v = _true2reco->get_true2reco_bytrack();
 
     size_t ctr_missing_trackid = 0;
     size_t ctr_invalid_trackid = 0;
@@ -486,62 +482,59 @@ namespace larcv {
 	    }
 
 	    if(grp.part.track_id() > 1) {
-	      std::cout<<grp.part.pdg_code()<<" ... "<<grp.part.creation_process()<<" ... "<<std::flush;
+	    std::cout<<grp.part.pdg_code()<<" ... "<<grp.part.creation_process()<<" ... "<<std::flush;
 	      if(vox_id == larcv::kINVALID_VOXELID) std::cout<<"INVALID"<<std::endl;
 	      else std::cout<<"("<<meta3d.id_to_x_index(vox_id)<<","<<meta3d.id_to_y_index(vox_id)<<","<<meta3d.id_to_z_index(vox_id)<<")"<<std::endl;
-	    }
+	      }
 	    */
 	    if(vox_id == larcv::kINVALID_VOXELID) {
 	      skipped3d = true;
 	      ++ctr_invalid_3d;
 	    }else{
-	      set_a.insert(vox_id);
 	      // translate voxid if needed
-	      if(!masked_true) {
+	      if(!use_true2reco) {
+		// no need to translate
 		grp.vs.emplace(vox_id,pt.e,true);
 		grp.AddEDep(pt);
-	      } else {
-		auto vox_index = masked_true->index(vox_id);
-		if(vox_index == larcv::kINVALID_SIZE) {
+	      }
+	      else if(track_id >= (int)(true2reco_v.size()) || true2reco_v[track_id].empty()) {
+		// translation doesn't exist for this voxel
+		skipped3d = true;
+		++ctr_invalid_3d;
+	      }
+	      else {
+		auto const& true2reco_m = true2reco_v[track_id];
+		auto true2reco_iter = true2reco_m.find(vox_id);
+		if(true2reco_iter == true2reco_m.end() || true2reco_iter->second.empty()) {
+		  // translation doesn't exist for this voxel
 		  skipped3d = true;
 		  ++ctr_invalid_3d;
-		}else{
-		  set_b.insert(vox_index);
-		  if(!masked_true2reco) {
-		    grp.vs.emplace(vox_id,pt.e,true);
-		    grp.AddEDep(pt);
-		  } else {
-		    auto vs = masked_true2reco->as_vector()[vox_index];
-		    if(vs.size()<1) {
-		      skipped3d = true;
-		      ++ctr_invalid_3d;
-		    }else{
-		      larcv::Point3D edep_pos(pt.x,pt.y,pt.z);
-		      larcv::Point3D position(0.,0.,0.);
-		      double dist_min = 1.e20;
-		      //double reco_sum = vs.sum();
-		      for(size_t i=0; i<vs.size(); ++i) {
-			auto const& vox = vs.as_vector()[i];
-			auto vox_position = meta3d.position(vox.id());
-			double dist = vox_position.squared_distance(edep_pos);
-			if(i==0) {
-			  position = vox_position;
-			  dist_min = dist;
-			} else {
-			  if(dist < dist_min) {
-			    dist_min = dist;
-			    position = vox_position;
-			  }
-			}
-			//grp.vs.emplace(vox.id(),pt.e * vox.value()/reco_sum,true);
-			grp.vs.emplace(vox.id(),pt.e/vs.size(),true);
+		}
+		else{
+		  // translation exists
+		  larcv::Point3D edep_pos(pt.x,pt.y,pt.z);
+		  larcv::Point3D position(0.,0.,0.);
+		  double dist_min = 1.e20;
+		  //double reco_sum = vs.sum();
+		  for(auto const& reco_vox_id : true2reco_iter->second) {
+		    auto vox_position = meta3d.position(reco_vox_id);
+		    double dist = vox_position.squared_distance(edep_pos);
+		    if(dist_min == 1.e20) {
+		      position = vox_position;
+		      dist_min = dist;
+		    } else {
+		      if(dist < dist_min) {
+			dist_min = dist;
+			position = vox_position;
 		      }
-		      pt.x = position.x;
-		      pt.y = position.y;
-		      pt.z = position.z;
-		      grp.AddEDep(pt);
 		    }
+		    //grp.vs.emplace(vox.id(),pt.e * vox.value()/reco_sum,true);
+		    grp.vs.emplace(reco_vox_id,pt.e/true2reco_iter->second.size(),true);
 		  }
+		  pt.x = position.x;
+		  pt.y = position.y;
+		  pt.z = position.z;
+		  grp.AddEDep(pt);
 		}
 	      }
 	    }
@@ -614,9 +607,6 @@ namespace larcv {
     auto kmeta = _meta2d_v[0];
     out_data->emplace(std::move(kvs),std::move(kmeta));
     */
-    std::cout<<set_a.size()<<" : "<<set_b.size()<<std::flush;
-    if(masked_true) std::cout<<" "<<masked_true->size()<<std::endl;
-    else std::cout<<std::endl;
   }
 
 
@@ -1037,6 +1027,11 @@ namespace larcv {
   {
     LARCV_INFO() << "Start processing..." << std::endl;
     SuperaBase::process(mgr);
+    if(_true2reco) {
+      _true2reco->LArData(this->LArData<supera::LArSimCh_t>());
+      _true2reco->SetEvent(this->GetEvent());
+      _true2reco->process(mgr);
+    }
     larcv::Voxel3DMeta meta3d;
 
     if(!_ref_meta3d_cluster3d.empty()) {
@@ -1075,34 +1070,43 @@ namespace larcv {
 
     auto const& trackid2index = _mcpl.TrackIdToIndex();
     // Create ParticleGroup
+    LARCV_INFO() << "Creating ParticleGroups" << std::endl;
     auto part_grp_v = this->CreateParticleGroups();
 
     // Fill Voxel Information
+    LARCV_INFO() << "Analyzing SimChannel/SimEnergyDeposit" << std::endl;
     if(_use_sed)
       this->AnalyzeSimEnergyDeposit(meta3d, part_grp_v, mgr);
     else
       this->AnalyzeSimChannel(meta3d, part_grp_v, mgr);
 
     // Define particle first/last points based on SED
+    LARCV_INFO() << "Analyzing First Step" << std::endl;
     if(_use_sed_points && !_use_sed)
       this->AnalyzeFirstLastStep(meta3d, part_grp_v);
 
     // Merge fragments of showers
+    LARCV_INFO() << "Merging: shower ionization" << std::endl;
     this->MergeShowerIonizations(part_grp_v);
 
     // Apply energy threshold
+    LARCV_INFO() << "Applying energy threshold" << std::endl;
     this->ApplyEnergyThreshold(part_grp_v);
     
     // Merge fragments of showers
+    LARCV_INFO() << "Merging: shower conversions" << std::endl;
     this->MergeShowerConversion(part_grp_v);
 
     // Merge touching shower fragments (in a family)
+    LARCV_INFO() << "Merging: shower family touching" << std::endl;
     this->MergeShowerFamilyTouching(meta3d,part_grp_v);
 
     // Merge touching shower fragments (in a family)
+    LARCV_INFO() << "Merging: shower touching" << std::endl;
     this->MergeShowerTouching(meta3d,part_grp_v);
 
     // Merge touching showers in 2D
+    LARCV_INFO() << "Merging: shower touching (2d)" << std::endl;
     this->MergeShowerTouching2D(part_grp_v);
 
     // merge too small deltas into tracks
@@ -2223,7 +2227,7 @@ namespace larcv {
   }
 
   void SuperaMCParticleCluster::finalize()
-  {}
+  { if(_true2reco) _true2reco->finalize(); }
 }
 
 #endif

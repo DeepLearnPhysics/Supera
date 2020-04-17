@@ -16,6 +16,7 @@
 //#ifndef __CINT__
 //#ifndef __CLING__
 #include "SuperaBase.h"
+#include "SuperaTrue2RecoVoxel3D.h"
 #include "FMWKInterface.h"
 #include "MCParticleList.h"
 #include "larcv/core/DataFormat/Voxel3DMeta.h"
@@ -79,6 +80,7 @@ namespace larcv {
     int plane_index(unsigned int cryo_id, unsigned int tpc_id, unsigned int plane_id);
     size_t SemanticPriority(size_t a, size_t b) const;
     supera::MCParticleList _mcpl;
+    SuperaTrue2RecoVoxel3D* _true2reco;
     std::string _ref_meta3d_cluster3d;
     std::string _ref_meta3d_tensor3d;
     std::string _ref_meta2d_tensor2d;
