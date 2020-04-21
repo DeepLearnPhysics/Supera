@@ -213,6 +213,7 @@ namespace larcv {
 							std::vector<supera::ParticleGroup>& part_grp_v,
 							larcv::IOManager& mgr)
   {
+    std::set<size_t> ctr_a, ctr_b;
     auto const& sedep_v = LArData<supera::LArSimEnergyDeposit_t>();
     auto const& trackid2index = _mcpl.TrackIdToIndex();
 
@@ -233,7 +234,7 @@ namespace larcv {
 		      << " pos=(" << sedep.X() << "," << sedep.Y() << "," << sedep.Z() << ")" << std::endl;
 	continue;
       }
-
+      ctr_a.insert(vox_id);
       LARCV_DEBUG() << "Recording sedep from track id " << sedep.TrackID()
 		    << " E=" << sedep.Energy() << std::endl;
 
@@ -286,6 +287,7 @@ namespace larcv {
 	  ++bad_sedep_counter;
 	}
 	else{
+	  ctr_b.insert(vox_id);
 	  // translation exists
 	  larcv::Point3D edep_pos(pt.x,pt.y,pt.z);
 	  larcv::Point3D position(0.,0.,0.);
@@ -318,6 +320,7 @@ namespace larcv {
 		      << "(from " << missing_trackid.size() << " particles) did not find corresponding MCParticle!"
 		      << std::endl;
     }
+    std::cout<<(mgr.get_data<larcv::EventSparseTensor3D>("masked_true")).size()<<" : "<<ctr_a.size()<<" : "<<ctr_b.size()<<std::endl;
   }
 
   void SuperaMCParticleCluster::AnalyzeFirstLastStep(const larcv::Voxel3DMeta& meta,
@@ -363,6 +366,8 @@ namespace larcv {
 						  std::vector<supera::ParticleGroup>& part_grp_v,
 						  larcv::IOManager& mgr)
   {
+    std::set<size_t> ctr_a, ctr_b;
+
     auto geop = lar::providerFrom<geo::Geometry>();
     auto const& sch_v = LArData<supera::LArSimCh_t>();
     LARCV_INFO() << "Processing SimChannel array: " << sch_v.size() << std::endl;
@@ -491,6 +496,7 @@ namespace larcv {
 	      skipped3d = true;
 	      ++ctr_invalid_3d;
 	    }else{
+	      ctr_a.insert(vox_id);
 	      // translate voxid if needed
 	      if(!use_true2reco) {
 		// no need to translate
@@ -511,6 +517,7 @@ namespace larcv {
 		  ++ctr_invalid_3d;
 		}
 		else{
+		  ctr_b.insert(vox_id);
 		  // translation exists
 		  larcv::Point3D edep_pos(pt.x,pt.y,pt.z);
 		  larcv::Point3D position(0.,0.,0.);
@@ -602,6 +609,7 @@ namespace larcv {
 
       }
     }
+    std::cout<<(mgr.get_data<larcv::EventSparseTensor3D>("masked_true")).size()<<" : "<<ctr_a.size()<<" : "<<ctr_b.size()<<std::endl;
     /*
     auto out_data = (larcv::EventSparseTensor2D*)(mgr.get_data("sparse2d","kazu"));
     auto kmeta = _meta2d_v[0];
@@ -1110,7 +1118,7 @@ namespace larcv {
     this->MergeShowerTouching2D(part_grp_v);
 
     // merge too small deltas into tracks
-    //this->MergeShowerDeltas(part_grp_v);
+    this->MergeShowerDeltas(part_grp_v);
 
     /*
     for(auto const& grp : shower_grp_v) {
