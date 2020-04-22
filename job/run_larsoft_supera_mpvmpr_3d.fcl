@@ -5,11 +5,9 @@
 #include "opdetsim_pmt_icarus.fcl"
 #include "crtsimmodules_icarus.fcl"
 #include "rawdigitfilter_icarus.fcl"
-#include "recowire_icarus.fcl"
-#include "hitfindermodules_icarus.fcl"
-#include "cluster_icarus.fcl"
 #include "multipartvertex_icarus.fcl"
 #include "mcreco.fcl"
+#include "reco_icarus.fcl"
 process_name: G4m
 
 services:
@@ -47,9 +45,11 @@ physics:
                  MakeAnaTree: false
                }
    mcreco:   @local::standard_mcreco
+   @table::icarus_reco_producers
    #crtdaq:   @local::icarus_crtsim
    #opdaq:    @local::icarus_simpmt_nonoise
-   daq:      @local::icarus_simwire
+   daq0:      @local::icarus_simwire
+   daq1:      @local::icarus_simwire
    rawdigitfilter:  @local::icarus_rawdigitfilter
    decon1droi:      @local::icarus_decon1droi
    gaushit:         @local::gaus_hitfinder_icarus
@@ -70,9 +70,13 @@ physics:
 	}
  }
 
- simulate: [ rns, generator, rain, largeant, mcreco ]
+ #simulate: [ rns, generator, rain, largeant, mcreco ]
  #simulate: [ rns, generator, rain, largeant, mcreco, daq, rawdigitfilter, decon1droi, gaushit, gaushitsel, cluster3d]
- #simulate: [ rns, generator, largeant, mcreco, daq, rawdigitfilter, decon1droi, gaushit, gaushitsel, cluster3d]
+ #simulate: [ rns, generator, largeant, mcreco, daq0, daq1, rawdigitfilter, decon1droi, gaushit, gaushitsel, cluster3d]
+ simulate: [rns, generator, largeant, mcreco, daq0, daq1, 
+            @sequence::icarus_reco_SigProcTPC0Gauss,
+            @sequence::icarus_reco_SigProcTPC1Gauss,
+            @sequence::icarus_reco_cluster3DCryo0]
  ana_stream: [ supera ]
  out_stream: [ out1   ]
   
@@ -153,61 +157,14 @@ physics.producers.mcreco.MCParticleLabel: "largeant"
 physics.producers.mcreco.UseSimEnergyDeposit: true
 physics.producers.mcreco.MCRecoPart.SavePathPDGList: [13,-13,211,-211,111,311,310,130,321,-321,2212,2112,2224,2214,2114,1114,3122,1000010020,1000010030,1000020030,1000020040]
 
-#physics.producers.daq.NoiseGenToolVec:  [@local::WhiteNoiseTool, @local::WhiteNoiseTool, @local::WhiteNoiseTool]
-physics.producers.daq.SuppressNoSignal: true
 
-### Definitions for a single instance of the RawDigitFilter
-physics.producers.rawdigitfilter.ProcessNoise:                                         false
-physics.producers.rawdigitfilter.NumWiresToGroup:                                      [1, 1, 1]
-physics.producers.rawdigitfilter.FFTNoise:                                             true
-#physics.producers.rawdigitfilter.FFTAlg.FilterTools.FilterPlane0.FilterFunction:       "x>0. ? 1.-gaus(0) : 0."
-#physics.producers.rawdigitfilter.FFTAlg.FilterTools.FilterPlane0.FilterParametersVec:  [1., 0.0, 0.004]
-#physics.producers.rawdigitfilter.FFTAlg.FilterTools.FilterPlane1.FilterFunction:       "x>0. ? 1.-gaus(0) : 0."
-#physics.producers.rawdigitfilter.FFTAlg.FilterTools.FilterPlane1.FilterParametersVec:  [1., 0.0, 0.004]
-#physics.producers.rawdigitfilter.FFTAlg.FilterTools.FilterPlane2.FilterFunction:       "x>0. ? 1.-gaus(0) : 0."
-#physics.producers.rawdigitfilter.FFTAlg.FilterTools.FilterPlane2.FilterParametersVec:  [1., 0.0, 0.002]
-physics.producers.rawdigitfilter.FFTAlg.FillHistograms:                                false
+physics.producers.daq0.SuppressNoSignal: true
+physics.producers.daq0.Cryostat:         0
+physics.producers.daq0.TPC:              0
+physics.producers.daq1.SuppressNoSignal: true
+physics.producers.daq1.Cryostat:         0
+physics.producers.daq1.TPC:              1
 
-physics.producers.decon1droi.DigitModuleLabel:                                         "rawdigitfilter"
-
-#physics.producers.gaushit.CalDataModuleLabel:                                       "decon1droi"
-#physics.producers.gaushit.AreaNorms:                                                [  1.0,  1.0,  1.0 ]
-#physics.producers.gaushit.MaxMultiHit:                                              5
-#physics.producers.gaushit.TryNplus1Fits:                                            false
-#physics.producers.gaushit.Chi2NDF:                                                  500.
-#physics.producers.gaushit.PeakFitter.MinWidth:                                      1
-#physics.producers.gaushit.PeakFitter.FloatBaseline:                                 false
-#physics.producers.gaushit.LongMaxHits:                                              [25, 25, 25]
-#physics.producers.gaushit.LongPulseWidth:                                           [10, 10, 10]
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane0:                     @local::candhitfinder_morphological
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane0.Plane:               0
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane0.MinDeltaTicks:       4
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane0.MinDeltaPeaks:       1.5
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane1:                     @local::candhitfinder_morphological
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane1.Plane:               1
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane1.MinDeltaTicks:       4
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane1.MinDeltaPeaks:       1.5
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane2:                     @local::candhitfinder_morphological
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane2.Plane:               2
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane2.MinDeltaTicks:       4
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane2.MinDeltaPeaks:       1.5
-
-physics.producers.gaushitsel.HitProducerLabel:                                            "gaushit"
-
-physics.producers.cluster3d.Hit3DBuilderAlg.HitFinderTagVec:                           ["gaushit"]
-
-#physics.producers.cluster3d.ClusterAlg:                                                @local::standard_cluster3ddbscanalg
-#physics.producers.cluster3d.EnableMonitoring:                                          true
-#physics.producers.cluster3d.ClusterAlg.MinPairPts:                                     1
-#physics.producers.cluster3d.ClusterAlg.kdTree.PairSigmaPeakTime:                       3.0
-#physics.producers.cluster3d.ClusterAlg.kdTree.RefLeafBestDist:                         0.75
-#physics.producers.cluster3d.ClusterMergeAlg.MinEigenToProcess:                         50.
-#physics.producers.cluster3d.ClusterPathAlg:                                            @local::standard_convexhullPathAlg
-#physics.producers.cluster3d.ClusterPathAlg.MinTinyClusterSize:                         20 #30 #40 #200000
-#physics.producers.cluster3d.ClusterPathAlg.MinEigen0To1Ratio:                          12.
-#physics.producers.cluster3d.ClusterPathAlg.ClusterAlg.MinPairPts:                      1
-#physics.producers.cluster3d.ClusterPathAlg.ClusterAlg.kdTree.PairSigmaPeakTime:        3.0
-#physics.producers.cluster3d.ClusterPathAlg.ClusterAlg.kdTree.RefLeafBestDist:          0.75
 
 outputs:
 {

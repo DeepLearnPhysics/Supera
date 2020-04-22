@@ -193,6 +193,8 @@ namespace larcv {
 	    grp.type = supera::kConversion;
 	  else if( prc == "primary")
 	    grp.type = supera::kPrimary;
+	  else
+	    grp.type = supera::kOtherShower;
 	}
 	result[track_id] = grp;
       }
@@ -693,6 +695,10 @@ namespace larcv {
 	//std::cout<<"Track ID "<<grp.part.track_id()<<" high energy compton"<<std::endl;
         grp.type = supera::kComptonHE;
       }
+      else if(grp.type == supera::kOtherShower && grp.vs.size() > _compton_size && grp.vs.sum() > _compton_energy) {
+	//std::cout<<"Track ID "<<grp.part.track_id()<<" high energy compton"<<std::endl;
+        grp.type = supera::kOtherShowerHE;
+      }
     }
   }
 
@@ -705,8 +711,8 @@ namespace larcv {
       merge_ctr = 0;
       for(auto& grp : part_grp_v) {
 	if(!grp.valid) continue;
-	//if(grp.type != supera::kIonization && grp.type != supera::kConversion && grp.type != supera::kComptonHE) continue;
-	if(grp.type != supera::kIonization && grp.type != supera::kConversion) continue;
+	//if(grp.type != supera::kIonization && grp.type != supera::kConversion) continue;
+	if(grp.type != supera::kConversion) continue;
 	// merge to a valid "parent"
 	bool parent_found = false;
 	int parent_index = grp.part.parent_track_id();
@@ -767,8 +773,6 @@ namespace larcv {
       merge_ctr = 0;
       for(auto& grp : part_grp_v) {
 	if(!grp.valid) continue;
-	//if(grp.type != supera::kIonization && grp.type != supera::kConversion && grp.type != supera::kComptonHE) continue;
-	//if(grp.type == supera::kTrack || grp.type == supera::kNeutron || grp.type == supera::kDelta || grp.type == supera::kDecay) continue;
 	if(grp.shape() != larcv::kShapeShower) continue;
 	// search for a possible parent
 	int parent_trackid = -1;
@@ -1152,7 +1156,7 @@ namespace larcv {
 	if(grp.size_all()<1) continue;
 	if(grp.shape() == larcv::kShapeLEScatter) continue;
       }
-      //if(grp.type == supera::kNeutron || grp.type == supera::kCompton || grp.type == supera::kPhotoElectron) continue;
+
       grp.part.id(output_counter);
       trackid2output[grp.part.track_id()] = output_counter;
       for(auto const& child : grp.trackid_v)
@@ -1754,6 +1758,16 @@ namespace larcv {
       larcv::ShapeType_t semantic = grp.shape();
       if(semantic == larcv::kShapeUnknown) {
 	LARCV_CRITICAL() << "Unexpected type while assigning semantic class: " << grp.type << std::endl;
+	auto const& part = grp.part;
+	LARCV_CRITICAL() << "Particle ID " << part.id() << " Type " << grp.type << " Valid " << grp.valid 
+			 << " Track ID " << part.track_id() << " PDG " << part.pdg_code()
+			 << " " << part.creation_process() << " ... " << part.energy_init() << " MeV => " << part.energy_deposit() << " MeV "
+			 << grp.trackid_v.size() << " children " << grp.vs.size() << " voxels " << grp.vs.sum() << " MeV" << std::endl;
+	LARCV_CRITICAL() << "  Parent " << part.parent_track_id() << " PDG " << part.parent_pdg_code() 
+			 << " " << part.parent_creation_process() << " Ancestor " << part.ancestor_track_id() 
+			 << " PDG " << part.ancestor_pdg_code() << " " << part.ancestor_creation_process() << std::endl;
+			 
+
 	throw std::exception();
       }
       if(semantic == larcv::kShapeLEScatter && mcs_trackid_s.find(trackid) == mcs_trackid_s.end()) {
@@ -1895,8 +1909,6 @@ namespace larcv {
 	for(auto const& child : grp.trackid_v) ss2 << child << " " << std::flush;
 	ss2 << std::endl;
 	LARCV_INFO() << ss2.str();
-
-	if(grp.type != supera::kIonization && grp.type != supera::kConversion && grp.type != supera::kComptonHE) continue;
 	LARCV_INFO() << "Above was supposed to be merged..." << std::endl;
 
       }
