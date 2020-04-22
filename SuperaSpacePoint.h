@@ -51,6 +51,7 @@ namespace larcv {
     unsigned short _n_planes = 3;
     bool _store_wire_info = false;
     std::unordered_set<std::string> _drop_output;
+    std::vector<double> _reco_charge_range;
   };
 
   /**
