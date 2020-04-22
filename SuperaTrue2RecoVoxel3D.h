@@ -71,6 +71,8 @@ namespace larcv {
     double _hit_threshold_ne;
     double _hit_window_ticks;
 
+    std::vector<double> _reco_charge_range;
+
     // Map (true_id, track_id) -> [RecoVoxel3D]
     std::map<TrackVoxel_t, std::unordered_set<RecoVoxel3D>> _true2reco;
     
