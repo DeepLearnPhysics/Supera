@@ -25,6 +25,9 @@ namespace larcv {
     _drop_output.insert(to_drop.cbegin(), to_drop.cend());
     _store_wire_info = _drop_output.count("hit_*") == 0;
 
+    _reco_charge_range = cfg.get<std::vector<double>>("RecoChargeRange", {0,9e99}); 
+    assert(_reco_charge_range.size() == 2);
+
     Request(supera::LArDataType_t::kLArSpacePoint_t, _producer_label);
   }
 
@@ -85,6 +88,16 @@ namespace larcv {
     size_t n_dropped = 0;
     for (size_t i_pt = 0; i_pt < points.size(); ++i_pt) {
         auto const &pt = points[i_pt];
+
+        // calculation from Tracys' Cluster3D
+        float charge = pt.ErrXYZ()[1];
+        float charge_asym = pt.ErrXYZ()[3];
+
+        if (charge < _reco_charge_range[0] || charge > _reco_charge_range[1]) {
+          ++n_dropped;
+          continue;
+        }
+
         auto *xyz = pt.XYZ();
         VoxelID_t vox_id = meta.id(xyz[0], xyz[1], xyz[2]);
         if(vox_id == larcv::kINVALID_VOXELID) { 
@@ -116,10 +129,6 @@ namespace larcv {
 
         if (!(v_chi2.find(vox_id) == larcv::kINVALID_VOXEL))
             continue;
-
-        // calculation from Tracys' Cluster3D
-        float charge = pt.ErrXYZ()[1];
-        float charge_asym = pt.ErrXYZ()[3];
 
         v_chi2.emplace(vox_id, pt.Chisq(), true);
         v_charge.emplace(vox_id, charge, true);
