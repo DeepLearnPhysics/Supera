@@ -36,7 +36,7 @@ namespace larcv {
 
     _use_fixed_bbox = cfg.get<bool>("UseFixedBBox", false);
     _bbox_bottom = cfg.get<std::vector<double>>("BBoxBottom", {0, 0, 0});
-    assert(_box_start_at.size() == 3);
+    assert(_bbox_bottom.size() == 3);
     
     auto tpc_v = cfg.get<std::vector<unsigned short> >("TPCList");
     larcv::Point3D min_pt(1.e9,1.e9,1.e9);

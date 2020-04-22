@@ -177,6 +177,8 @@ namespace larcv {
     _dump_to_csv = cfg.get<bool>("DumpToCSV", false);
     _post_averaging = cfg.get<bool>("PostAveraging", false);
     _post_averaging_threshold = cfg.get<double>("PostAveragingThreshold_cm", 0.3);
+    _reco_charge_range = cfg.get<std::vector<double>>("RecoChargeRange", {0,9e99}); 
+    assert(_reco_charge_range.size() == 2);
   }
 
 
@@ -312,8 +314,17 @@ namespace larcv {
     if (!space_pts.isValid()) return true;
     art::FindManyP<recob::Hit> hit_finder(space_pts, *ev, _sps_producer);
 
+    size_t n_dropped = 0;
     for (size_t i = 0; i < space_pts->size(); ++i) {
       auto const &pt = space_pts->at(i);
+
+      // put a charge threshold on reco pt
+      double reco_charge = pt.ErrXYZ()[1];
+      if (reco_charge < _reco_charge_range[0] || reco_charge > _reco_charge_range[1]) {
+        ++n_dropped;
+        continue;
+      }
+
       auto *xyz = pt.XYZ();
 
       auto reco_voxel_id = meta3d.id(xyz[0], xyz[1], xyz[2]);
@@ -389,6 +400,11 @@ namespace larcv {
       for (auto const& true_pt: overlaps)
         insert_one_to_many(_true2reco, true_pt, reco_voxel3d);
     } // end looping reco pts
+
+    LARCV_INFO()
+      << "Dropping " << n_dropped 
+      << " out of " << space_pts->size()
+      << " reco pts" << std::endl;
 
     // debug in csv file
     auto save_to = [&](std::string prefix) {
