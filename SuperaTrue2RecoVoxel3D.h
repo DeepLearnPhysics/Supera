@@ -54,7 +54,7 @@ namespace larcv {
 
     const auto& get_reco2true() const { return _reco2true; };
     const auto& get_true2reco() const { return _true2reco; };
-
+    const auto  get_true2reco_bytrack() const { return this->contract_true2reco_bytrack(); }
   private:
 
     larcv::Voxel3DMeta get_meta3d(IOManager& mgr) const;
@@ -87,7 +87,7 @@ namespace larcv {
     template <typename K, typename V>
     inline void insert_one_to_many(
         std::map<K, std::unordered_set<V>>& m,
-        K const& key, V const& value)
+        K const& key, V const& value) const
     {
       auto itr = m.find(key);
       if (itr == m.end())
@@ -118,6 +118,7 @@ namespace larcv {
     // build a map of reco_id <-> true_id, ignoring track_id
     std::map<VoxelID_t, std::unordered_set<VoxelID_t>> contract_true2reco();
     std::map<VoxelID_t, std::unordered_set<VoxelID_t>> contract_reco2true();
+    std::vector<std::map<VoxelID_t, std::unordered_set<VoxelID_t> > > contract_true2reco_bytrack() const;
   };
 
   /**

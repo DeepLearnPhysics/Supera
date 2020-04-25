@@ -226,6 +226,7 @@ namespace larcv {
 
   bool SuperaTrue2RecoVoxel3D::process(IOManager& mgr)
   {
+    LARCV_INFO() << "Processing" << std::endl;
     SuperaBase::process(mgr);
     //
     // Step 0. get 3D meta
@@ -241,18 +242,18 @@ namespace larcv {
     //
     // clear true2reco, ghosts maps
     clear_maps();
-
-		auto event_id = mgr.event_id().event();
+    
+    auto event_id = mgr.event_id().event();
     LARCV_INFO() << "Retrieving 3D meta..." << std::endl;
     auto meta3d = get_meta3d(mgr);
 
-		std::unordered_set<VoxelID_t> true_voxel_ids;
-		std::vector<VoxelID_t> reco_voxel_ids;
-
+    std::unordered_set<VoxelID_t> true_voxel_ids;
+    std::vector<VoxelID_t> reco_voxel_ids;
+    
     //
     // Step 1. ... create a list of true hits
     //
-
+    LARCV_INFO() << "Looping over SimChannel" << std::endl;
     // Get geometry info handler
     auto geop = lar::providerFrom<geo::Geometry>();
 
@@ -305,7 +306,7 @@ namespace larcv {
     // Check whether all sim hits are originated from the
     // same ionization position (in voxels)
     // ---------------------------------------------------
-
+    LARCV_INFO() << "Looping over 3D space points" << std::endl;
     auto const *ev = GetEvent();
     auto space_pts = ev->getValidHandle<std::vector<recob::SpacePoint>>(_sps_producer);
 
@@ -424,6 +425,7 @@ namespace larcv {
     // It is kept to maintain backward compatibility.
     // Could be removed if this class is called inside SuperaMCParticleCluster
     // -----------------------------------------------------------------------
+    LARCV_INFO() << "Storing the larcv output" << std::endl;
     auto true2reco = contract_true2reco();
     auto reco2true = contract_reco2true();
 
@@ -667,6 +669,19 @@ namespace larcv {
       for (auto& true_pt : true_pts)
         insert_one_to_many(reco2true, reco_pt.get_id(), true_pt.voxel_id);
     return reco2true;
+  }
+
+  std::vector<std::map<VoxelID_t, std::unordered_set<VoxelID_t> > >
+  SuperaTrue2RecoVoxel3D::contract_true2reco_bytrack() const
+  {
+    std::vector<std::map<VoxelID_t, std::unordered_set<VoxelID_t> > > result;
+    for (auto& [true_pt, reco_pts] : _true2reco) {
+      result.resize(std::max(result.size(),(size_t)(abs(true_pt.track_id) + 1)));
+      auto& target = result[true_pt.track_id];
+      for (auto& reco_pt : reco_pts)
+	insert_one_to_many(target, true_pt.voxel_id, reco_pt.get_id());
+    }
+    return result;
   }
 
   void SuperaTrue2RecoVoxel3D::finalize()

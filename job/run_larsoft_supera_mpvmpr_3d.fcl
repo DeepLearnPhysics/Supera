@@ -5,11 +5,9 @@
 #include "opdetsim_pmt_icarus.fcl"
 #include "crtsimmodules_icarus.fcl"
 #include "rawdigitfilter_icarus.fcl"
-#include "recowire_icarus.fcl"
-#include "hitfindermodules_icarus.fcl"
-#include "cluster_icarus.fcl"
 #include "multipartvertex_icarus.fcl"
 #include "mcreco.fcl"
+#include "reco_icarus.fcl"
 process_name: G4m
 
 services:
@@ -20,7 +18,8 @@ services:
   LArVoxelCalculator:                    @local::icarus_larvoxelcalculator
   SpaceChargeService:                    @local::icarus_spacecharge
   MagneticField:                         @local::no_mag_larsoft
-  PhotonVisibilityService:         @local::icarus_photonvisibilityservice
+  #PhotonVisibilityService:         @local::icarus_photonvisibilityservice
+  PhotonVisibilityService:               @local::standard_library_vuv_prop_timing_photonvisibilityservice
 }
 
 source:
@@ -47,16 +46,12 @@ physics:
                  MakeAnaTree: false
                }
    mcreco:   @local::standard_mcreco
+   @table::icarus_reco_producers
    #crtdaq:   @local::icarus_crtsim
    #opdaq:    @local::icarus_simpmt_nonoise
-   daq:      @local::icarus_simwire
-   rawdigitfilter:  @local::icarus_rawdigitfilter
-   decon1droi:      @local::icarus_decon1droi
-   gaushit:         @local::gaus_hitfinder_icarus
-   gaushitsel:      @local::icarus_hitselector
-   cluster3d:       @local::icarus_cluster3d
+   daq0:      @local::icarus_simwire
+   daq1:      @local::icarus_simwire
    rns:      { module_type: "RandomNumberSaver" }
-
  }
  analyzers:
  {
@@ -70,81 +65,61 @@ physics:
 	}
  }
 
- simulate: [ rns, generator, rain, largeant, mcreco ]
+ #simulate: [ rns, generator, rain, largeant, mcreco ]
  #simulate: [ rns, generator, rain, largeant, mcreco, daq, rawdigitfilter, decon1droi, gaushit, gaushitsel, cluster3d]
- #simulate: [ rns, generator, largeant, mcreco, daq, rawdigitfilter, decon1droi, gaushit, gaushitsel, cluster3d]
+ #simulate: [ rns, generator, largeant, mcreco, daq0, daq1, rawdigitfilter, decon1droi, gaushit, gaushitsel, cluster3d]
+ simulate: [rns, generator, rain, largeant, mcreco, daq0, daq1, 
+            @sequence::icarus_reco_SigProcTPC0Gauss,
+            @sequence::icarus_reco_SigProcTPC1Gauss,
+            @sequence::icarus_reco_cluster3DCryo0]
  ana_stream: [ supera ]
  out_stream: [ out1   ]
   
  trigger_paths: [simulate]
- #end_paths:     [ana_stream, out_stream]
+ end_paths:     [ana_stream, out_stream]
  #end_paths:     [out_stream]
- end_paths:     [ana_stream]
+ #end_paths:     [ana_stream]
 }
+
+services.LArG4Parameters.FillSimEnergyDeposits: true
+services.LArG4Parameters.KeepEMShowerDaughters: true
+#services.LArG4Parameters.EnabledPhysics: ["Em","SynchrotronAndGN","Ion","Stopping","FastOptical"]
+#services.LArG4Parameters.EnabledPhysics: ["Em","SynchrotronAndGN","Ion","Hadron","Decay","HadronElastic","Stopping"]
+#services.LArG4Parameters.EnabledPhysics: ["Em","SynchrotronAndGN","Ion","Hadron","Decay","HadronElastic","Stopping","Optical"]
+services.LArPropertiesService.ScintYield: 0
+services.LArPropertiesService.ScintByParticleType: false
 
 physics.producers.generator.DebugMode    : 1
 physics.producers.generator.G4Time       : 0
 physics.producers.generator.G4TimeJitter : 0
-physics.producers.generator.XRange       : [20,20]
-physics.producers.generator.YRange       : [20,20]
+physics.producers.generator.XRange       : [30,30]
+physics.producers.generator.YRange       : [30,30]
 physics.producers.generator.ZRange       : [780,780]
-#physics.producers.generator.TPCRange     : [0,1]
-physics.producers.generator.TPCRange     : [[0,0]]
-
-#physics.producers.generator.MultiMax     : 5
-#physics.producers.generator.MultiMin     : 1
-#physics.producers.generator.ParticleParameter.PDGCode      : [    [11,13],    [111,22], [211,-211],      [2212]]
-#physics.producers.generator.ParticleParameter.MinMulti     : [          0,           0,          0,           0]
-#physics.producers.generator.ParticleParameter.MaxMulti     : [          1,           3,          3,           3]
-#physics.producers.generator.ParticleParameter.ProbWeight   : [          3,           2,          1,           1]
-#physics.producers.generator.ParticleParameter.KERange      : [ [0.05,1.0],  [0.05,0.5], [0.05,0.5],  [0.05,0.4]]
-
-physics.producers.generator.MultiMax     : 5
+physics.producers.generator.TPCRange     : [[0,0],[0,1]]
+physics.producers.generator.MultiMax     : 6
 physics.producers.generator.MultiMin     : 2
-physics.producers.generator.ParticleParameter.PDGCode      : [   [-13,13],    [22,11],      [111], [211,-211],      [2212]]
-physics.producers.generator.ParticleParameter.MinMulti     : [          0,          0,          0,          0,           0]
-physics.producers.generator.ParticleParameter.MaxMulti     : [          1,          1,          2,          2,           3]
-physics.producers.generator.ParticleParameter.ProbWeight   : [          1,          1,          1,          1,           1]
-physics.producers.generator.ParticleParameter.KERange      : [ [0.05,1.0], [0.05,1.0], [0.05,0.5], [0.05,0.8],  [0.05,0.4]]
-
-#physics.producers.generator.MultiMax     : 3
-#physics.producers.generator.MultiMin     : 3
-#physics.producers.generator.ParticleParameter.PDGCode      : [      [-13],       [111],     [2212]]
-#physics.producers.generator.ParticleParameter.MinMulti     : [          1,           1,          1]
-#physics.producers.generator.ParticleParameter.MaxMulti     : [          1,           1,          1]
-#physics.producers.generator.ParticleParameter.ProbWeight   : [          1,           1,          1]
-#physics.producers.generator.ParticleParameter.KERange      : [ [0.05,0.1],  [0.05,0.2], [0.05,0.2]]
-
-#physics.producers.generator.MultiMax     : 2
-#physics.producers.generator.MultiMin     : 1
-#physics.producers.generator.ParticleParameter.PDGCode      : [       [13],      [2212]]
-#physics.producers.generator.ParticleParameter.MinMulti     : [          0,           0]
-#physics.producers.generator.ParticleParameter.MaxMulti     : [          1,           1]
-#physics.producers.generator.ParticleParameter.ProbWeight   : [          1,           1]
-#physics.producers.generator.ParticleParameter.KERange      : [ [0.05,1.0],  [0.05,0.4]]
-
+physics.producers.generator.ParticleParameter.PDGCode      : [[-11,11,-13,13],     [111],  [211,-211],      [2212]]
+physics.producers.generator.ParticleParameter.MinMulti     : [              1,          0,          0,           0]
+physics.producers.generator.ParticleParameter.MaxMulti     : [              1,          2,          2,           4]
+physics.producers.generator.ParticleParameter.ProbWeight   : [              1,          1,          1,           3]
+physics.producers.generator.ParticleParameter.KERange      : [     [0.05,0.8], [0.05,0.4], [0.05,0.4],  [0.05,0.4]]
 physics.producers.generator.ParticleParameter.MomRange     : []
 
 physics.producers.rain.DebugMode    : 1
 physics.producers.rain.G4Time       : 0
 physics.producers.rain.G4TimeJitter : 0
-physics.producers.rain.XRange       : [-30,-30]
-physics.producers.rain.YRange       : [-30,-30]
-physics.producers.rain.ZRange       : [750,750]
+physics.producers.rain.XRange       : [20,20]
+physics.producers.rain.YRange       : [20,20]
+physics.producers.rain.ZRange       : [780,780]
 physics.producers.rain.DirectInward : true
-physics.producers.rain.TPCRange     : [[0,0]]
-physics.producers.rain.MultiMax     : 8
+physics.producers.rain.TPCRange     : [[0,0],[0,1]]
+physics.producers.rain.MultiMax     : 6
 physics.producers.rain.MultiMin     : 3
 physics.producers.rain.ParticleParameter.PDGCode      : [   [-13,13],     [11,22],     [2212]]
 physics.producers.rain.ParticleParameter.MinMulti     : [          0,           0,          0]
-physics.producers.rain.ParticleParameter.MaxMulti     : [         30,          30,         30]
+physics.producers.rain.ParticleParameter.MaxMulti     : [         30,           2,         30]
 physics.producers.rain.ParticleParameter.ProbWeight   : [          5,           1,          1]
-physics.producers.rain.ParticleParameter.KERange      : [  [0.2,1.0],   [0.1,0.6], [0.05,0.4]]
-#physics.producers.rain.ParticleParameter.PDGCode      : [       [13],      [2212]]
-#physics.producers.rain.ParticleParameter.MinMulti     : [          0,           0]
-#physics.producers.rain.ParticleParameter.MaxMulti     : [          1,           1]
-#physics.producers.rain.ParticleParameter.ProbWeight   : [          1,           1]
-#physics.producers.rain.ParticleParameter.KERange      : [ [0.05,1.0],  [0.05,0.4]]
+physics.producers.rain.ParticleParameter.KERange      : [ [0.05,1.0],   [0.05,0.1], [0.05,0.4]]
 physics.producers.rain.ParticleParameter.MomRange     : []
 
 physics.producers.largeant.KeepParticlesInVolumes: ["volCryostat"] #only keep MCParticles that cross the cryostat
@@ -153,61 +128,27 @@ physics.producers.mcreco.MCParticleLabel: "largeant"
 physics.producers.mcreco.UseSimEnergyDeposit: true
 physics.producers.mcreco.MCRecoPart.SavePathPDGList: [13,-13,211,-211,111,311,310,130,321,-321,2212,2112,2224,2214,2114,1114,3122,1000010020,1000010030,1000020030,1000020040]
 
-#physics.producers.daq.NoiseGenToolVec:  [@local::WhiteNoiseTool, @local::WhiteNoiseTool, @local::WhiteNoiseTool]
-physics.producers.daq.SuppressNoSignal: true
+physics.producers.daq0.SuppressNoSignal: true
+physics.producers.daq0.Cryostat:         0
+physics.producers.daq0.TPC:              0
+physics.producers.daq1.SuppressNoSignal: true
+physics.producers.daq1.Cryostat:         0
+physics.producers.daq1.TPC:              1
 
-### Definitions for a single instance of the RawDigitFilter
-physics.producers.rawdigitfilter.ProcessNoise:                                         false
-physics.producers.rawdigitfilter.NumWiresToGroup:                                      [1, 1, 1]
-physics.producers.rawdigitfilter.FFTNoise:                                             true
-#physics.producers.rawdigitfilter.FFTAlg.FilterTools.FilterPlane0.FilterFunction:       "x>0. ? 1.-gaus(0) : 0."
-#physics.producers.rawdigitfilter.FFTAlg.FilterTools.FilterPlane0.FilterParametersVec:  [1., 0.0, 0.004]
-#physics.producers.rawdigitfilter.FFTAlg.FilterTools.FilterPlane1.FilterFunction:       "x>0. ? 1.-gaus(0) : 0."
-#physics.producers.rawdigitfilter.FFTAlg.FilterTools.FilterPlane1.FilterParametersVec:  [1., 0.0, 0.004]
-#physics.producers.rawdigitfilter.FFTAlg.FilterTools.FilterPlane2.FilterFunction:       "x>0. ? 1.-gaus(0) : 0."
-#physics.producers.rawdigitfilter.FFTAlg.FilterTools.FilterPlane2.FilterParametersVec:  [1., 0.0, 0.002]
-physics.producers.rawdigitfilter.FFTAlg.FillHistograms:                                false
+#physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane0.NumSigma: 2.5
+#physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane1.NumSigma: 2.5
+#physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane2.NumSigma: 2.5
+#physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane0.NumSigma: 2.5
+#physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane1.NumSigma: 2.5
+#physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane2.NumSigma: 2.5
 
-physics.producers.decon1droi.DigitModuleLabel:                                         "rawdigitfilter"
+#physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane0.roiLeadTrailPad:  [30,30]
+#physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane1.roiLeadTrailPad:  [30,30]
+#physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane2.roiLeadTrailPad:  [30,30]
+#physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane0.roiLeadTrailPad:  [30,30]
+#physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane1.roiLeadTrailPad:  [30,30]
+#physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane2.roiLeadTrailPad:  [30,30]
 
-#physics.producers.gaushit.CalDataModuleLabel:                                       "decon1droi"
-#physics.producers.gaushit.AreaNorms:                                                [  1.0,  1.0,  1.0 ]
-#physics.producers.gaushit.MaxMultiHit:                                              5
-#physics.producers.gaushit.TryNplus1Fits:                                            false
-#physics.producers.gaushit.Chi2NDF:                                                  500.
-#physics.producers.gaushit.PeakFitter.MinWidth:                                      1
-#physics.producers.gaushit.PeakFitter.FloatBaseline:                                 false
-#physics.producers.gaushit.LongMaxHits:                                              [25, 25, 25]
-#physics.producers.gaushit.LongPulseWidth:                                           [10, 10, 10]
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane0:                     @local::candhitfinder_morphological
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane0.Plane:               0
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane0.MinDeltaTicks:       4
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane0.MinDeltaPeaks:       1.5
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane1:                     @local::candhitfinder_morphological
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane1.Plane:               1
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane1.MinDeltaTicks:       4
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane1.MinDeltaPeaks:       1.5
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane2:                     @local::candhitfinder_morphological
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane2.Plane:               2
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane2.MinDeltaTicks:       4
-#physics.producers.gaushit.HitFinderToolVec.CandidateHitsPlane2.MinDeltaPeaks:       1.5
-
-physics.producers.gaushitsel.HitProducerLabel:                                            "gaushit"
-
-physics.producers.cluster3d.Hit3DBuilderAlg.HitFinderTagVec:                           ["gaushit"]
-
-#physics.producers.cluster3d.ClusterAlg:                                                @local::standard_cluster3ddbscanalg
-#physics.producers.cluster3d.EnableMonitoring:                                          true
-#physics.producers.cluster3d.ClusterAlg.MinPairPts:                                     1
-#physics.producers.cluster3d.ClusterAlg.kdTree.PairSigmaPeakTime:                       3.0
-#physics.producers.cluster3d.ClusterAlg.kdTree.RefLeafBestDist:                         0.75
-#physics.producers.cluster3d.ClusterMergeAlg.MinEigenToProcess:                         50.
-#physics.producers.cluster3d.ClusterPathAlg:                                            @local::standard_convexhullPathAlg
-#physics.producers.cluster3d.ClusterPathAlg.MinTinyClusterSize:                         20 #30 #40 #200000
-#physics.producers.cluster3d.ClusterPathAlg.MinEigen0To1Ratio:                          12.
-#physics.producers.cluster3d.ClusterPathAlg.ClusterAlg.MinPairPts:                      1
-#physics.producers.cluster3d.ClusterPathAlg.ClusterAlg.kdTree.PairSigmaPeakTime:        3.0
-#physics.producers.cluster3d.ClusterPathAlg.ClusterAlg.kdTree.RefLeafBestDist:          0.75
 
 outputs:
 {
@@ -226,8 +167,6 @@ outputs:
 }
 
 services.TFileService.fileName: "ana.root"
-services.LArG4Parameters.FillSimEnergyDeposits: true
-#services.LArG4Parameters.KeepEMShowerDaughters: false
 
 services.message.destinations :
 {

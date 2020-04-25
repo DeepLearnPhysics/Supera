@@ -11,13 +11,15 @@ namespace supera {
     kNeutron,
     kPhoton,
     kPrimary,
-    kCompton,
-    kComptonHE,
-    kDelta,
-    kConversion,
-    kIonization,
-    kPhotoElectron,
-    kDecay,
+    kCompton,    // detach low E shower
+    kComptonHE,  // detach high E shower
+    kDelta,      // attach-mu low E special
+    kConversion, // detach high E gamma
+    kIonization, // attach-e low E 
+    kPhotoElectron, // detatch low E
+    kDecay,      // attach high E
+    kOtherShower,   // anything else (low E)
+    kOtherShowerHE, // anything else (high E)
     kInvalidProcess
   };
 
@@ -127,7 +129,7 @@ namespace supera {
       if(type == kNeutron) //return larcv::kShapeUnknown;
 	return larcv::kShapeLEScatter;
       if(part.pdg_code() == 11 || part.pdg_code() == 22 || part.pdg_code() == -11) {
-	if(type == kComptonHE || type == kPhoton || type == kPrimary || type == kConversion)
+	if(type == kComptonHE || type == kPhoton || type == kPrimary || type == kConversion || type==kOtherShowerHE)
 	  return larcv::kShapeShower;
 	if(type == kDecay) {
 	  if(part.parent_pdg_code() == 13 || part.parent_pdg_code() == -13)
