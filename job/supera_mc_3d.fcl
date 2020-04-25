@@ -16,7 +16,9 @@ ProcessDriver: {
   #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaTrue2RecoVoxel3D","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector"]
   #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaTrue2RecoVoxel3D","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector"]
   ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector"]
-  ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector"]
+  ProcessName:  ["MultiPartVrtx","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector"]
+  #ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector"]
+  #ProcessName:  ["MultiPartRain","MultiPartVrtx","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector"]
 
   IOManager: {
     Verbosity:   2
@@ -30,25 +32,6 @@ ProcessDriver: {
   }
 
   ProcessList: {
-    SuperaTrue2RecoVoxel3D: {
-      DebugMode: false
-      Profile: true
-      Verbosity: 2
-      Meta3DFromCluster3D: "pcluster"
-      LArSimChProducer: "largeant"
-      LArHitProducer:   "cluster3DCryo0"
-      LArSpacePointProducer: "cluster3DCryo0"
-      OutputTensor3D:  "masked_true"
-      OutputCluster3D: "masked_true2reco"
-      TwofoldMatching: true
-      UseTruePosition: true
-      HitThresholdNe: 100
-      HitWindowTicks: 5
-      HitPeakFinding: false
-      PostAveraging: true
-      PostAveragingThreshold_cm: 0.425
-      DumpToCSV: false
-    }
     SuperaWire: {
       LArWireProducer: "decon1droi"
       Verbosity: 2
@@ -65,15 +48,15 @@ ProcessDriver: {
     ThresholdTensor3D: {
       Profile: true
       TargetProducer: "reco"
-      OutputProducer: "semantics_reco"
+      OutputProducer: "pcluster_semantics_ghost"
       MinThreshold: -1000
-      MaxThreshold: 40000
+      MaxThreshold: 50000
       PaintValue: 5
     }
     CombineTensor3D: {
       Profile: true
-      Tensor3DProducers: ["semantics_reco","pcluster_semantics"]
-      OutputProducer:    "semantics_reco"
+      Tensor3DProducers: ["pcluster_semantics_ghost","pcluster_semantics"]
+      OutputProducer:    "pcluster_semantics_ghost"
       PoolType: 0
     }
     SuperaMCParticleCluster: {
@@ -108,6 +91,8 @@ ProcessDriver: {
         LArSimChProducer: "largeant"
         LArHitProducer:   "cluster3DCryo0"
         LArSpacePointProducer: "cluster3DCryo0"
+        #LArHitProducer:   "cluster3d"
+        #LArSpacePointProducer: "cluster3d"
         OutputTensor3D:  "masked_true"
         OutputCluster3D: "masked_true2reco"
         TwofoldMatching: true
@@ -118,13 +103,20 @@ ProcessDriver: {
         PostAveraging: true
         PostAveragingThreshold_cm: 0.425
         DumpToCSV: false
+        RecoChargeRange: [-1000,50000]
       }
 
     }
-    SuperaMCTruth: {
+    MultiPartVrtx: {
       Profile: true
       LArMCTruthProducer: "generator"
-      OutParticleLabel: "mctruth"
+      OutParticleLabel: "mpv"
+      Origin: 0
+    }
+    MultiPartRain:   {
+      Profile: true
+      LArMCTruthProducer: "rain"
+      OutParticleLabel: "mpr"
       Origin: 0
     }
     SuperaBBoxInteraction: {
@@ -194,7 +186,7 @@ ProcessDriver: {
       #Cluster3DProducer: "mcst_true"
       #ParticleProducer: "mcst"
       #Cluster3DProducer: "pcluster_reco"
-      Cluster3DProducer: "pcluster_highE_reco"
+      Cluster3DProducer: "pcluster_highE"
       ParticleProducer:  "pcluster"
       OutputProducer:    "corrected"
       VoxelMinValue:     -1000
@@ -249,17 +241,20 @@ ProcessDriver: {
       #FixedPIList: [0.,0.,0.,0.,0.,0.]
       Cluster3DProducerList: ["pcluster","sed"]#,"sed_dedx","sed_at"]
       OutputProducerList:    ["pcluster","sed"]#,"sed_dedx","sed_at"]
-      PITypeList:  [1,1,1,1]
-      FixedPIList: [0.,0.,0.,0.]
+      PITypeList:  [1,1]#,1,1]
+      FixedPIList: [0.,0.]#,0.,0.]
     }
 
     SuperaSpacePoint: {
       Profile: true
       Verbosity: 2
       SpacePointProducer: "cluster3DCryo0"
-      OutputLabel       : "reco"
+      #SpacePointProducer: "cluster3d"
+      OutputLabel:        "reco"
+      DropOutput: ["hit_charge","hit_amp"]
       TPCList: [0,1]
       StoreWireInfo: true
+      RecoChargeRange: [-1000, 50000]
     }
 
   }

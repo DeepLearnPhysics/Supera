@@ -32,7 +32,7 @@ def same_tensor3d(t0,t1,meta0=None,meta1=None,explicit=False):
         return (a0 == a1).astype(np.int32).sum() == np.prod(a0.shape)
     else:
         # only check if voxel ID agrees at the start, end, and random min(10,t0.size()) elements
-        elements = [0,1] + list(np.random.random_integers(0,t0.size()-1,size=(min(10,t0.size()))))
+        elements = [0,1] + list(np.random.randint(0,t0.size()-1,size=(min(10,t0.size()))))
         elements = np.unique(elements).astype(np.int32)
         v0 = t0.as_vector()
         v1 = t1.as_vector()
@@ -111,16 +111,13 @@ def check_supera():
     import sys
     names = ['sparse3d_reco',
              'sparse3d_pcluster',
-             'sparse3d_pcluster_reco',
              'sparse3d_pcluster_semantics',
-             'sparse3d_semantics_reco',
+             'sparse3d_pcluster_semantics_ghost',
              'cluster3d_pcluster',
              'cluster3d_pcluster_highE',
              'cluster3d_pcluster_lowE',
-             'cluster3d_pcluster_reco',
-             'cluster3d_pcluster_highE_reco',
-             #'cluster3d_pcluster_lowE_reco',
-             'particle_pcluster',]
+             'particle_pcluster',
+             'particle_corrected']
     blob = data_blob(names)
     fs = [v for v in sys.argv if v.endswith('.root')]
     for f in fs: blob.add_file(f)
@@ -132,7 +129,7 @@ def check_supera():
         blob.get_entry(entry)
         error=False
         # sparse3d_reco and sparse3d_semantics_reco
-        s1, s2 = 'sparse3d_reco', 'sparse3d_semantics_reco'
+        s1, s2 = 'sparse3d_reco', 'sparse3d_pcluster_semantics_ghost'
         if not same_tensor3d(blob.get_data(s1),blob.get_data(s2)):
             print('\nNot same tensor3d',s1,'(%d)' % blob.get_data(s1).size(),s2,'(%d)' % blob.get_data(s2).size())
             error=True
@@ -152,7 +149,7 @@ def check_supera():
             print('\nNot a subset cluster3d',c1,c2);
             error=True
         # cluster3d_pcluster_reco and cluster3d_pcluster_highE_reco
-        c1, c2 = 'cluster3d_pcluster_reco', 'cluster3d_pcluster_highE_reco'
+        c1, c2 = 'cluster3d_pcluster', 'cluster3d_pcluster_highE'
         if not subset_cluster3d(blob.get_data(c1),blob.get_data(c2)):
             print('\nNot a subset cluster3d',c1,c2);
             error=True
