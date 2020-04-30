@@ -97,9 +97,16 @@ namespace supera {
       for(auto const& vs2d : vs2d_v) res += vs2d.size();
       return res;
     }
-    void Merge(ParticleGroup& child) {
+    void Merge(ParticleGroup& child,bool verbose=false) {
       for(auto const& vox : child.vs.as_vector())
 	this->vs.emplace(vox.id(),vox.value(),true);
+
+      if(verbose) {
+	std::cout<<"Parent track id " << this->part.track_id() 
+		 << " PDG " << this->part.pdg_code() << " " << this->part.creation_process() << std::endl
+		 << "  ... merging " << child.part.track_id()
+		 << " PDG " << child.part.pdg_code() << " " << child.part.creation_process() << std::endl;
+      }
       /*
       for(auto const& pt : child.start.pts)
 	this->AddEDep(pt);

@@ -76,9 +76,10 @@ physics:
  out_stream: [ out1   ]
   
  trigger_paths: [simulate]
- end_paths:     [ana_stream, out_stream]
+ #end_paths:     [ana_stream, out_stream]
  #end_paths:     [out_stream]
- #end_paths:     [ana_stream]
+ end_paths:     [ana_stream]
+
 }
 
 services.LArG4Parameters.FillSimEnergyDeposits: true
@@ -142,13 +143,17 @@ physics.producers.daq1.TPC:              1
 #physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane1.NumSigma: 2.5
 #physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane2.NumSigma: 2.5
 
-#physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane0.roiLeadTrailPad:  [30,30]
-#physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane1.roiLeadTrailPad:  [30,30]
-#physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane2.roiLeadTrailPad:  [30,30]
-#physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane0.roiLeadTrailPad:  [30,30]
-#physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane1.roiLeadTrailPad:  [30,30]
-#physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane2.roiLeadTrailPad:  [30,30]
+physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane0.roiLeadTrailPad:  [30,30]
+physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane1.roiLeadTrailPad:  [30,30]
+physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane2.roiLeadTrailPad:  [30,30]
+physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane0.roiLeadTrailPad:  [30,30]
+physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane1.roiLeadTrailPad:  [30,30]
+physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane2.roiLeadTrailPad:  [30,30]
 
+physics.producers.cluster3DCryo0.Hit3DBuilderAlg.LongHitsStretchFactor: 1.0
+physics.producers.cluster3DCryo0.Hit3DBuilderAlg.DeltaPeakTimeSig:      1.75
+physics.producers.cluster3DCryo0.Hit3DBuilderAlg.HitWidthScaleFactor:   3.0
+physics.producers.cluster3DCryo0.ClusterAlg.MinPairPts: 1000000
 
 outputs:
 {
