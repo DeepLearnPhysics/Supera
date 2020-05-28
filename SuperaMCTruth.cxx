@@ -37,6 +37,30 @@ namespace larcv {
       if(_pass_origin && mct.Origin() != _pass_origin)
 	continue;
 
+      if(mct.NeutrinoSet()) {
+	auto const& mcnu = mct.GetNeutrino().Nu();
+	larcv::Particle nu;
+	nu.mct_index(mct_index);
+	nu.track_id(mcnu.TrackId());
+	nu.pdg_code(mcnu.PdgCode());
+	nu.momentum(mcnu.Momentum(0).X()*1.e3,
+		    mcnu.Momentum(0).Y()*1.e3,
+		    mcnu.Momentum(0).Z()*1.e3);
+	nu.position(mcnu.Position(0).X(),
+		    mcnu.Position(0).Y(),
+		    mcnu.Position(0).Z(),
+		    mcnu.Position(0).T());
+	nu.energy_init(mcnu.Momentum(0).T());
+	nu.creation_process(mcnu.Process());
+	nu.parent_track_id(mcnu.TrackId());
+	nu.parent_pdg_code(mcnu.PdgCode());
+	nu.ancestor_track_id(mcnu.TrackId());
+	nu.ancestor_pdg_code(mcnu.PdgCode());
+	
+	LARCV_INFO() << nu.dump() << std::endl;
+	ev_part.emplace_back(std::move(nu));
+      }
+
       for(int i=0; i<mct.NParticles(); ++i) {
 	auto const& mcp = mct.GetParticle(i);
 	if(mcp.StatusCode() != 1) continue;
@@ -57,6 +81,8 @@ namespace larcv {
 	p.parent_pdg_code(mcp.PdgCode());
 	p.ancestor_track_id(mcp.TrackId());
 	p.ancestor_pdg_code(mcp.PdgCode());
+
+	LARCV_INFO() << p.dump() << std::endl;
 
 	ev_part.emplace_back(std::move(p));
       }
