@@ -46,6 +46,7 @@ namespace larcv {
     _use_sed_points = cfg.get<bool>("UseSimEnergyDepositPoints");
     _use_true_pos = cfg.get<bool>("UseTruePosition",true);
     _check_particle_validity = cfg.get<bool>("CheckParticleValidity",true);
+    _merge_shower_delta = cfg.get<bool>("MergeShowerDelta", true);
     auto tpc_v = cfg.get<std::vector<unsigned short> >("TPCList");
     larcv::Point3D min_pt(1.e9,1.e9,1.e9);
     larcv::Point3D max_pt(-1.e9,-1.e9,-1.e9);
@@ -1174,8 +1175,10 @@ namespace larcv {
     this->MergeShowerTouching2D(part_grp_v);
 
     // merge too small deltas into tracks
-    LARCV_INFO() << "Merging: delta rays" << std::endl;
-    this->MergeShowerDeltas(part_grp_v);
+    if (_merge_shower_delta) {
+      LARCV_INFO() << "Merging: delta rays" << std::endl;
+      this->MergeShowerDeltas(part_grp_v);
+    }
 
     // Merge touching LEScatter showers
     LARCV_INFO() << "Merging: touching LEScatters" << std::endl;

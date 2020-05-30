@@ -101,6 +101,7 @@ namespace larcv {
     bool _use_sed;
     bool _check_particle_validity;
     int  _projection_id;
+    bool _merge_shower_delta;
     larcv::BBox3D _world_bounds;
     std::vector<std::vector<std::vector<int> > > _scan;
     std::vector<size_t> _semantic_priority;
