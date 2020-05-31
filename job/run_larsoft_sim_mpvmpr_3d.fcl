@@ -50,16 +50,25 @@ physics:
  }
  analyzers:
  {
+	supera: {
+		module_type: "LArSoftSuperaDriver"
+		supera_params: "supera_mc_3d.fcl"
+		out_filename: "larcv.root"
+		unique_filename: false
+		stream: "mc"
+		Verbosity: 2
+	}
  }
 
  #simulate: [ rns, generator, rain, largeant, mcreco ]
  #simulate: [ rns, generator, rain, largeant, mcreco, daq, rawdigitfilter, decon1droi, gaushit, gaushitsel, cluster3d]
  #simulate: [ rns, generator, largeant, mcreco, daq0, daq1, rawdigitfilter, decon1droi, gaushit, gaushitsel, cluster3d]
  simulate: [rns, generator, rain, largeant, mcreco]
+ analyze: [ supera ]
  out_stream: [ out1   ]
   
  trigger_paths: [simulate]
- end_paths:     [out_stream]
+ end_paths:     [analyze,out_stream]
 
 }
 
@@ -109,6 +118,9 @@ physics.producers.mcreco.SimChannelLabel: "largeant:TPCActive"
 physics.producers.mcreco.MCParticleLabel: "largeant"
 physics.producers.mcreco.UseSimEnergyDeposit: true
 physics.producers.mcreco.MCRecoPart.SavePathPDGList: [13,-13,211,-211,111,311,310,130,321,-321,2212,2112,2224,2214,2114,1114,3122,1000010020,1000010030,1000020030,1000020040]
+
+services.Geometry:               @local::icarus_single_induction_nooverburden_geometry
+services.ExptGeoHelperInterface: @local::icarus_single_induction_geometry_helper
 
 outputs:
 {
