@@ -50,7 +50,7 @@ physics:
  {
 	supera: {
 		module_type: "LArSoftSuperaDriver"
-		supera_params: "supera_mc_3d.fcl"
+		supera_params: "supera_reco_3d.fcl"
 		out_filename: "larcv.root"
 		unique_filename: false
 		stream: "mc"
@@ -88,17 +88,22 @@ physics.producers.daq1.TPC:              1
 #physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane1.NumSigma: 2.5
 #physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane2.NumSigma: 2.5
 
-physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane0.roiLeadTrailPad:  [30,30]
-physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane1.roiLeadTrailPad:  [30,30]
-physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane2.roiLeadTrailPad:  [30,30]
-physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane0.roiLeadTrailPad:  [30,30]
-physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane1.roiLeadTrailPad:  [30,30]
-physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane2.roiLeadTrailPad:  [30,30]
+#physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane0.roiLeadTrailPad:  [30,30]
+#physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane1.roiLeadTrailPad:  [30,30]
+#physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane2.roiLeadTrailPad:  [30,30]
+#physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane0.roiLeadTrailPad:  [30,30]
+#physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane1.roiLeadTrailPad:  [30,30]
+#physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane2.roiLeadTrailPad:  [30,30]
 
-physics.producers.cluster3DCryo0.Hit3DBuilderAlg.LongHitsStretchFactor: 1.0
-physics.producers.cluster3DCryo0.Hit3DBuilderAlg.DeltaPeakTimeSig:      1.75
-physics.producers.cluster3DCryo0.Hit3DBuilderAlg.HitWidthScaleFactor:   3.0
-physics.producers.cluster3DCryo0.ClusterAlg.MinPairPts: 1000000
+services.Geometry:               @local::icarus_single_induction_nooverburden_geometry
+services.ExptGeoHelperInterface: @local::icarus_single_induction_geometry_helper
+physics.producers.cluster3DCryo0.Hit3DBuilderAlg:                        @local::standard_snippethit3dbuilder
+physics.producers.cluster3DCryo0.Hit3DBuilderAlg.HitFinderTagVec:        ["gaushitTPC0", "gaushitTPC1"]
+physics.producers.cluster3DCryo0.Hit3DBuilderAlg.HitWidthScaleFactor:    3.0
+physics.producers.cluster3DCryo0.Hit3DBuilderAlg.DeltaPeakTimeSig:       1.75
+physics.producers.cluster3DCryo0.Hit3DBuilderAlg.PulseHeightFraction:    0.2
+physics.producers.cluster3DCryo0.Hit3DBuilderAlg.LongHitsStretchFactor:  1.0
+physics.producers.cluster3DCryo0.ClusterAlg.MinPairPts:                  1000000
 
 
 outputs:
