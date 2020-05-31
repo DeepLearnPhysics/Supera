@@ -3,22 +3,8 @@ ProcessDriver: {
   Verbosity:    2
   EnableFilter: false
   RandomAccess: false
-  #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaShowerCluster","SegLabelFiveTypes","SegLabelFiveTypes","MaskTensor3D","MaskCluster3D","Tensor3DFromCluster3D","ParticleCorrector"]
-  #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticle","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaShowerCluster","SegLabelFiveTypes0","SegLabelFiveTypes1","MaskTensor3D","MaskCluster3D","Tensor3DFromCluster3D","ParticleCorrector"]
-  #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","ThresholdTensor3D","CombineTensor3D","MaskTensor3D","MaskCluster3D","ParticleCorrector","ParticleCorrector"]
-  #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","SuperaSpacePoint","ThresholdTensor3D","GhostMask","CombineTensor3D","MaskTensor3D","MaskCluster3D","ParticleCorrectorReco","ParticleCorrector"]
-  #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaSimEnergyDeposit","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector"]
-  #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaSimEnergyDeposit","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector"]
-  #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaTrue2RecoVoxel3D","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ParticleCorrector"]
-  #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaTrue2RecoVoxel3D","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ParticleCorrector"]
-  #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ParticleCorrector"]
-  #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ParticleCorrector"]
-  #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaTrue2RecoVoxel3D","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector"]
-  #ProcessName:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaTrue2RecoVoxel3D","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector"]
   ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector"]
   ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector"]
-  #ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector"]
-  #ProcessName:  ["MultiPartRain","MultiPartVrtx","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector"]
 
   IOManager: {
     Verbosity:   2
