@@ -46,37 +46,42 @@ namespace larcv {
     _use_sed_points = cfg.get<bool>("UseSimEnergyDepositPoints");
     _use_true_pos = cfg.get<bool>("UseTruePosition",true);
     _check_particle_validity = cfg.get<bool>("CheckParticleValidity",true);
-    auto tpc_v = cfg.get<std::vector<unsigned short> >("TPCList");
+
+    auto cryostat_v   = cfg.get<std::vector<unsigned short> >("CryostatList");
+    auto tpc_v        = cfg.get<std::vector<unsigned short> >("TPCList"     );
+    std::vector<unsigned short> plane_v;
+    plane_v = cfg.get<std::vector<unsigned short> >("PlaneList",plane_v);
+    assert(cryostat_v.size() == tpc_v.size()  );
+    assert(plane_v.empty() || cryostat_v.size() == plane_v.size());
     larcv::Point3D min_pt(1.e9,1.e9,1.e9);
     larcv::Point3D max_pt(-1.e9,-1.e9,-1.e9);
-    for(auto const& tpc_id : tpc_v) {
-      auto geop = lar::providerFrom<geo::Geometry>();
-      for(size_t c=0; c<geop->Ncryostats(); ++c) {
-	auto const& cryostat = geop->Cryostat(c);
-	if(!cryostat.HasTPC(tpc_id)) continue;
-	auto const& tpcabox = cryostat.TPC(tpc_id).ActiveBoundingBox();
-	if(min_pt.x > tpcabox.MinX()) min_pt.x = tpcabox.MinX();
-	if(min_pt.y > tpcabox.MinY()) min_pt.y = tpcabox.MinY();
-	if(min_pt.z > tpcabox.MinZ()) min_pt.z = tpcabox.MinZ();
-	if(max_pt.x < tpcabox.MaxX()) max_pt.x = tpcabox.MaxX();
-	if(max_pt.y < tpcabox.MaxY()) max_pt.y = tpcabox.MaxY();
-	if(max_pt.z < tpcabox.MaxZ()) max_pt.z = tpcabox.MaxZ();
-	break;
+    auto geop = lar::providerFrom<geo::Geometry>();
+    for(size_t idx=0; idx<cryostat_v.size(); ++idx) {
+      auto const& c = cryostat_v[idx];
+      auto const& t = tpc_v[idx];
+      auto const& cryostat = geop->Cryostat(c);
+      if(!cryostat.HasTPC(t)) {
+	LARCV_CRITICAL() << "Invalid TPCList: cryostat " << c 
+			 << " does not contain tpc " << t << std::endl;
+	throw larbys();
       }
+      auto const& tpcabox = cryostat.TPC(t).ActiveBoundingBox();
+      if(min_pt.x > tpcabox.MinX()) min_pt.x = tpcabox.MinX();
+      if(min_pt.y > tpcabox.MinY()) min_pt.y = tpcabox.MinY();
+      if(min_pt.z > tpcabox.MinZ()) min_pt.z = tpcabox.MinZ();
+      if(max_pt.x < tpcabox.MaxX()) max_pt.x = tpcabox.MaxX();
+      if(max_pt.y < tpcabox.MaxY()) max_pt.y = tpcabox.MaxY();
+      if(max_pt.z < tpcabox.MaxZ()) max_pt.z = tpcabox.MaxZ();
     }
     _world_bounds.update(min_pt,max_pt);
 
     _ref_meta2d_tensor2d = cfg.get<std::string>("Meta2DFromTensor2D","");
-    auto cryostat_v   = cfg.get<std::vector<unsigned short> >("CryostatList");
-    //auto tpc_v        = cfg.get<std::vector<unsigned short> >("TPCList"     );
-    auto plane_v      = cfg.get<std::vector<unsigned short> >("PlaneList"   );
 
     _scan.clear();
-    auto geop = lar::providerFrom<geo::Geometry>();
     _scan.resize(geop->Ncryostats());
-    for(size_t cryoid=0; cryoid<_scan.size(); ++cryoid) {
-      auto const& cryostat = geop->Cryostat(cryoid);
-      auto& scan_cryo = _scan[cryoid];
+    for(size_t c=0; c<_scan.size(); ++c) {
+      auto const& cryostat = geop->Cryostat(c);
+      auto& scan_cryo = _scan[c];
       scan_cryo.resize(cryostat.NTPC());
       for(size_t tpcid=0; tpcid<scan_cryo.size(); ++tpcid) {
 	auto const& tpc = cryostat.TPC(tpcid);
@@ -86,17 +91,25 @@ namespace larcv {
     }
     //for(size_t cryo_id=0; cryo_id<_scan.size(); ++cryo_id){
     _valid_nplanes = 0;
-    for(auto const& cryo_id : cryostat_v) {
-      auto const& cryostat = geop->Cryostat(cryo_id);
-      for(auto const& tpc_id : tpc_v) {
-	if(!cryostat.HasTPC(tpc_id)) continue;
-	auto const& tpc = cryostat.TPC(tpc_id);
-	for(auto const& plane_id : plane_v) {
-	  if(!tpc.HasPlane(plane_id)) continue;
-	  _scan[cryo_id][tpc_id][plane_id] = _valid_nplanes;
-	  //std::cout<<cryo_id<<" "<<tpc_id<<" "<<plane_id<<" ... "<<_valid_nplanes<< std::endl;
-	  ++_valid_nplanes;
+    if(plane_v.size()) {
+      for(size_t idx=0; idx<cryostat_v.size(); ++idx) {
+	auto const& c = cryostat_v[idx];
+	auto const& t = tpc_v[idx];
+	auto const& p = plane_v[idx];
+	auto const& cryostat = geop->Cryostat(c);
+	if(!cryostat.HasTPC(t)) {
+	  LARCV_CRITICAL() << "Invalid TPCList: cryostat " << c 
+			   << " does not contain tpc " << t << std::endl;
+	  throw larbys();
 	}
+	auto const& tpc = cryostat.TPC(t);
+	if(!tpc.HasPlane(p)) {
+	  LARCV_CRITICAL() << "Invalid TPCList: cryostat " << c << " TPC " << t
+			   << " does not contain plane " << p << std::endl;
+	  throw larbys();
+	}
+	_scan[c][t][p] = _valid_nplanes;
+	++_valid_nplanes;
       }
     }
     

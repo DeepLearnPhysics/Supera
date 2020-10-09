@@ -57,6 +57,20 @@ namespace larcv {
   {
     SuperaBase::process(mgr);
 
+    auto const& part_v = LArData<supera::LArMCParticle_t>();
+    std::vector<int> track_ids;
+    track_ids.reserve(part_v.size());
+    for(auto const& p : part_v) {
+      if(abs(p.TrackId()) >= track_ids.size()) track_ids.resize(abs(p.TrackId())+1);
+      track_ids[p.TrackId()] = abs(p.PdgCode());
+    }
+    for(auto const& p : part_v) {
+      if( abs(p.PdgCode()) != 11) continue;
+      if( p.Process() != "muIoni" ) continue;
+      if( track_ids[p.Mother()] != 13 ) continue;
+      std::cout<<"LOGME "<<p.E()*1000.<<std::endl;
+    }
+    return true;
     larcv::Voxel3DMeta meta;
     if(!_ref_meta3d_cluster3d.empty()) {
       auto const& ev_cluster3d = mgr.get_data<larcv::EventClusterVoxel3D>(_ref_meta3d_cluster3d);
