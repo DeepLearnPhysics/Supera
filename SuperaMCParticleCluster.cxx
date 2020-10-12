@@ -1785,8 +1785,55 @@ namespace larcv {
 
     }
 
-    LARCV_INFO() <<  "Start storing " << output2trackid.size() << " particles ...y" << std::endl;
-
+    // Next define interaction id
+    larcv::Vertex invalid_vtx;
+    std::vector<larcv::Vertex> int2vtx;
+    std::vector<int> group2int;
+    std::vector<size_t> invalids;
+    //auto const& ancestor_trackid_v = _mcpl.AncestorTrackId();
+    auto const& ancestor_index_v = _mcpl.AncestorIndex();
+    size_t no_ancestor_count = 0;
+    double no_ancestor_energy_sum = 0.;
+    for(size_t output_index=0; output_index<output2trackid.size(); ++output_index) {
+      auto const& trackid = output2trackid[output_index];
+      auto const& larmcp_index = trackid2index[trackid];
+      auto& p = part_grp_v[trackid].part;
+      if(larmcp_index < 0) {
+	LARCV_CRITICAL() << "Unexpected logiv error (simb::MCParticle must be found for a particle track id)" << std::endl;
+	throw larbys();
+	continue;
+      }
+      auto const& ancestor_index = ancestor_index_v[larmcp_index];
+      if(ancestor_index < 0) {
+	// unknown ancestor
+	no_ancestor_count++;
+	no_ancestor_energy_sum += p.energy_deposit();
+	continue;
+      }
+      auto const& ancestor = larmcp_v[ancestor_index];
+      larcv::Vertex apos (ancestor.Vx(),ancestor.Vy(),ancestor.Vz(),ancestor.T());
+      int aid = -1;
+      for(size_t iid=0; iid<int2vtx.size(); ++iid) 
+	{
+	  auto const& vtx = int2vtx[iid];
+	  if(vtx == apos) {
+	    aid = iid;
+	    break;
+	  }
+	}
+      if(aid<0) {
+	aid = int2vtx.size();
+	int2vtx.push_back(apos);
+      }
+      p.interaction_id(aid);
+    }
+    LARCV_NORMAL() << "Saved interaction count: "<<int2vtx.size() << std::endl;
+    LARCV_NORMAL() << no_ancestor_count << " particles have no ancestor, summed deposit energy = " << no_ancestor_energy_sum << std::endl;
+    //for(auto const& vtx : int2vtx)
+    //  std::cout<<vtx.x()<<","<<vtx.y()<<","<<vtx.z()<<","<<vtx.t()<<std::endl;
+    
+    LARCV_INFO() <<  "Start storing " << output2trackid.size() << " particles ..." << std::endl;
+    
     // now loop over to create VoxelSet for compton/photoelectron
     std::vector<larcv::Particle> part_v; part_v.resize(output2trackid.size());
     auto event_cluster    = (EventClusterVoxel3D*)(mgr.get_data("cluster3d",_output_label));

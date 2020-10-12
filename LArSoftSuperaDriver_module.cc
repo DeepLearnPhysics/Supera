@@ -207,15 +207,32 @@ void LArSoftSuperaDriver::analyze(art::Event const & e)
   for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArMCParticle_t)) {
     if(label.empty()) continue;
     art::Handle<std::vector<simb::MCParticle> > data_h;
+    //art::Assns<simb::MCTruth,simb::MCParticle,sim::GeneratedParticleInfo> ass_h;
     if(label.find(" ")<label.size()) {
       e.getByLabel(label.substr(0,label.find(" ")),
 		   label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
 		   data_h);
-    }else{ e.getByLabel(label, data_h); }
+      //e.getByLabel(label.substr(0,label.find(" ")),
+      //	   label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
+      //	   ass_h);
+    }else{ 
+      e.getByLabel(label, data_h); 
+      //e.getByLabel(label, ass_h);
+    }
     if(!data_h.isValid() || data_h->empty()) { 
       std::cerr<< "Attempted to load data: " << label << std::endl;
       throw ::larcv::larbys("Could not locate data!"); 
     }
+    /*
+    std::vector<art::Handle<std::vector<simb::MCTruth>>> mclists;
+    e.getManyByType(mclists);
+
+    //Find tracks associated with hits                                                                                                 
+    art::FindManyP<simb::MCTruth> ass(data_h,e);
+    for (size_t i = 0; data_h->size(); ++i) {
+      auto const mct = ass.at(i);
+    }
+    */
     _supera.SetDataPointer(*data_h,label);
   }
 
