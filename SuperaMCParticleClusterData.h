@@ -24,9 +24,9 @@ namespace supera {
   };
 
   struct EDep {
-    double x,y,z,t,e;
+    double x,y,z,t,e,dedx;
     EDep()
-    { x = y = z = t = e = larcv::kINVALID_DOUBLE; }
+    { x = y = z = t = e = dedx = larcv::kINVALID_DOUBLE; }
   };
   /*
   struct EarlyPoints {
@@ -78,6 +78,7 @@ namespace supera {
     ProcessType type;
     bool add_to_parent;
     larcv::VoxelSet vs;
+    larcv::VoxelSet dedx;
     std::vector<larcv::VoxelSet> vs2d_v;
     //EarlyPoints start;
     EDep last_pt;
@@ -91,6 +92,13 @@ namespace supera {
       if(pt.t < first_pt.t) first_pt = pt; 
       if(pt.t > last_pt.t) last_pt = pt; 
     }
+    void SizeCheck()
+    {
+      if(dedx.size() && vs.size() != dedx.size()) {
+	std::cerr << "Size mismatch: " << vs.size() << " v.s. " << dedx.size() << std::endl;
+	throw std::exception();
+      }
+    }
     size_t size_all() const
     { 
       size_t res=vs.size(); 
@@ -100,6 +108,8 @@ namespace supera {
     void Merge(ParticleGroup& child,bool verbose=false) {
       for(auto const& vox : child.vs.as_vector())
 	this->vs.emplace(vox.id(),vox.value(),true);
+      for(auto const& vox : child.dedx.as_vector())
+	this->dedx.emplace(vox.id(),vox.value(),true);
 
       if(verbose) {
 	std::cout<<"Parent track id " << this->part.track_id() 
@@ -124,6 +134,7 @@ namespace supera {
 	child_vs2d.clear_data();
       }
       child.vs.clear_data();
+      child.dedx.clear_data();
       child.valid=false;
     }
 

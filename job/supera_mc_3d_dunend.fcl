@@ -5,14 +5,8 @@ ProcessDriver: {
   RandomAccess: false
   #ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaSimEnergyDeposit","SuperaMCParticleCluster","MaskByIndex3D","Tensor3DFromCluster3D","ParticleCorrector","ParticleCorrector","RemoveDetectorInfo"]
   #ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaSimEnergyDeposit","SuperaMCParticleCluster","MaskByIndex3D","Tensor3DFromCluster3D","ParticleCorrector","MaskedParticleCorrector","RemoveDetectorInfo"]
-  #ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","MaskByIndex3D","Tensor3DFromCluster3D","ParticleCorrector","ParticleCorrector","RemoveDetectorInfo"]
-  #ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","MaskByIndex3D","Tensor3DFromCluster3D","ParticleCorrector","MaskedParticleCorrector","RemoveDetectorInfo"]
-  #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","MaskByIndex3D","Tensor3DFromCluster3D","ParticleCorrector","ParticleCorrector","RemoveDetectorInfo"]
-  #ProcessName:  ["MultiPartVrtx","SuperaBBoxInteraction","SuperaMCParticleCluster","MaskByIndex3D","Tensor3DFromCluster3D","ParticleCorrector","MaskedParticleCorrector","RemoveDetectorInfo"]
-  #ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector","RemoveDetectorInfo"]
-  #ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector","RemoveDetectorInfo"]
-  ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector","RemoveDetectorInfo"]
-  ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector","RemoveDetectorInfo"]
+  ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","MaskByIndex3D","Tensor3DFromCluster3D","ParticleCorrector","ParticleCorrector","RemoveDetectorInfo"]
+  ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","MaskByIndex3D","Tensor3DFromCluster3D","ParticleCorrector","MaskedParticleCorrector","RemoveDetectorInfo"]
 
   IOManager: {
     Verbosity:   2
@@ -28,6 +22,17 @@ ProcessDriver: {
   ProcessList: {
     RemoveDetectorInfo: {
     Cluster3DMetaProducer: "pcluster"
+    }
+    MaskByIndex3D: {
+      TargetTensor3DList: ["pcluster_semantics","pcluster_index"]
+        TargetCluster3DList: ["pcluster","pcluster_highE"]
+      #MinTensor3DValue: 0.01
+      XRangeMin: [497,383,252,138,0]
+      XRangeMax: [511,383,269,138,25]
+      YRangeMin: [721,0]
+      YRangeMax: [767,45]
+      ZRangeMin: [676,555,441,320,206,0]
+      ZRangeMax: [767,562,441,327,206,92]
     }
     MultiPartVrtx: {
       Profile: true
@@ -54,21 +59,17 @@ ProcessDriver: {
       LArMCParticleProducer: "largeant"
       LArMCShowerProducer: "mcreco"
       LArMCTrackProducer:  "mcreco"
+      EnergyDepositThreshold: 0.1
       #MaskedTrueTensor3D: "masked_true"
       #MaskedTrue2RecoCluster3D: "masked_true2reco"
-      TouchDistance: 3
-      DeltaSize: 60
-      IonizationSize: 20 #5
-      ComptonSize: 60 #10
-      EnergyDepositThreshold: 0.001 #0.01
+      DeltaSize: 20
       LArSimEnergyDepositProducer: "largeant TPCActive"
       LArSimChProducer: ""
       #LArSimEnergyDepositProducer: ""
       #LArSimChProducer: "largeant"
-      Meta3DFromCluster3D: "pcluster"
+      Meta3DFromCluster3D: "mcst"
       Meta2DFromTensor2D:  ""
       Verbosity: 2
-      StoreDEDX: true
       UseSimEnergyDeposit: true
       UseSimEnergyDepositPoints: true
       CryostatList: [0,0]
@@ -94,13 +95,11 @@ ProcessDriver: {
       Origin: 0
       Cluster3DLabels: ["mcst","pcluster","sed"]
       Tensor3DLabels:  ["reco","pcluster_index"]
-      BBoxSize:   [230.4,230.4,230.4]
-      VoxelSize:  [0.01,0.01,0.01]
-      BBoxBottom: [-365.0,-138.65,-500.]
-      #BBoxSize: [227.0208,340.5312,340.5312]
-      #VoxelSize: [0.4434,0.4434,0.4434]
-      #BBoxBottom: [-333.7254,-193.7156,-170.2656]
-      #UseFixedBBox: true
+      #BBoxSize: [230.4,230.4,230.4]
+      BBoxSize: [227.0208,340.5312,340.5312]
+      VoxelSize: [0.4434,0.4434,0.4434]
+      BBoxBottom: [-333.7254,-193.7156,-170.2656]
+      UseFixedBBox: true
       CryostatList: [0,0]
       TPCList: [0,1]
     }

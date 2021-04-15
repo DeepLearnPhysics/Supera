@@ -83,6 +83,7 @@ namespace larcv {
   private:
     int plane_index(unsigned int cryo_id, unsigned int tpc_id, unsigned int plane_id);
     size_t SemanticPriority(size_t a, size_t b) const;
+    size_t _touch_threshold,_touch_threshold2d;
     supera::MCParticleList _mcpl;
     SuperaTrue2RecoVoxel3D* _true2reco;
     std::string _ref_meta3d_cluster3d;
@@ -92,6 +93,7 @@ namespace larcv {
     std::string _masked_true2reco_cluster3d;
     std::string _masked_true_tensor3d;
     bool _use_sed_points;
+    bool _store_dedx;
     size_t _eioni_size;
     size_t _delta_size;
     size_t _compton_size;

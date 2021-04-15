@@ -5,8 +5,8 @@
 #include "larcv/core/Base/larbys.h"
 #include "FMWKInterface.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesServiceStandard.h"
-#include "lardata/DetectorInfoServices/LArPropertiesServiceStandard.h"
-#include "lardata/DetectorInfoServices/DetectorClocksServiceStandard.h"
+//#include "lardata/DetectorInfoServices/LArPropertiesServiceStandard.h"
+//#include "lardata/DetectorInfoServices/DetectorClocksServiceStandard.h"
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h" // RanItay Add
 
@@ -46,15 +46,19 @@ namespace supera {
 
   double DriftVelocity()
   {
-    auto const* detp = ::lar::providerFrom<detinfo::DetectorPropertiesService>();
-    return detp->DriftVelocity();
+    //auto const* detp = ::lar::providerFrom<detinfo::DetectorPropertiesService>();
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob();
+    auto const detp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataForJob(clockData);
+    return detp.DriftVelocity();
   }
 
   unsigned int NumberTimeSamples()
   {
     //throw ::larcv::larbys("NumberTimeSamples function not available!");
-    auto const* detp = ::lar::providerFrom<detinfo::DetectorPropertiesService>();
-    return detp->NumberTimeSamples();
+    //auto const* detp = ::lar::providerFrom<detinfo::DetectorPropertiesService>();
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob();
+    auto const detp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataForJob(clockData);
+    return detp.NumberTimeSamples();
   }
 
   unsigned int Nchannels()
@@ -139,44 +143,56 @@ namespace supera {
   */
   int TPCG4Time2Tick(double ns)
   {
-    auto const* ts = ::lar::providerFrom<detinfo::DetectorClocksService>();
-    return ts->TPCG4Time2Tick(ns);
+    //auto const* ts = ::lar::providerFrom<detinfo::DetectorClocksService>();
+    //return ts->DataForJob().TPCG4Time2Tick(ns);
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob();
+    return clockData.TPCG4Time2Tick(ns);
   }
 
   int TPCG4Time2TDC(double ns)
   {
-    auto const* ts = ::lar::providerFrom<detinfo::DetectorClocksService>();
-    return ts->TPCG4Time2TDC(ns);
+    //auto const* ts = ::lar::providerFrom<detinfo::DetectorClocksService>();
+    //return ts->DataForJob().TPCG4Time2TDC(ns);
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob();
+    return clockData.TPCG4Time2TDC(ns);
   }
 
   double TPCTDC2Tick(double tdc)
   {
-    auto const* ts = ::lar::providerFrom<detinfo::DetectorClocksService>();
-    return ts->TPCTDC2Tick(tdc);
+    //auto const* ts = ::lar::providerFrom<detinfo::DetectorClocksService>();
+    //return ts->DataForJob().TPCTDC2Tick(tdc);
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob();
+    return clockData.TPCTDC2Tick(tdc);
   }
 
   double TPCTickPeriod()
   {
-    auto const* ts = ::lar::providerFrom<detinfo::DetectorClocksService>();
-    return ts->TPCClock().TickPeriod();
+    //auto const* ts = ::lar::providerFrom<detinfo::DetectorClocksService>();
+    //return ts->DataForJob().TPCClock().TickPeriod();
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob();
+    return clockData.TPCClock().TickPeriod();
   }
 
   double TriggerTime()
   {
-    auto const* ts = ::lar::providerFrom<detinfo::DetectorClocksService>();
-    return ts->TriggerTime();
+    //auto const* ts = ::lar::providerFrom<detinfo::DetectorClocksService>();
+    //return ts->DataForJob().TriggerTime();
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob();
+    return clockData.TriggerTime();
   }
 
   double TriggerOffsetTPC()
   {
-    auto const* ts = ::lar::providerFrom<detinfo::DetectorClocksService>();
-    return ts->TriggerOffsetTPC();
+    //auto const* ts = ::lar::providerFrom<detinfo::DetectorClocksService>();
+    //return ts->DataForJob().TriggerOffsetTPC();
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob();
+    return clockData.TriggerOffsetTPC();
   }
 
   double PlaneTickOffset(size_t plane0, size_t plane1)
   {
     static double pitch = ::lar::providerFrom<geo::Geometry>()->PlanePitch();
-    static double tick_period = ::lar::providerFrom<detinfo::DetectorClocksService>()->TPCClock().TickPeriod();
+    static double tick_period = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob().TPCClock().TickPeriod();
     return (plane1 - plane0) * pitch / DriftVelocity() / tick_period;
   }
 

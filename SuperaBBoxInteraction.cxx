@@ -37,26 +37,32 @@ namespace larcv {
     _use_fixed_bbox = cfg.get<bool>("UseFixedBBox", false);
     _bbox_bottom = cfg.get<std::vector<double>>("BBoxBottom", {0, 0, 0});
     assert(_bbox_bottom.size() == 3);
-    
-    auto tpc_v = cfg.get<std::vector<unsigned short> >("TPCList");
+
+    auto cryostat_v   = cfg.get<std::vector<unsigned short> >("CryostatList");
+    auto tpc_v        = cfg.get<std::vector<unsigned short> >("TPCList"     );
+    assert(cryostat_v.size() == tpc_v.size()  );
     larcv::Point3D min_pt(1.e9,1.e9,1.e9);
     larcv::Point3D max_pt(-1.e9,-1.e9,-1.e9);
-    for(auto const& tpc_id : tpc_v) {
-      auto geop = lar::providerFrom<geo::Geometry>();
-      for(size_t c=0; c<geop->Ncryostats(); ++c) {
-	auto const& cryostat = geop->Cryostat(c);
-	if(!cryostat.HasTPC(tpc_id)) continue;
-	auto const& tpcabox = cryostat.TPC(tpc_id).ActiveBoundingBox();
-	if(min_pt.x > tpcabox.MinX()) min_pt.x = tpcabox.MinX();
-	if(min_pt.y > tpcabox.MinY()) min_pt.y = tpcabox.MinY();
-	if(min_pt.z > tpcabox.MinZ()) min_pt.z = tpcabox.MinZ();
-	if(max_pt.x < tpcabox.MaxX()) max_pt.x = tpcabox.MaxX();
-	if(max_pt.y < tpcabox.MaxY()) max_pt.y = tpcabox.MaxY();
-	if(max_pt.z < tpcabox.MaxZ()) max_pt.z = tpcabox.MaxZ();
-	break;
+    auto geop = lar::providerFrom<geo::Geometry>();
+    for(size_t idx=0; idx<cryostat_v.size(); ++idx) {
+      auto const& c = cryostat_v[idx];
+      auto const& t = tpc_v[idx];
+      auto const& cryostat = geop->Cryostat(c);
+      if(!cryostat.HasTPC(t)) {
+	LARCV_CRITICAL() << "Invalid TPCList: cryostat " << c 
+			 << " does not contain tpc " << t << std::endl;
+	throw larbys();
       }
+      auto const& tpcabox = cryostat.TPC(t).ActiveBoundingBox();
+      if(min_pt.x > tpcabox.MinX()) min_pt.x = tpcabox.MinX();
+      if(min_pt.y > tpcabox.MinY()) min_pt.y = tpcabox.MinY();
+      if(min_pt.z > tpcabox.MinZ()) min_pt.z = tpcabox.MinZ();
+      if(max_pt.x < tpcabox.MaxX()) max_pt.x = tpcabox.MaxX();
+      if(max_pt.y < tpcabox.MaxY()) max_pt.y = tpcabox.MaxY();
+      if(max_pt.z < tpcabox.MaxZ()) max_pt.z = tpcabox.MaxZ();
     }
     _world_bounds.update(min_pt,max_pt);
+    
   }
   
   void SuperaBBoxInteraction::initialize()
