@@ -36,6 +36,8 @@ namespace larcv {
     _semantic_priority.resize((size_t)(larcv::kShapeUnknown));
     for(size_t i=0; i<_semantic_priority.size(); ++i)
       _semantic_priority[i]=i;
+    _touch_threshold = cfg.get<size_t>("TouchDistance",1);
+    _touch_threshold2d = cfg.get<size_t>("TouchDistance2D",1);
     _semantic_priority = cfg.get<std::vector<size_t> >("SemanticPriority",_semantic_priority);
     _delta_size = cfg.get<size_t>("DeltaSize",10);
     _eioni_size = cfg.get<size_t>("IonizationSize",5);
@@ -44,6 +46,7 @@ namespace larcv {
     _projection_id = cfg.get<int>("ProjectionID",-1);
     _use_sed = cfg.get<bool>("UseSimEnergyDeposit");
     _use_sed_points = cfg.get<bool>("UseSimEnergyDepositPoints");
+    _store_dedx = cfg.get<bool>("StoreDEDX",false);
     _use_true_pos = cfg.get<bool>("UseTruePosition",true);
     _check_particle_validity = cfg.get<bool>("CheckParticleValidity",true);
 
@@ -262,7 +265,12 @@ namespace larcv {
       pt.z = sedep.Z();
       pt.t = sedep.T();
       pt.e = sedep.Energy();
-
+      if(_store_dedx) {
+	double dx = sedep.EndX() - sedep.StartX();
+	double dy = sedep.EndY() - sedep.StartY();
+	double dz = sedep.EndZ() - sedep.StartZ();
+	pt.dedx = pt.e / sqrt(pow(dx,2)+pow(dy,2)+pow(dz,2));
+      }
       int track_id = abs(sedep.TrackID());
       if(track_id >= ((int)(trackid2index.size()))) {
 	bad_sedep_counter++;
@@ -291,6 +299,8 @@ namespace larcv {
       if(!use_true2reco) {
 	// no need to translate
 	grp.vs.emplace(vox_id,pt.e,true);
+	if(_store_dedx)
+	  grp.dedx.emplace(vox_id,pt.dedx,true);
 	grp.AddEDep(pt);
       }
       else if(track_id >= (int)(true2reco_v.size()) || true2reco_v[track_id].empty()) {
@@ -325,6 +335,8 @@ namespace larcv {
 	    }
 	    //grp.vs.emplace(vox.id(),pt.e * vox.value()/reco_sum,true);
 	    grp.vs.emplace(reco_vox_id,pt.e/true2reco_iter->second.size(),true);
+	    if(_store_dedx)
+	      grp.dedx.emplace(reco_vox_id,pt.dedx/true2reco_iter->second.size(),true);
 	  }
 	  pt.x = position.x;
 	  pt.y = position.y;
@@ -697,12 +709,24 @@ namespace larcv {
     // Loop again and eliminate voxels that has energy below threshold
     for(auto& grp : part_grp_v) {
       larcv::VoxelSet vs;
+      larcv::VoxelSet dedx;
       vs.reserve(grp.vs.size());
-      for(auto const& vox : grp.vs.as_vector()) {
-	if(vox.value() < _edep_threshold) continue;
-	vs.emplace(vox.id(),vox.value(),true);
+      dedx.reserve(grp.dedx.size());
+      bool fill_dedx = grp.dedx.size();
+      for(size_t i=0; i<grp.vs.size(); ++i) {
+	auto const& vox_energy = grp.vs.as_vector()[i];
+	if(vox_energy.value() < _edep_threshold) continue;
+	vs.emplace(vox_energy.id(),vox_energy.value(),true);
+	if(!fill_dedx) continue;
+	auto const& vox_dedx = grp.dedx.as_vector()[i];
+	if(vox_dedx.id() != vox_energy.id()) {
+	  LARCV_CRITICAL() << "Unmatched voxel ID between dE/dX and energy voxels" << std::endl;
+	  throw larbys();
+	}
+	dedx.emplace(vox_dedx.id(),vox_dedx.value(),true);
       }
       grp.vs = vs;
+      grp.dedx = dedx;
       // If compton, here decide whether it should be supera::kComptonHE (high energy)
       if(grp.type == supera::kCompton && grp.vs.size() > _compton_size) {
 	//std::cout<<"Track ID "<<grp.part.track_id()<<" high energy compton"<<std::endl;
@@ -1845,6 +1869,22 @@ namespace larcv {
     event_cluster_he->meta(meta3d);
     event_cluster_le->meta(meta3d);
     event_leftover->meta(meta3d);
+    // dedx if necessary to store
+    EventClusterVoxel3D *event_dedx, *event_dedx_he, *event_dedx_le;
+    EventSparseTensor3D *event_dedx_leftover;
+    event_dedx = event_dedx_he = event_dedx_le = nullptr;
+    event_dedx_leftover = nullptr;
+    if(_store_dedx) {
+      event_dedx    = (EventClusterVoxel3D*)(mgr.get_data("cluster3d",_output_label + "_dedx"));
+      event_dedx_he = (EventClusterVoxel3D*)(mgr.get_data("cluster3d",_output_label + "_highE_dedx"));
+      event_dedx_le = (EventClusterVoxel3D*)(mgr.get_data("cluster3d",_output_label + "_lowE_dedx"));
+      event_dedx_leftover = (EventSparseTensor3D*)(mgr.get_data("sparse3d",_output_label + "_leftover_dedx"));
+      // set meta for all
+      event_dedx->meta(meta3d);
+      event_dedx_he->meta(meta3d);
+      event_dedx_le->meta(meta3d);
+      event_dedx_leftover->meta(meta3d);
+    }
 
     std::vector<larcv::ClusterPixel2D> vsa2d_v;          vsa2d_v.resize(_valid_nplanes);
     std::vector<larcv::ClusterPixel2D> vsa2d_he_v;       vsa2d_he_v.resize(_valid_nplanes);
@@ -1867,6 +1907,11 @@ namespace larcv {
     event_cluster->resize(output2trackid.size());
     event_cluster_he->resize(output2trackid.size());
     event_cluster_le->resize(output2trackid.size());
+    if(_store_dedx) {
+      event_dedx->resize(output2trackid.size());
+      event_dedx_he->resize(output2trackid.size());
+      event_dedx_le->resize(output2trackid.size());
+    }
     for(size_t index=0; index<output2trackid.size(); ++index) {
       int trackid = output2trackid[index];
       auto& grp   = part_grp_v[trackid];
@@ -1908,13 +1953,21 @@ namespace larcv {
       std::swap(grp.part, part_v[index]);
       grp.part = part_v[index];
       // fill 3d cluster
-      event_cluster->writeable_voxel_set(index) = grp.vs;
+      event_cluster->writeable_voxel_set(index) = grp.vs;      
       if(semantic != kShapeLEScatter)
 	event_cluster_he->writeable_voxel_set(index) = grp.vs;
       else {
 	event_cluster_le->writeable_voxel_set(index) = grp.vs;
 	for(auto const& vox : grp.vs.as_vector())
 	  cid_vs.emplace(vox.id(),index,false);
+      }
+      // fill 3d dedx
+      if(_store_dedx) {
+	event_dedx->writeable_voxel_set(index) = grp.dedx;
+	if(semantic != kShapeLEScatter)
+	  event_dedx_he->writeable_voxel_set(index) = grp.dedx;
+	else 
+	  event_dedx_le->writeable_voxel_set(index) = grp.dedx;
       }
       //grp.vs.clear_data();
       // fill 2d cluster
@@ -1989,7 +2042,16 @@ namespace larcv {
 	vs.emplace(vox.id(),vox.value(),true);
 	cid_vs.emplace(vox.id(),output_index,false);
       }
+      if(_store_dedx) {
+	auto& dedx_le = event_dedx_le->writeable_voxel_set(output_index);
+	auto& dedx    = event_dedx->writeable_voxel_set(output_index);
+	for(auto const& vox : grp.dedx.as_vector()) {
+	  dedx_le.emplace(vox.id(),vox.value(),true);
+	  dedx.emplace(vox.id(),vox.value(),true);
+	}
+      }
       grp.vs.clear_data();
+      grp.dedx.clear_data();
       // fill 2d cluster
       for(size_t plane_idx=0; plane_idx<_valid_nplanes; ++plane_idx) {
 	auto& vs2d = vsa2d_v[plane_idx].writeable_voxel_set(output_index);
@@ -2013,7 +2075,8 @@ namespace larcv {
     LARCV_INFO() << "Voxel count x-check: output = " << output_vs_size << " ... total = " << total_vs_size << std::endl;
 
     LARCV_INFO()<<"Combined reminders..."<<std::endl;
-    larcv::VoxelSet leftover_vs; leftover_vs.reserve(total_vs_size - output_vs_size);
+    larcv::VoxelSet leftover_vs;   leftover_vs.reserve(total_vs_size - output_vs_size);
+    larcv::VoxelSet leftover_dedx; leftover_dedx.reserve(total_vs_size - output_vs_size);
     std::vector<larcv::VoxelSet> leftover2d_vs(_valid_nplanes);
     for(auto& vs : leftover2d_vs) vs.reserve(total_vs_size - output_vs_size);
 
@@ -2021,7 +2084,8 @@ namespace larcv {
       int ctr= 0;
       for(auto& grp : part_grp_v) {
 	if(grp.size_all()<1) continue;
-	for(auto const& vox : grp.vs.as_vector()) leftover_vs.emplace(vox.id(),vox.value(),true);
+	for(auto const& vox : grp.vs.as_vector())   leftover_vs.emplace(vox.id(),vox.value(),true);
+	for(auto const& vox : grp.dedx.as_vector()) leftover_dedx.emplace(vox.id(),vox.value(),true);
 	for(size_t plane_idx=0; plane_idx<_valid_nplanes; ++plane_idx) {
 	  for(auto const& vox : grp.vs2d_v[plane_idx].as_vector()) {
 	    leftover2d_vs[plane_idx].emplace(vox.id(),vox.value(),true);
@@ -2052,7 +2116,8 @@ namespace larcv {
       LARCV_INFO() << "... " << ctr << " particles" << std::endl;
     }
     event_leftover->emplace(std::move(leftover_vs),meta3d);
-
+    if(_store_dedx)
+      event_dedx_leftover->emplace(std::move(leftover_dedx),meta3d);
     // Loop over to find any "stil valid" supera::kIonization supera::kConversion supera::kComptonHE
     LARCV_INFO() << "Particle list" << std::endl;
     for(size_t index = 0; index < part_v.size(); ++index) {
@@ -2119,6 +2184,32 @@ namespace larcv {
 	  auto children = part_v[part.parent_id()].children_id();
 	  children.push_back(part_index);
 	  part_v[part.parent_id()].children_id(children);
+	}
+      }
+    }
+
+    // validate dedx lenth
+    if(_store_dedx) {
+      if(event_cluster->size() != event_dedx->size()) {
+	LARCV_CRITICAL() << "Energy v.s. dE/dX cluster count mismatch " 
+			 << event_cluster->size() << " v.s. " << event_dedx->size() << std::endl;
+	throw larbys();
+      }
+      if(event_cluster_he->size() != event_dedx_he->size()) {
+	LARCV_CRITICAL() << "Energy v.s. dE/dX (HighE) cluster count mismatch " 
+			 << event_cluster_he->size() << " v.s. " << event_dedx_he->size() << std::endl;
+	throw larbys();
+      }
+      if(event_cluster_le->size() != event_dedx_le->size()) {
+	LARCV_CRITICAL() << "Energy v.s. dE/dX (LowE) cluster count mismatch " 
+			 << event_cluster_le->size() << " v.s. " << event_dedx_le->size() << std::endl;
+	throw larbys();
+      }
+      for(size_t i=0; i<event_cluster->size(); ++i) {
+	if(event_cluster->as_vector()[i].size() != event_dedx->as_vector()[i].size()) {
+	  LARCV_CRITICAL() << "Energy v.s. dE/dX cluster " << i << " has mismatch voxel count " 
+			   << event_cluster->as_vector()[i].size() << " v.s. " << event_dedx->as_vector()[i].size() <<std::endl;
+	  throw larbys();
 	}
       }
     }
@@ -2373,7 +2464,7 @@ namespace larcv {
 	if(ix1>ix2) diffx = ix1-ix2; else diffx = ix2-ix1;
 	if(iy1>iy2) diffy = iy1-iy2; else diffy = iy2-iy1;
 	if(iz1>iz2) diffz = iz1-iz2; else diffz = iz2-iz1;
-	touching = diffx<=1 && diffy<=1 && diffz <=1;
+	touching = diffx<=_touch_threshold && diffy<=_touch_threshold && diffz <=_touch_threshold;
 	if(touching) {
 	  //std::cout<<"Touching ("<<ix1<<","<<iy1<<","<<iz1<<") ("<<ix2<<","<<iy2<<","<<iz2<<")"<<std::endl;
 	  break;
@@ -2400,7 +2491,7 @@ namespace larcv {
 	meta.index_to_rowcol(vox2.id(), iy2, ix2);
 	if(ix1>ix2) diffx = ix1-ix2; else diffx = ix2-ix1;
 	if(iy1>iy2) diffy = iy1-iy2; else diffy = iy2-iy1;
-	touching = diffx<=1 && diffy<=1;
+	touching = diffx<=_touch_threshold2d && diffy<=_touch_threshold2d;
 	if(touching) break;
       }
       if(touching) break;

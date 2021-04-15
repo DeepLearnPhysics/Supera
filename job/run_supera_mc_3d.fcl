@@ -1,26 +1,11 @@
 #include "services_icarus_simulation.fcl"
-#include "services_icarus.fcl"
-#include "largeantmodules_icarus.fcl"
-#include "detsimmodules_ICARUS.fcl"
-#include "opdetsim_pmt_icarus.fcl"
-#include "crtsimmodules_icarus.fcl"
-#include "rawdigitfilter_icarus.fcl"
-#include "recowire_icarus.fcl"
-#include "hitfindermodules_icarus.fcl"
-#include "cluster_icarus.fcl"
-#include "multipartvertex_icarus.fcl"
-#include "mcreco.fcl"
-process_name: G4m
+
+process_name: Supera
 
 services:
 {
-  #@table::icarus_simulation_services
-  @table::icarus_wirecalibration_services
-  LArG4Parameters:                       @local::icarus_largeantparameters
-  LArVoxelCalculator:                    @local::icarus_larvoxelcalculator
-  SpaceChargeService:                    @local::icarus_spacecharge
-  MagneticField:                         @local::no_mag_larsoft
-  PhotonVisibilityService:         @local::icarus_photonvisibilityservice
+  @table::icarus_g4_services
+  #PhotonVisibilityService:               @local::standard_library_vuv_prop_timing_photonvisibilityservice
 }
 
 source:
@@ -67,7 +52,8 @@ outputs:
 }
 
 services.TFileService.fileName: "ana.root"
-services.LArG4Parameters.FillSimEnergyDeposits:       true
+services.Geometry:               @local::icarus_single_induction_nooverburden_geometry
+services.ExptGeoHelperInterface: @local::icarus_single_induction_geometry_helper
 
 services.message.destinations :
 {
