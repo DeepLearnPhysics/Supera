@@ -46,7 +46,8 @@ namespace larcv {
 
   private:
     larcv::BBox3D _world_bounds;
-    std::string _output_label, _producer_label;
+    std::vector<std::string> _producer_labels;
+    std::string _output_label;
     size_t _max_debug_dropping = 0; // Max debug message for dropping space points
     unsigned short _n_planes = 3;
     bool _store_wire_info = false;
