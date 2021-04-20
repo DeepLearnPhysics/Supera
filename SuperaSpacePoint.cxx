@@ -115,7 +115,8 @@ namespace larcv {
               || (i_pt < 1000 && i_pt % 100 == 0)
               || (i_pt < 10000 && i_pt % 1000 ==0)
               || (i_pt % 10000 == 0)) {
-            LARCV_INFO() << "Processing 3D pts " << i_pt << "/" << points.size() << '\n';
+            LARCV_INFO() << "Processing " << label << ": " 
+              << i_pt << "/" << points.size() << '\n';
           }
 
           auto const &pt = points[i_pt];
