@@ -6,6 +6,31 @@
 
 #include "canvas/Persistency/Common/FindManyP.h"
 
+#include <set>
+class MyVoxelSet{
+  public:
+    MyVoxelSet() {;}
+    void emplace(larcv::VoxelID_t id, float value, bool add) {
+      larcv::Voxel v(id, value);
+      auto itr = _voxel_set.find(v);
+      if (add && itr != _voxel_set.end()) {
+        v += itr->value();
+        _voxel_set.erase(itr);
+      }
+      _voxel_set.insert(std::move(v));
+    }
+    void move_to(larcv::VoxelSet& v_set) {
+      size_t n = _voxel_set.size();
+      v_set.reserve(n);
+      for (auto& v : _voxel_set) {
+        v_set.insert(v);
+      }
+      _voxel_set.clear();
+    }
+  private:
+    std::set<larcv::Voxel> _voxel_set;
+};
+
 namespace larcv {
 
   static SuperaSpacePointProcessFactory __global_SuperaSpacePointProcessFactory__;
@@ -58,10 +83,16 @@ namespace larcv {
      * Now consider whole event as a single cluster
      */
 
-    larcv::VoxelSet v_occupancy;
-    larcv::VoxelSet v_charge;
-    larcv::VoxelSet v_charge_asym;
-    larcv::VoxelSet v_chi2;
+    std::set<larcv::Voxel> _vset;
+
+    //larcv::VoxelSet v_occupancy;
+    //larcv::VoxelSet v_charge;
+    //larcv::VoxelSet v_charge_asym;
+    //larcv::VoxelSet v_chi2;
+    MyVoxelSet v_occupancy;
+    MyVoxelSet v_charge;
+    MyVoxelSet v_charge_asym;
+    MyVoxelSet v_chi2;
 
     std::vector<larcv::VoxelSet> v_hit_charge(_n_planes);
     std::vector<larcv::VoxelSet> v_hit_amp   (_n_planes);
@@ -87,10 +118,10 @@ namespace larcv {
     }
 
     // reserve
-    v_occupancy.reserve(n_pts);
-    v_charge.reserve(n_pts);
-    v_charge_asym.reserve(n_pts);
-    v_chi2.reserve(n_pts);
+    //v_occupancy.reserve(n_pts);
+    //v_charge.reserve(n_pts);
+    //v_charge_asym.reserve(n_pts);
+    //v_chi2.reserve(n_pts);
 
     if (_store_wire_info) {
       LARCV_DEBUG() << "Store wire info\n";
@@ -144,8 +175,8 @@ namespace larcv {
 
           v_occupancy.emplace(vox_id, 1, true);
 
-          if (!(v_chi2.find(vox_id) == larcv::kINVALID_VOXEL))
-              continue;
+          //if (!(v_chi2.find(vox_id) == larcv::kINVALID_VOXEL))
+          //    continue;
 
           v_chi2.emplace(vox_id, pt.Chisq(), true);
           v_charge.emplace(vox_id, charge, true);
@@ -203,10 +234,17 @@ namespace larcv {
             store(vec[i], name + std::to_string(i));
     };
 
-    store(v_charge,      "");
-    store(v_charge_asym, "charge_asym");
-    store(v_chi2,        "chi2");
-    store(v_occupancy,   "occupancy");
+    auto store_v2 = [&](auto &my_vset, const std::string& name)
+    {
+      larcv::VoxelSet vset;
+      my_vset.move_to(vset);
+      store(vset, name);
+    };
+
+    store_v2(v_charge,      "");
+    store_v2(v_charge_asym, "charge_asym");
+    store_v2(v_chi2,        "chi2");
+    store_v2(v_occupancy,   "occupancy");
 
     if (_store_wire_info) {
       store_vec(v_hit_charge, "hit_charge");
