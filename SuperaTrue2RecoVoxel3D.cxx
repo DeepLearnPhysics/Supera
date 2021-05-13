@@ -177,7 +177,7 @@ namespace larcv {
     _dump_to_csv = cfg.get<bool>("DumpToCSV", false);
     _post_averaging = cfg.get<bool>("PostAveraging", false);
     _post_averaging_threshold = cfg.get<double>("PostAveragingThreshold_cm", 0.3);
-    _reco_charge_range = cfg.get<std::vector<double>>("RecoChargeRange", {0,9e99}); 
+    _reco_charge_range = cfg.get<std::vector<double>>("RecoChargeRange", {0,9e99});
     assert(_reco_charge_range.size() == 2);
   }
 
@@ -242,14 +242,14 @@ namespace larcv {
     //
     // clear true2reco, ghosts maps
     clear_maps();
-    
+
     auto event_id = mgr.event_id().event();
     LARCV_INFO() << "Retrieving 3D meta..." << std::endl;
     auto meta3d = get_meta3d(mgr);
 
     std::unordered_set<VoxelID_t> true_voxel_ids;
     std::vector<VoxelID_t> reco_voxel_ids;
-    
+
     //
     // Step 1. ... create a list of true hits
     //
@@ -395,14 +395,14 @@ namespace larcv {
             overlaps = std::move(overlaps_);
         }
       }
-      
+
       RecoVoxel3D reco_voxel3d(reco_voxel_id);
       for (auto const& true_pt: overlaps)
         insert_one_to_many(_true2reco, true_pt, reco_voxel3d);
     } // end looping reco pts
 
     LARCV_INFO()
-      << "Dropping " << n_dropped 
+      << "Dropping " << n_dropped
       << " out of " << space_pts->size()
       << " reco pts" << std::endl;
 
@@ -430,7 +430,7 @@ namespace larcv {
     auto reco2true = contract_reco2true();
 
     LARCV_INFO()
-      << true2reco.size() << " true points mapped to " 
+      << true2reco.size() << " true points mapped to "
       << reco2true.size() << " reco points" << std::endl;
 
     if(!_output_tensor3d.empty() || !_output_cluster3d.empty()) {
@@ -446,7 +446,7 @@ namespace larcv {
         event_cluster3d->resize(true2reco.size());
         event_cluster3d->meta(meta3d);
       }
-      
+
       size_t cluster_ctr=0;
       for(auto const& keyval : true2reco) {
         if(event_cluster3d && keyval.second.empty()) continue;
@@ -545,7 +545,7 @@ namespace larcv {
         double dz = z[i] - z0;
         double dist2 = dx*dx + dy*dy + dz*dz;
 
-        if (dist2 < threshold2) 
+        if (dist2 < threshold2)
           insert_one_to_many(_reco2true, RecoVoxel3D(reco_id), true_pt);
         else
           reco_pts.erase(RecoVoxel3D(reco_id));
@@ -565,7 +565,7 @@ namespace larcv {
 
   void SuperaTrue2RecoVoxel3D::set_ghost()
   {
-    for (auto const& [true_pt, reco_pts] : _true2reco) 
+    for (auto const& [true_pt, reco_pts] : _true2reco)
       for (auto const& reco_pt : reco_pts)
         insert_one_to_many(_reco2true, reco_pt, true_pt);
   }
@@ -652,7 +652,7 @@ namespace larcv {
   }
 
   std::map<VoxelID_t, std::unordered_set<VoxelID_t>>
-  SuperaTrue2RecoVoxel3D::contract_true2reco() 
+  SuperaTrue2RecoVoxel3D::contract_true2reco()
   {
     std::map<VoxelID_t, std::unordered_set<VoxelID_t>> true2reco;
     for (auto& [true_pt,  reco_pts] : _true2reco)
@@ -677,9 +677,10 @@ namespace larcv {
     std::vector<std::map<VoxelID_t, std::unordered_set<VoxelID_t> > > result;
     for (auto& [true_pt, reco_pts] : _true2reco) {
       result.resize(std::max(result.size(),(size_t)(abs(true_pt.track_id) + 1)));
-      auto& target = result[true_pt.track_id];
-      for (auto& reco_pt : reco_pts)
+      auto& target = result[abs(true_pt.track_id)];
+      for (auto& reco_pt : reco_pts) {
 	insert_one_to_many(target, true_pt.voxel_id, reco_pt.get_id());
+	  }
     }
     return result;
   }
