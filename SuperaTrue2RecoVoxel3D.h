@@ -58,7 +58,8 @@ namespace larcv {
   private:
 
     larcv::Voxel3DMeta get_meta3d(IOManager& mgr) const;
-    std::string _hit_producer, _sps_producer, _ref_meta3d_cluster3d, _ref_meta3d_tensor3d;
+    std::string  _ref_meta3d_cluster3d, _ref_meta3d_tensor3d;
+		std::vector<std::string> _sps_producer_v;
     std::string _output_tensor3d, _output_cluster3d;
     bool _debug, _use_true_pos;
     bool _twofold_matching;
@@ -75,7 +76,7 @@ namespace larcv {
 
     // Map (true_id, track_id) -> [RecoVoxel3D]
     std::map<TrackVoxel_t, std::unordered_set<RecoVoxel3D>> _true2reco;
-    
+
     // reverse map for RecoVoxel3D -> [true_id, track_id]
     std::map<RecoVoxel3D, std::unordered_set<TrackVoxel_t>> _reco2true;
 
@@ -92,7 +93,7 @@ namespace larcv {
       auto itr = m.find(key);
       if (itr == m.end())
         m.emplace(key, std::unordered_set<V>({value}));
-      else 
+      else
         itr->second.insert(value);
     }
 
@@ -106,7 +107,7 @@ namespace larcv {
     // find peak (per track_id) of true hits in [t_start, t_end]
     void find_hit_peaks(const std::vector<TrueHit_t>& hits, double t_start, double t_end,
         std::set<TrackVoxel_t>& track_voxel_ids);
-  
+
     // make ghost labels with simple overlapping 2 or 3 true hits
     void set_ghost();
 

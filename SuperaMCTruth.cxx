@@ -3,6 +3,8 @@
 
 #include "SuperaMCTruth.h"
 #include "larcv/core/DataFormat/EventParticle.h"
+#include "larcv/core/DataFormat/EventNeutrino.h"
+#include "larcv/core/DataFormat/Neutrino.h"
 
 namespace larcv {
 
@@ -28,6 +30,7 @@ namespace larcv {
     SuperaBase::process(mgr);
 
     auto& ev_part = mgr.get_data<larcv::EventParticle>(_output_label);
+		auto& ev_nu   = mgr.get_data<larcv::EventNeutrino>(_output_label);
 
     auto const& mct_v = LArData<supera::LArMCTruth_t>();
     for(size_t mct_index=0; mct_index<mct_v.size(); ++mct_index) {
@@ -39,6 +42,8 @@ namespace larcv {
 
       if(mct.NeutrinoSet()) {
 	auto const& mcnu = mct.GetNeutrino().Nu();
+	auto const& mcnuint = mct.GetNeutrino();
+
 	larcv::Particle nu;
 	nu.mct_index(mct_index);
 	nu.track_id(mcnu.TrackId());
@@ -56,9 +61,47 @@ namespace larcv {
 	nu.parent_pdg_code(mcnu.PdgCode());
 	nu.ancestor_track_id(mcnu.TrackId());
 	nu.ancestor_pdg_code(mcnu.PdgCode());
-	
+	nu.nu_interaction_type(mcnuint.InteractionType());
+	nu.nu_current_type(mcnuint.CCNC());
+	//nu.nu_interaction_mode(mcnuint.Mode());
+	//nu.nu_nucleon(mcnuint.HitNuc());
+	//nu.nu_quark(mcnuint.HitQuark());
+	//nu.nu_momentum_transfer(mcnuint.QSqr());
+	//nu.nu_bjorken_x(mcnuint.X());
+
 	LARCV_INFO() << nu.dump() << std::endl;
+	LARCV_INFO() << mcnuint << std::endl;
 	ev_part.emplace_back(std::move(nu));
+
+	larcv::Neutrino neutrino;
+	neutrino.mct_index(mct_index);
+	neutrino.nu_track_id(mcnu.TrackId());
+	neutrino.lepton_track_id(mcnuint.Lepton().TrackId());
+	neutrino.current_type(mcnuint.CCNC());
+	neutrino.interaction_mode(mcnuint.Mode());
+	neutrino.interaction_type(mcnuint.InteractionType());
+	neutrino.target(mcnuint.Target());
+	neutrino.nucleon(mcnuint.HitNuc());
+	neutrino.quark(mcnuint.HitQuark());
+	neutrino.hadronic_invariant_mass(mcnuint.W());
+	neutrino.bjorken_x(mcnuint.X());
+	neutrino.inelasticity(mcnuint.Y());
+	neutrino.momentum_transfer(mcnuint.QSqr());
+	neutrino.theta(mcnuint.Theta());
+	neutrino.pdg_code(mcnu.PdgCode());
+	neutrino.momentum(mcnu.Px(), mcnu.Py(), mcnu.Pz());
+	neutrino.position(mcnu.Vx(), mcnu.Vy(), mcnu.Vz(), mcnu.T());
+	neutrino.energy_init(mcnu.Momentum(0).T());
+	neutrino.creation_process(mcnu.Process());
+	auto& traj = mcnu.Trajectory();
+	//auto& processes = traj.TrajectoryProcesses();
+	for(size_t j = 0; j < traj.size(); ++j) {
+		neutrino.add_trajectory_point(
+			traj.X(j), traj.Y(j), traj.Z(j), traj.T(j),
+			traj.Px(j), traj.Py(j), traj.Pz(j), traj.E(j)
+		);
+	}
+	ev_nu.emplace_back(std::move(neutrino));
       }
 
       for(int i=0; i<mct.NParticles(); ++i) {
@@ -89,7 +132,7 @@ namespace larcv {
     }
     return true;
   }
-      
+
   void SuperaMCTruth::finalize()
   {}
 }

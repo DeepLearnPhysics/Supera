@@ -65,7 +65,7 @@ namespace larcv {
       auto const& t = tpc_v[idx];
       auto const& cryostat = geop->Cryostat(c);
       if(!cryostat.HasTPC(t)) {
-	LARCV_CRITICAL() << "Invalid TPCList: cryostat " << c 
+	LARCV_CRITICAL() << "Invalid TPCList: cryostat " << c
 			 << " does not contain tpc " << t << std::endl;
 	throw larbys();
       }
@@ -102,7 +102,7 @@ namespace larcv {
 	auto const& p = plane_v[idx];
 	auto const& cryostat = geop->Cryostat(c);
 	if(!cryostat.HasTPC(t)) {
-	  LARCV_CRITICAL() << "Invalid TPCList: cryostat " << c 
+	  LARCV_CRITICAL() << "Invalid TPCList: cryostat " << c
 			   << " does not contain tpc " << t << std::endl;
 	  throw larbys();
 	}
@@ -116,7 +116,7 @@ namespace larcv {
 	++_valid_nplanes;
       }
     }
-    
+
     if(cfg.contains_pset("SuperaTrue2RecoVoxel3D")) {
       LARCV_INFO() << "Configuring SuperaTrue2RecoVoxel3D" << std::endl;
       auto pset = cfg.get<PSet>("SuperaTrue2RecoVoxel3D");
@@ -429,7 +429,7 @@ namespace larcv {
     xrange2d.second = trange2d.second = recorded_xrange2d.second = recorded_trange2d.second = -1.e20;
 
     //larcv::VoxelSet kvs;
-    
+
     for(auto const& sch : sch_v) {
 
       auto ch = sch.Channel();
@@ -576,7 +576,7 @@ namespace larcv {
 		}
 	      }
 	    }
-	  }  
+	  }
 	  if(analyze2d) {
 	    VoxelID_t vox2d_id = larcv::kINVALID_VOXELID;
 	    auto const& meta2d = _meta2d_v[vs2d_idx];
@@ -1090,7 +1090,7 @@ namespace larcv {
 	//auto const& parents = this->ParentShowerTrackIDs(grp.part.track_id(), part_grp_v, true);
 	auto const& parents = this->ParentTrackIDs(grp.part.track_id());
 	/*
-	std::cout<<"Inspecting LEScatter Track ID " << grp.part.track_id() 
+	std::cout<<"Inspecting LEScatter Track ID " << grp.part.track_id()
 		 << " PDG " << grp.part.pdg_code()
 		 << " " << grp.part.creation_process() << std::endl;
 	std::cout<< "  ... parents:"<<std::flush;
@@ -1176,7 +1176,7 @@ namespace larcv {
     std::cout<< "Listing non-zero voxel particles..." << std::endl;
     for(auto const& grp : part_grp_v) {
       if(grp.vs.size() < 1) continue;
-      std::cout<<"Track ID " << grp.part.track_id() << " PDG " << grp.part.pdg_code() 
+      std::cout<<"Track ID " << grp.part.track_id() << " PDG " << grp.part.pdg_code()
 	       << " " << grp.part.creation_process() << " " << grp.vs.size() << " voxels"
 	       <<" ... parent Track ID " << grp.part.parent_track_id() << " PDG " << grp.part.parent_pdg_code() << std::endl;
     }
@@ -1193,7 +1193,7 @@ namespace larcv {
     // Apply energy threshold
     LARCV_INFO() << "Applying energy threshold" << std::endl;
     this->ApplyEnergyThreshold(part_grp_v);
-    
+
     // Merge fragments of showers
     LARCV_INFO() << "Merging: shower conversions" << std::endl;
     this->MergeShowerConversion(part_grp_v);
@@ -1224,7 +1224,7 @@ namespace larcv {
     std::cout<< "Listing non-zero voxel particles..." << std::endl;
     for(auto const& grp : part_grp_v) {
       if(grp.vs.size() < 1) continue;
-      std::cout<<"Track ID " << grp.part.track_id() << " PDG " << grp.part.pdg_code() 
+      std::cout<<"Track ID " << grp.part.track_id() << " PDG " << grp.part.pdg_code()
 	       << " " << grp.part.creation_process() << " " << grp.vs.size() << " voxels"
 	       <<" ... parent Track ID " << grp.part.parent_track_id() << " PDG " << grp.part.parent_pdg_code() << std::endl;
     }
@@ -1578,7 +1578,7 @@ namespace larcv {
 	continue;
       }
       LARCV_INFO() << "Assigning a group ID " << group_id << " to kShapeLEScatter orphan" << std::endl
-		   << "  Track ID " << grp.part.track_id() << " PDG " << grp.part.pdg_code() 
+		   << "  Track ID " << grp.part.track_id() << " PDG " << grp.part.pdg_code()
 		   << " " << grp.part.creation_process() << std::endl;
       grp.part.group_id(group_id);
       trackid2output[trackid] = group_id;
@@ -1840,7 +1840,7 @@ namespace larcv {
       auto const& ancestor = larmcp_v[ancestor_index];
       larcv::Vertex apos (ancestor.Vx(),ancestor.Vy(),ancestor.Vz(),ancestor.T());
       int aid = -1;
-      for(size_t iid=0; iid<int2vtx.size(); ++iid) 
+      for(size_t iid=0; iid<int2vtx.size(); ++iid)
 	{
 	  auto const& vtx = int2vtx[iid];
 	  if(vtx == apos) {
@@ -1858,9 +1858,9 @@ namespace larcv {
     LARCV_NORMAL() << no_ancestor_count << " particles have no ancestor, summed deposit energy = " << no_ancestor_energy_sum << std::endl;
     //for(auto const& vtx : int2vtx)
     //  std::cout<<vtx.x()<<","<<vtx.y()<<","<<vtx.z()<<","<<vtx.t()<<std::endl;
-    
+
     LARCV_INFO() <<  "Start storing " << output2trackid.size() << " particles ..." << std::endl;
-    
+
     // now loop over to create VoxelSet for compton/photoelectron
     std::vector<larcv::Particle> part_v; part_v.resize(output2trackid.size());
     auto event_cluster    = (EventClusterVoxel3D*)(mgr.get_data("cluster3d",_output_label));
@@ -1923,14 +1923,14 @@ namespace larcv {
       if(semantic == larcv::kShapeUnknown) {
 	LARCV_CRITICAL() << "Unexpected type while assigning semantic class: " << grp.type << std::endl;
 	auto const& part = grp.part;
-	LARCV_CRITICAL() << "Particle ID " << part.id() << " Type " << grp.type << " Valid " << grp.valid 
+	LARCV_CRITICAL() << "Particle ID " << part.id() << " Type " << grp.type << " Valid " << grp.valid
 			 << " Track ID " << part.track_id() << " PDG " << part.pdg_code()
 			 << " " << part.creation_process() << " ... " << part.energy_init() << " MeV => " << part.energy_deposit() << " MeV "
 			 << grp.trackid_v.size() << " children " << grp.vs.size() << " voxels " << grp.vs.sum() << " MeV" << std::endl;
-	LARCV_CRITICAL() << "  Parent " << part.parent_track_id() << " PDG " << part.parent_pdg_code() 
-			 << " " << part.parent_creation_process() << " Ancestor " << part.ancestor_track_id() 
+	LARCV_CRITICAL() << "  Parent " << part.parent_track_id() << " PDG " << part.parent_pdg_code()
+			 << " " << part.parent_creation_process() << " Ancestor " << part.ancestor_track_id()
 			 << " PDG " << part.ancestor_pdg_code() << " " << part.ancestor_creation_process() << std::endl;
-			 
+
 
 	throw std::exception();
       }
@@ -1956,7 +1956,7 @@ namespace larcv {
       std::swap(grp.part, part_v[index]);
       grp.part = part_v[index];
       // fill 3d cluster
-      event_cluster->writeable_voxel_set(index) = grp.vs;      
+      event_cluster->writeable_voxel_set(index) = grp.vs;
       if(semantic != kShapeLEScatter)
 	event_cluster_he->writeable_voxel_set(index) = grp.vs;
       else {
@@ -1969,7 +1969,7 @@ namespace larcv {
 	event_dedx->writeable_voxel_set(index) = grp.dedx;
 	if(semantic != kShapeLEScatter)
 	  event_dedx_he->writeable_voxel_set(index) = grp.dedx;
-	else 
+	else
 	  event_dedx_le->writeable_voxel_set(index) = grp.dedx;
       }
       //grp.vs.clear_data();
@@ -2029,8 +2029,8 @@ namespace larcv {
 	bool touching = this->IsTouching(meta3d,grp.vs,part_grp_v[output2trackid[out_index]].vs);
 	if(touching && output_index == (int)(out_index)) {
 	  auto const& parent = part_grp_v[output2trackid[out_index]];
-	  std::cout<< "  Parent Track ID " << parent.part.track_id() 
-		   << " PDG " << parent.part.pdg_code() 
+	  std::cout<< "  Parent Track ID " << parent.part.track_id()
+		   << " PDG " << parent.part.pdg_code()
 		   << " " << parent.part.creation_process() << std::endl;
 	  throw std::exception();
 	}
@@ -2194,23 +2194,23 @@ namespace larcv {
     // validate dedx lenth
     if(_store_dedx) {
       if(event_cluster->size() != event_dedx->size()) {
-	LARCV_CRITICAL() << "Energy v.s. dE/dX cluster count mismatch " 
+	LARCV_CRITICAL() << "Energy v.s. dE/dX cluster count mismatch "
 			 << event_cluster->size() << " v.s. " << event_dedx->size() << std::endl;
 	throw larbys();
       }
       if(event_cluster_he->size() != event_dedx_he->size()) {
-	LARCV_CRITICAL() << "Energy v.s. dE/dX (HighE) cluster count mismatch " 
+	LARCV_CRITICAL() << "Energy v.s. dE/dX (HighE) cluster count mismatch "
 			 << event_cluster_he->size() << " v.s. " << event_dedx_he->size() << std::endl;
 	throw larbys();
       }
       if(event_cluster_le->size() != event_dedx_le->size()) {
-	LARCV_CRITICAL() << "Energy v.s. dE/dX (LowE) cluster count mismatch " 
+	LARCV_CRITICAL() << "Energy v.s. dE/dX (LowE) cluster count mismatch "
 			 << event_cluster_le->size() << " v.s. " << event_dedx_le->size() << std::endl;
 	throw larbys();
       }
       for(size_t i=0; i<event_cluster->size(); ++i) {
 	if(event_cluster->as_vector()[i].size() != event_dedx->as_vector()[i].size()) {
-	  LARCV_CRITICAL() << "Energy v.s. dE/dX cluster " << i << " has mismatch voxel count " 
+	  LARCV_CRITICAL() << "Energy v.s. dE/dX cluster " << i << " has mismatch voxel count "
 			   << event_cluster->as_vector()[i].size() << " v.s. " << event_dedx->as_vector()[i].size() <<std::endl;
 	  throw larbys();
 	}
@@ -2364,7 +2364,7 @@ namespace larcv {
     return result;
   }
 
-  std::vector<unsigned int> 
+  std::vector<unsigned int>
   SuperaMCParticleCluster::ParentShowerTrackIDs(size_t trackid,
 						const std::vector<supera::ParticleGroup>& part_grp_v,
 						bool include_lescatter) const

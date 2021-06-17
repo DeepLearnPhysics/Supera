@@ -165,8 +165,13 @@ namespace larcv {
     _output_tensor3d = cfg.get<std::string>("OutputTensor3D","");
     _output_cluster3d = cfg.get<std::string>("OutputCluster3D","");
     _debug = cfg.get<bool> ("DebugMode",false);
-    _hit_producer = cfg.get<std::string>("LArHitProducer","gaushit");
-    _sps_producer = cfg.get<std::string>("LArSpacePointProducer","cluster3d");
+    //_hit_producer = cfg.get<std::string>("LArHitProducer","gaushit");
+    _sps_producer_v = cfg.get<std::vector<std::string>>("LArSpacePointProducers",{});
+		auto sps_prod_label = cfg.get<std::string>("LArSpacePointProducer", "");
+		if (!sps_prod_label.empty()) _sps_producer_v.push_back(sps_prod_label);
+		if (_sps_producer_v.size() == 0)
+			LARCV_ERROR() << "No space point producers" << std::endl;
+
     _use_true_pos = cfg.get<bool>("UseTruePosition",true);
     _twofold_matching = cfg.get<bool>("TwofoldMatching", false);
     _ref_meta3d_cluster3d = cfg.get<std::string>("Meta3DFromCluster3D","pcluster");
@@ -308,11 +313,21 @@ namespace larcv {
     // ---------------------------------------------------
     LARCV_INFO() << "Looping over 3D space points" << std::endl;
     auto const *ev = GetEvent();
-    auto space_pts = ev->getValidHandle<std::vector<recob::SpacePoint>>(_sps_producer);
+		for (auto _sps_producer : _sps_producer_v) {
+			//std::vector<recob::SpacePoint> space_pts;
+			//std::vector<art::FindManyP<recob::Hit>> hit_finder_v;
+			auto space_pts = ev->getValidHandle<std::vector<recob::SpacePoint>>(_sps_producer);
 
-    // TODO(2020-03-20 kvtsang)  No space point, warnning?
-    if (!space_pts.isValid()) return true;
-    art::FindManyP<recob::Hit> hit_finder(space_pts, *ev, _sps_producer);
+			// TODO(2020-03-20 kvtsang)  No space point, warnning?
+			if (!space_pts.isValid()) continue;
+			//art::InputTag const producer_tag(_sps_producer);
+			art::FindManyP<recob::Hit> hit_finder(space_pts, *ev, _sps_producer);
+			LARCV_DEBUG() << _sps_producer << " " << space_pts->size() << std::endl;
+			//space_pts.reserve(space_pts.size() + distance(space_pts_part->begin(), space_pts_part->end()));
+			//space_pts.insert(space_pts.end(), space_pts_part->begin(), space_pts_part->end());
+			//hit_finder_v.push_back(hit_finder);
+		//}
+		//std::cout << "final " << space_pts.size() << std::endl;
 
     size_t n_dropped = 0;
     for (size_t i = 0; i < space_pts->size(); ++i) {
@@ -332,7 +347,7 @@ namespace larcv {
       reco_voxel_ids.push_back(reco_voxel_id);
 
       std::vector<art::Ptr<recob::Hit>> hits;
-      hit_finder.get(i, hits);
+			hit_finder.get(i, hits);
 
       // matching: gaushit -> simhit -> true 3d voxel
       // 3 voxel set per 1 space point
@@ -400,11 +415,12 @@ namespace larcv {
       for (auto const& true_pt: overlaps)
         insert_one_to_many(_true2reco, true_pt, reco_voxel3d);
     } // end looping reco pts
-
-    LARCV_INFO()
+		std::cout
       << "Dropping " << n_dropped
       << " out of " << space_pts->size()
-      << " reco pts" << std::endl;
+      << " reco pts from " << _sps_producer << std::endl;
+	} // end looping producers
+
 
     // debug in csv file
     auto save_to = [&](std::string prefix) {
@@ -474,7 +490,7 @@ namespace larcv {
     dump_sim_channels(LArData<supera::LArSimCh_t>(), meta3d, save_to("simch"));
 
     // cluster3d
-    dump_cluster3d(*space_pts, hit_finder, meta3d, save_to("reco3d"));
+    //dump_cluster3d(*space_pts, hit_finder, meta3d, save_to("reco3d"));
 
     // ghost label
     std::map<VoxelID_t, bool> ghosts;

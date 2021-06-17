@@ -1,0 +1,14 @@
+# Select CCQE events
+
+#include "run_nue.fcl"
+
+#physics.filters.eventInteraction.isInclusive: true
+#physics.filters.eventInteraction.PDG: []
+#physics.filters.eventInteraction.PDGCount: []
+#physics.filters.eventInteraction.PDGCountExclusivity: []
+
+physics.producers.generator.GenFlavors: [ 12 ]
+# Module FilterNeutrinosActiveVolume has an interacton type filter
+# See interaction type list in https://nusoft.fnal.gov/larsoft/doxsvn/html.1.7.1/MCNeutrino_8h_source.html
+# (simb::MCNeutrino)
+physics.filters.eventActive.interactionTypes: [1001]
