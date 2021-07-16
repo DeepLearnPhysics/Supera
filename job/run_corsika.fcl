@@ -12,7 +12,7 @@
 #include "FilterNeutrinoActive.fcl"
 #include "FilterNeutrinoInteraction.fcl"
 
-process_name: BNBNueCosmicSupera
+process_name: BNBCosmicSupera
 
 services:
 {
@@ -25,12 +25,17 @@ services:
 
 source:
 {
-	module_type: EmptyEvent
-	timestampPlugin: { plugin_type: "GeneratedEventTimestamp" }
+ module_type: EmptyEvent
+ timestampPlugin: { plugin_type: "GeneratedEventTimestamp" }
 	maxEvents: 10
 	firstRun: 1
 	firstEvent: 1
 }
+
+#source:
+#{
+#	module_type: RootInput
+#}
 
 physics:
 {
@@ -63,7 +68,7 @@ physics:
  {
 	supera: {
 		module_type: "LArSoftSuperaDriver"
-		supera_params: "supera_nue.fcl"
+		supera_params: "supera_corsika.fcl"
 		out_filename: "larcv.root"
 		unique_filename: false
 		stream: "mc"
@@ -72,7 +77,7 @@ physics:
 	}
  }
 
- simulate: [ rns, generator, eventActive, largeant, mcreco, daq0, daq1, daq2, daq3,
+ simulate: [ rns, cosmgen, largeant, mcreco, daq0, daq1, daq2, daq3,
 						@sequence::icarus_reco_SigProcTPC0Gauss,
 						@sequence::icarus_reco_SigProcTPC1Gauss,
 						@sequence::icarus_reco_SigProcTPC2Gauss,
@@ -84,11 +89,15 @@ physics:
  filter: [ eventActive ]
 
  trigger_paths: [simulate]
+ #trigger_paths: []
  #end_paths:     [analyze,out_stream]
  end_paths:     [analyze]
  #end_paths: [out_stream]
 }
 
+#physics.producers.cosmgen.SampleTime: 1e-3 # default icarus: 2.9e-3
+#physics.producers.cosmgen.EnergyThreshold: 1 #5e-1
+#physics.producers.cosmgen.SubBoxLength: "subboxLength 60 "
 # Fixing error 65 = missing flux files when running neutrino interaction
 physics.producers.generator.FluxCopyMethod: "IFDH"
 physics.producers.generator.GenFlavors: [ 12 ] # 12 for nue, 14 for numu

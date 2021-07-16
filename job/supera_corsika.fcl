@@ -4,7 +4,7 @@ ProcessDriver: {
   EnableFilter: true
   RandomAccess: false
   ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter"]
-  ProcessName:  ["MultiPartVrtx","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter"]
+  ProcessName:  ["MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter"]
 
   IOManager: {
     Verbosity:   2
@@ -46,7 +46,9 @@ ProcessDriver: {
       #MaskedTrueTensor3D: "masked_true"
       #MaskedTrue2RecoCluster3D: "masked_true2reco"
       DeltaSize: 10
-			#EnergyDepositThreshold: 0.5
+      # IonizationSize
+		  # ComptonSize: 100
+			# EnergyDepositThreshold: 0.5
       LArSimEnergyDepositProducer: "largeant TPCActive"
       LArSimChProducer: ""
       #LArSimEnergyDepositProducer: ""
@@ -98,9 +100,10 @@ ProcessDriver: {
       Origin: 0
     }
     SuperaBBoxInteraction: {
-      Verbosity: 0
+      Verbosity: 1
       Profile: true
-      LArMCTruthProducer: "generator"
+      #LArMCTruthProducer: "generator"
+      LArMCTruthProducer: "cosmgen"
       LArSimEnergyDepositProducer: "largeant TPCActive"
       Origin: 0
       Cluster3DLabels: ["mcst","pcluster","sed","masked_true2reco"]
@@ -117,7 +120,7 @@ ProcessDriver: {
       UseFixedBBox: true
     }
     SuperaSimEnergyDeposit: {
-      Verbosity: 1
+      Verbosity: 2
       Profile: true
       LArSimEnergyDepositProducer: "largeant TPCActive"
       LArMCShowerProducer: "mcreco"
@@ -157,11 +160,11 @@ ProcessDriver: {
 
     SuperaSpacePoint: {
       Profile: true
-      Verbosity: 2
+      Verbosity: 1
       SpacePointProducers: ["cluster3DCryo0","cluster3DCryo1"]
       OutputLabel:        "reco"
       DropOutput: ["hit_*"]
-      #StoreWireInfo: true
+      #StoreWireInfo: false
       RecoChargeRange: [-1000, 50000]
     }
 

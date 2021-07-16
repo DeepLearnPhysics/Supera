@@ -855,7 +855,7 @@ namespace larcv {
 	auto& grp_a = part_grp_v[i];
 	if(!grp_a.valid) continue;
 	if(grp_a.shape() != larcv::kShapeShower) continue;
-	for(size_t j=0; j<part_grp_v.size(); ++j) {
+	for(size_t j=i; j<part_grp_v.size(); ++j) {
 	  if(i==j) continue;
 	  auto& grp_b = part_grp_v[j];
 	  if(!grp_b.valid) continue;
