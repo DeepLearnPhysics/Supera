@@ -68,7 +68,7 @@ ProcessDriver: {
         Verbosity: 1
         Meta3DFromCluster3D: "pcluster"
         LArSimChProducer: "largeant"
-        LArSpacePointProducers: ["cluster3DCryo0","cluster3DCryo1"]
+        LArSpacePointProducers: ["cluster3DCryoE","cluster3DCryoW"]
         OutputTensor3D:  "masked_true"
         OutputCluster3D: "masked_true2reco"
         TwofoldMatching: true
@@ -158,7 +158,7 @@ ProcessDriver: {
     SuperaSpacePoint: {
       Profile: true
       Verbosity: 2
-      SpacePointProducers: ["cluster3DCryo0","cluster3DCryo1"]
+      SpacePointProducers: ["cluster3DCryoW","cluster3DCryoE"]
       OutputLabel:        "reco"
       DropOutput: ["hit_*"]
       #StoreWireInfo: true
