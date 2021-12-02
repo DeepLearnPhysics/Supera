@@ -2,12 +2,34 @@
 #define __SUPERASPACEPOINT_CXX__
 
 #include "SuperaSpacePoint.h"
-#include "SuperaUtils.h"
 #include "larcv/core/DataFormat/EventVoxel3D.h"
 
 #include "canvas/Persistency/Common/FindManyP.h"
 
-typedef supera::utils::FastVoxelSet FastVoxelSet;
+#include <set>
+class MyVoxelSet{
+  public:
+    MyVoxelSet() {;}
+    void emplace(larcv::VoxelID_t id, float value, bool add) {
+      larcv::Voxel v(id, value);
+      auto itr = _voxel_set.find(v);
+      if (add && itr != _voxel_set.end()) {
+        v += itr->value();
+        _voxel_set.erase(itr);
+      }
+      _voxel_set.insert(std::move(v));
+    }
+    void move_to(larcv::VoxelSet& v_set) {
+      size_t n = _voxel_set.size();
+      v_set.reserve(n);
+      for (auto& v : _voxel_set) {
+        v_set.insert(v);
+      }
+      _voxel_set.clear();
+    }
+  private:
+    std::set<larcv::Voxel> _voxel_set;
+};
 
 namespace larcv {
 
@@ -63,15 +85,27 @@ namespace larcv {
 
     std::set<larcv::Voxel> _vset;
 
-    FastVoxelSet v_occupancy;
-    FastVoxelSet v_charge;
-    FastVoxelSet v_charge_asym;
-    FastVoxelSet v_chi2;
+    //larcv::VoxelSet v_occupancy;
+    //larcv::VoxelSet v_charge;
+    //larcv::VoxelSet v_charge_asym;
+    //larcv::VoxelSet v_chi2;
+    MyVoxelSet v_occupancy;
+    MyVoxelSet v_charge;
+    MyVoxelSet v_charge_asym;
+    MyVoxelSet v_chi2;
 
-    std::vector<FastVoxelSet> v_hit_charge(_n_planes);
-    std::vector<FastVoxelSet> v_hit_amp   (_n_planes);
-    std::vector<FastVoxelSet> v_hit_time  (_n_planes);
-    std::vector<FastVoxelSet> v_hit_rms   (_n_planes);
+    //std::vector<larcv::VoxelSet> v_hit_charge(_n_planes);
+    //std::vector<larcv::VoxelSet> v_hit_amp   (_n_planes);
+    //std::vector<larcv::VoxelSet> v_hit_time  (_n_planes);
+    //std::vector<larcv::VoxelSet> v_hit_rms   (_n_planes);
+    //std::vector<larcv::VoxelSet> v_hit_charge(_n_planes);
+    std::vector<MyVoxelSet> v_hit_charge(_n_planes);
+    std::vector<MyVoxelSet> v_hit_amp   (_n_planes);
+    std::vector<MyVoxelSet> v_hit_time  (_n_planes);
+    std::vector<MyVoxelSet> v_hit_rms   (_n_planes);
+    std::vector<MyVoxelSet> v_hit_mult  (_n_planes);
+    std::vector<MyVoxelSet> v_hit_cryo  (_n_planes);
+    std::vector<MyVoxelSet> v_hit_tpc   (_n_planes);
 
     /* FIXME(kvtsang) To be removed?
      * Find associated hits
@@ -91,8 +125,22 @@ namespace larcv {
       n_pts += handle->size();
     }
 
-    if (_store_wire_info) 
+    // reserve
+    //v_occupancy.reserve(n_pts);
+    //v_charge.reserve(n_pts);
+    //v_charge_asym.reserve(n_pts);
+    //v_chi2.reserve(n_pts);
+
+    if (_store_wire_info) {
       LARCV_DEBUG() << "Store wire info\n";
+      //for (size_t plane = 0; plane < _n_planes; ++plane) {
+        //v_hit_charge[plane].reserve(n_pts);
+        //v_hit_amp[plane].reserve(n_pts);
+        //v_hit_time[plane].reserve(n_pts);
+        //v_hit_rms[plane].reserve(n_pts);
+        //v_hit_mult[plane].reserve(n_pts);
+      //}
+    }
 
     for (auto const& label : _producer_labels) {
       auto handle = ev->getValidHandle<std::vector<recob::SpacePoint>>(label);
@@ -169,6 +217,9 @@ namespace larcv {
                 v_hit_amp   [plane].emplace(vox_id, hit->PeakAmplitude(), true);
                 v_hit_time  [plane].emplace(vox_id, hit->PeakTime(),      true);
                 v_hit_rms   [plane].emplace(vox_id, hit->RMS(),           true);
+                v_hit_mult  [plane].emplace(vox_id, hit->Multiplicity(),  true);
+                v_hit_cryo  [plane].emplace(vox_id, hit->WireID().Cryostat,  true);
+                v_hit_tpc   [plane].emplace(vox_id, hit->WireID().TPC,    true);
             }
          }
       }
@@ -178,37 +229,55 @@ namespace larcv {
           << std::endl;
     }
 
-    auto store = [&](auto &vs, const std::string& name)
+    auto store = [&](auto &vset, const std::string& name)
     {
-      if (_drop_output.count(name) == 1) return;
-
-      larcv::VoxelSet vs_tmp;
-      vs.move_to(vs_tmp);
-
-      std::string label = _output_label;
-	    if(!name.empty()) label = label + "_" + name;
-
-      auto &ev_tensor = mgr.get_data<larcv::EventSparseTensor3D>(label);
-      ev_tensor.emplace(std::move(vs_tmp), meta);
+        if (_drop_output.count(name) == 1) return;
+        //auto &tensor = reinterpret_cast<larcv::EventSparseTensor3D>(
+        std::string label = _output_label;
+	      if(!name.empty()) label = label + "_" + name;
+        auto &tensor = mgr.get_data<larcv::EventSparseTensor3D>(label);
+        tensor.emplace(std::move(vset), meta);
     };
 
-    auto store_vec = [&](auto &vec, const std::string& name)
+    //auto store_vec = [&](auto &vec, const std::string& name)
+    //{
+    //    if (_drop_output.count(name) == 1) return;
+    //    for (size_t i = 0; i < _n_planes; ++i)
+    //        store(vec[i], name + std::to_string(i));
+    //};
+
+    auto store_v2 = [&](auto &my_vset, const std::string& name)
+    {
+      larcv::VoxelSet vset;
+      my_vset.move_to(vset);
+      store(vset, name);
+    };
+
+    auto store_vec_v2 = [&](auto &myvec, const std::string& name)
     {
         if (_drop_output.count(name) == 1) return;
         for (size_t i = 0; i < _n_planes; ++i)
-            store(vec[i], name + std::to_string(i));
+            store_v2(myvec[i], name + std::to_string(i));
     };
 
-    store(v_charge,      "");
-    store(v_charge_asym, "charge_asym");
-    store(v_chi2,        "chi2");
-    store(v_occupancy,   "occupancy");
+    store_v2(v_charge,      "");
+    store_v2(v_charge_asym, "charge_asym");
+    store_v2(v_chi2,        "chi2");
+    store_v2(v_occupancy,   "occupancy");
 
     if (_store_wire_info) {
-      store_vec(v_hit_charge, "hit_charge");
-      store_vec(v_hit_amp,    "hit_amp");
-      store_vec(v_hit_time,   "hit_time");
-      store_vec(v_hit_rms,    "hit_rms");
+      //store_vec(v_hit_charge, "hit_charge");
+      //store_vec(v_hit_amp,    "hit_amp");
+      //store_vec(v_hit_time,   "hit_time");
+      //store_vec(v_hit_rms,    "hit_rms");
+      //store_vec(v_hit_mult,   "hit_charge");
+      store_vec_v2(v_hit_charge, "hit_charge");
+      store_vec_v2(v_hit_amp,    "hit_amp");
+      store_vec_v2(v_hit_time,   "hit_time");
+      store_vec_v2(v_hit_rms,    "hit_rms");
+      store_vec_v2(v_hit_mult,   "hit_mult");
+      store_vec_v2(v_hit_cryo,   "hit_cryo");
+      store_vec_v2(v_hit_tpc,    "hit_tpc");
     }
 
     return true;
