@@ -154,7 +154,7 @@ ProcessDriver: {
       Verbosity: 2
       SpacePointProducers: ["cluster3DCryoE","cluster3DCryoW"]
       OutputLabel:        "reco"
-      DropOutput: ["hit_charge","hit_amp"]
+      #DropOutput: ["hit_charge","hit_amp"]
       StoreWireInfo: true
       RecoChargeRange: [-1000, 50000]
     }

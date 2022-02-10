@@ -3,4 +3,4 @@
 #include "run_nue.fcl"
 
 physics.producers.generator.GenFlavors: [ 12 ]
-physics.producers.generator.EventGeneratorList: ["CCQE"]
+physics.producers.generator.EventGeneratorList: "CCQE"
