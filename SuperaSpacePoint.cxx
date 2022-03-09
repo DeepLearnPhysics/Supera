@@ -27,6 +27,12 @@ class MyVoxelSet{
       }
       _voxel_set.clear();
     }
+    std::set<larcv::Voxel>::iterator find(larcv::Voxel v) {
+      return _voxel_set.find(v);
+    }
+    std::set<larcv::Voxel>::iterator end() {
+      return _voxel_set.end();
+    }
   private:
     std::set<larcv::Voxel> _voxel_set;
 };
@@ -103,9 +109,10 @@ namespace larcv {
     std::vector<MyVoxelSet> v_hit_amp   (_n_planes);
     std::vector<MyVoxelSet> v_hit_time  (_n_planes);
     std::vector<MyVoxelSet> v_hit_rms   (_n_planes);
-    std::vector<MyVoxelSet> v_hit_mult  (_n_planes);
-    std::vector<MyVoxelSet> v_hit_cryo  (_n_planes);
-    std::vector<MyVoxelSet> v_hit_tpc   (_n_planes);
+    //std::vector<MyVoxelSet> v_hit_mult  (_n_planes);
+    //std::vector<MyVoxelSet> v_hit_cryo  (_n_planes);
+    //std::vector<MyVoxelSet> v_hit_tpc   (_n_planes);
+    std::vector<MyVoxelSet> v_hit_key   (_n_planes);
 
     /* FIXME(kvtsang) To be removed?
      * Find associated hits
@@ -114,6 +121,7 @@ namespace larcv {
     auto const *ev = GetEvent();
 
     size_t n_pts = 0;
+    std::map<std::string, size_t> offsets;
     for (auto const& label : _producer_labels) {
       auto handle = ev->getValidHandle<std::vector<recob::SpacePoint>>(label);
 
@@ -123,7 +131,18 @@ namespace larcv {
       }
 
       n_pts += handle->size();
+
+      // Increment offsets of other collections by the number of HITS
+      size_t n_hits = ev->getValidHandle<std::vector<recob::Hit>>(label)->size();
+      for (auto& [key, value] : offsets) {
+        offsets[key] = value + n_hits;
+      }
+      offsets[label] = 0;
     }
+    //std::cout << "OFFSETS" << std::endl;
+    //for (auto& [key, value] : offsets) {
+    //  std::cout << key << "  " << value << std::endl;
+    //}
 
     // reserve
     //v_occupancy.reserve(n_pts);
@@ -141,8 +160,10 @@ namespace larcv {
         //v_hit_mult[plane].reserve(n_pts);
       //}
     }
+    //std::cout << ">>> Going through SuperaSpacePoint.cxx" << std::endl;
 
     for (auto const& label : _producer_labels) {
+      //std::cout << "LABEL: " << label << std::endl;
       auto handle = ev->getValidHandle<std::vector<recob::SpacePoint>>(label);
       auto const &points = *handle;
 
@@ -184,12 +205,21 @@ namespace larcv {
 
           v_occupancy.emplace(vox_id, 1, true);
 
+          // Check if the voxel the space point falls into already exists
+          // If it does and has a larger space charge, skip. If it does
+          // not, replace all the voxel information with the new space point
+          larcv::Voxel v(vox_id, charge);
+          auto itr = v_charge.find(v);
+          if ( itr != v_charge.end() ) {
+             if ( itr->value() > charge ) { continue; }
+          }
+
           //if (!(v_chi2.find(vox_id) == larcv::kINVALID_VOXEL))
           //    continue;
-
-          v_chi2.emplace(vox_id, pt.Chisq(), true);
-          v_charge.emplace(vox_id, charge, true);
-          v_charge_asym.emplace(vox_id, charge_asym, true);
+          bool replace = true;
+          v_chi2.emplace(vox_id, pt.Chisq(), !replace);
+          v_charge.emplace(vox_id, charge, !replace);
+          v_charge_asym.emplace(vox_id, charge_asym, !replace);
 
           if (_store_wire_info) {
             std::vector<art::Ptr<recob::Hit>> hits;
@@ -213,13 +243,17 @@ namespace larcv {
                 }
 
                 float charge  = hit->Integral();
-                v_hit_charge[plane].emplace(vox_id, charge,               true);
-                v_hit_amp   [plane].emplace(vox_id, hit->PeakAmplitude(), true);
-                v_hit_time  [plane].emplace(vox_id, hit->PeakTime(),      true);
-                v_hit_rms   [plane].emplace(vox_id, hit->RMS(),           true);
-                v_hit_mult  [plane].emplace(vox_id, hit->Multiplicity(),  true);
-                v_hit_cryo  [plane].emplace(vox_id, hit->WireID().Cryostat,  true);
-                v_hit_tpc   [plane].emplace(vox_id, hit->WireID().TPC,    true);
+                size_t hit_id = offsets[label] + hit.key();
+                //std::cout << "\nhit ID: " << offsets[label] << "  " << hit.key() << "  " << hit->WireID().Cryostat << "  " << offsets[label]+hit.key() << "  " << hit_id << std::endl;
+                //std::cout << hit.productGetter()->getIt()->productSize() << std::endl;
+                v_hit_charge[plane].emplace(vox_id, charge,                 !replace);
+                v_hit_amp   [plane].emplace(vox_id, hit->PeakAmplitude(),   !replace);
+                v_hit_time  [plane].emplace(vox_id, hit->PeakTime(),        !replace);
+                v_hit_rms   [plane].emplace(vox_id, hit->RMS(),             !replace);
+                //v_hit_mult  [plane].emplace(vox_id, hit->Multiplicity(),    !replace);
+                //v_hit_cryo  [plane].emplace(vox_id, hit->WireID().Cryostat, !replace);
+                //v_hit_tpc   [plane].emplace(vox_id, hit->WireID().TPC,      !replace);
+                v_hit_key   [plane].emplace(vox_id, hit_id,                 !replace);
             }
          }
       }
@@ -275,9 +309,10 @@ namespace larcv {
       store_vec_v2(v_hit_amp,    "hit_amp");
       store_vec_v2(v_hit_time,   "hit_time");
       store_vec_v2(v_hit_rms,    "hit_rms");
-      store_vec_v2(v_hit_mult,   "hit_mult");
-      store_vec_v2(v_hit_cryo,   "hit_cryo");
-      store_vec_v2(v_hit_tpc,    "hit_tpc");
+      //store_vec_v2(v_hit_mult,   "hit_mult");
+      //store_vec_v2(v_hit_cryo,   "hit_cryo");
+      //store_vec_v2(v_hit_tpc,    "hit_tpc");
+      store_vec_v2(v_hit_key,    "hit_key");
     }
 
     return true;
