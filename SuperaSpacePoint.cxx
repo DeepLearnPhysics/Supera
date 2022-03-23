@@ -33,6 +33,9 @@ class MyVoxelSet{
     std::set<larcv::Voxel>::iterator end() {
       return _voxel_set.end();
     }
+    size_t size() {
+      return _voxel_set.size();
+    }
   private:
     std::set<larcv::Voxel> _voxel_set;
 };
@@ -96,9 +99,12 @@ namespace larcv {
     //larcv::VoxelSet v_charge_asym;
     //larcv::VoxelSet v_chi2;
     MyVoxelSet v_occupancy;
+    MyVoxelSet v_nhits;
     MyVoxelSet v_charge;
     MyVoxelSet v_charge_asym;
     MyVoxelSet v_chi2;
+    MyVoxelSet v_cryo;
+    MyVoxelSet v_tpc;
 
     //std::vector<larcv::VoxelSet> v_hit_charge(_n_planes);
     //std::vector<larcv::VoxelSet> v_hit_amp   (_n_planes);
@@ -109,7 +115,7 @@ namespace larcv {
     std::vector<MyVoxelSet> v_hit_amp   (_n_planes);
     std::vector<MyVoxelSet> v_hit_time  (_n_planes);
     std::vector<MyVoxelSet> v_hit_rms   (_n_planes);
-    //std::vector<MyVoxelSet> v_hit_mult  (_n_planes);
+    std::vector<MyVoxelSet> v_hit_mult  (_n_planes);
     //std::vector<MyVoxelSet> v_hit_cryo  (_n_planes);
     //std::vector<MyVoxelSet> v_hit_tpc   (_n_planes);
     std::vector<MyVoxelSet> v_hit_key   (_n_planes);
@@ -205,12 +211,18 @@ namespace larcv {
 
           v_occupancy.emplace(vox_id, 1, true);
 
-          // Check if the voxel the space point falls into already exists
-          // If it does and has a larger space charge, skip. If it does
-          // not, replace all the voxel information with the new space point
+          // Find the hits associated with the space point
+          std::vector<art::Ptr<recob::Hit>> hits;
+          find_hits.get(i_pt, hits);
+
+          // Check if the voxel the space point falls into already exists.
+          // If it does, select the most suited space point to represent the voxel
           larcv::Voxel v(vox_id, charge);
           auto itr = v_charge.find(v);
           if ( itr != v_charge.end() ) {
+             // If the new SP is a doublet and exisiting SP is a triplet, skip
+             if ( v_nhits.find(v)->value() > hits.size() ) { continue; }
+             // If the new SP has a smaller charge than the existing SP, skip
              if ( itr->value() > charge ) { continue; }
           }
 
@@ -220,11 +232,12 @@ namespace larcv {
           v_chi2.emplace(vox_id, pt.Chisq(), !replace);
           v_charge.emplace(vox_id, charge, !replace);
           v_charge_asym.emplace(vox_id, charge_asym, !replace);
+          v_nhits.emplace(vox_id, hits.size(), !replace);
 
           if (_store_wire_info) {
-            std::vector<art::Ptr<recob::Hit>> hits;
             if (hits.size() > _n_planes) {
-                LARCV_WARNING() 
+                //LARCV_WARNING() 
+                std::cout
                     << "Dropping space point - "
                     << "Wrong number of hits: "
                     << hits.size()
@@ -234,27 +247,55 @@ namespace larcv {
                 continue;
             }
 
-            find_hits.get(i_pt, hits);
+            std::vector<size_t> planes;
             for (const auto& hit : hits) {
                 size_t plane = hit->WireID().Plane;
                 if (plane < 0 || plane >= _n_planes) {
                     LARCV_CRITICAL() << "Invalid plane " << plane << std::endl;
                     continue;
                 }
+                v_cryo.emplace(vox_id, hit->WireID().Cryostat, !replace);
+                v_tpc.emplace (vox_id, hit->WireID().TPC, !replace);
+                planes.push_back(plane);
 
-                float charge  = hit->Integral();
                 size_t hit_id = offsets[label] + hit.key();
-                //std::cout << "\nhit ID: " << offsets[label] << "  " << hit.key() << "  " << hit->WireID().Cryostat << "  " << offsets[label]+hit.key() << "  " << hit_id << std::endl;
-                //std::cout << hit.productGetter()->getIt()->productSize() << std::endl;
-                v_hit_charge[plane].emplace(vox_id, charge,                 !replace);
+                v_hit_charge[plane].emplace(vox_id, hit->Integral(),        !replace);
                 v_hit_amp   [plane].emplace(vox_id, hit->PeakAmplitude(),   !replace);
                 v_hit_time  [plane].emplace(vox_id, hit->PeakTime(),        !replace);
                 v_hit_rms   [plane].emplace(vox_id, hit->RMS(),             !replace);
-                //v_hit_mult  [plane].emplace(vox_id, hit->Multiplicity(),    !replace);
+                v_hit_mult  [plane].emplace(vox_id, hit->Multiplicity(),    !replace);
                 //v_hit_cryo  [plane].emplace(vox_id, hit->WireID().Cryostat, !replace);
                 //v_hit_tpc   [plane].emplace(vox_id, hit->WireID().TPC,      !replace);
                 v_hit_key   [plane].emplace(vox_id, hit_id,                 !replace);
             }
+	
+           //std::cout << "Vector sizes before: " << v_hit_charge[0].size() << "  " 
+           //                              << v_hit_charge[1].size() << "  " 
+           //                              << v_hit_charge[2].size() << std::endl;
+            if (planes.size() != _n_planes) {
+              //std::cout << "Sizes: " << planes.size() << " " << _n_planes << std::endl;
+              for (size_t k = 0; k < _n_planes; k++) {
+                bool exists = false;
+                for (size_t plane : planes) {
+                  if ( k == plane ) exists = true; 
+                }
+                //std::cout << "Exists ? " << k << "  " << exists << std::endl;
+                if ( !exists ) {
+                  //std::cout << "Adding missing plane" << std::endl;
+                  v_hit_charge[k].emplace(vox_id, -1, !replace);
+                  v_hit_amp   [k].emplace(vox_id, -1, !replace);
+                  v_hit_time  [k].emplace(vox_id, -1, !replace); 
+                  v_hit_rms   [k].emplace(vox_id, -1, !replace); 
+                  v_hit_mult  [k].emplace(vox_id, -1, !replace); 
+                  //v_hit_cryo  [k].emplace(vox_id, -1, !replace); 
+                  //v_hit_tpc   [k].emplace(vox_id, -1, !replace); 
+                  v_hit_key   [k].emplace(vox_id, -1, !replace); 
+                }
+              }
+            }
+           //std::cout << "Vector sizes after: " << v_hit_charge[0].size() << "  " 
+           //                              << v_hit_charge[1].size() << "  " 
+           //                              << v_hit_charge[2].size() <<  "\n" << std::endl;
          }
       }
 
@@ -298,6 +339,9 @@ namespace larcv {
     store_v2(v_charge_asym, "charge_asym");
     store_v2(v_chi2,        "chi2");
     store_v2(v_occupancy,   "occupancy");
+    store_v2(v_nhits,       "nhits");
+    store_v2(v_cryo,        "cryo");
+    store_v2(v_tpc,         "tpc");
 
     if (_store_wire_info) {
       //store_vec(v_hit_charge, "hit_charge");
@@ -309,7 +353,7 @@ namespace larcv {
       store_vec_v2(v_hit_amp,    "hit_amp");
       store_vec_v2(v_hit_time,   "hit_time");
       store_vec_v2(v_hit_rms,    "hit_rms");
-      //store_vec_v2(v_hit_mult,   "hit_mult");
+      store_vec_v2(v_hit_mult,   "hit_mult");
       //store_vec_v2(v_hit_cryo,   "hit_cryo");
       //store_vec_v2(v_hit_tpc,    "hit_tpc");
       store_vec_v2(v_hit_key,    "hit_key");
