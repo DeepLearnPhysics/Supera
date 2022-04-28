@@ -13,8 +13,10 @@ class MyVoxelSet{
     void emplace(larcv::VoxelID_t id, float value, bool add) {
       larcv::Voxel v(id, value);
       auto itr = _voxel_set.find(v);
-      if (add && itr != _voxel_set.end()) {
-        v += itr->value();
+      if (itr != _voxel_set.end()) {
+        if (add) {
+          v += itr->value();
+        }
         _voxel_set.erase(itr);
       }
       _voxel_set.insert(std::move(v));
@@ -199,8 +201,9 @@ namespace larcv {
           auto *xyz = pt.XYZ();
           VoxelID_t vox_id = meta.id(xyz[0], xyz[1], xyz[2]);
           if(vox_id == larcv::kINVALID_VOXELID) { 
-              if (n_dropped < _max_debug_dropping)
-                  LARCV_DEBUG() << "Dropping space point ("
+              //if (n_dropped < _max_debug_dropping)
+              //    LARCV_DEBUG() << "Dropping space point ("
+                  std::cout << "Dropping space point ("
                       << xyz[0] << ","
                       << xyz[1] << ","
                       << xyz[2] << ")"
@@ -209,21 +212,23 @@ namespace larcv {
               continue;
           } 
 
-          v_occupancy.emplace(vox_id, 1, true);
 
           // Find the hits associated with the space point
           std::vector<art::Ptr<recob::Hit>> hits;
           find_hits.get(i_pt, hits);
+          
+          v_occupancy.emplace(vox_id, 1, true);
 
           // Check if the voxel the space point falls into already exists.
           // If it does, select the most suited space point to represent the voxel
           larcv::Voxel v(vox_id, charge);
-          auto itr = v_charge.find(v);
-          if ( itr != v_charge.end() ) {
-             // If the new SP is a doublet and exisiting SP is a triplet, skip
-             if ( v_nhits.find(v)->value() > hits.size() ) { continue; }
-             // If the new SP has a smaller charge than the existing SP, skip
-             if ( itr->value() > charge ) { continue; }
+          auto itr_charge = v_charge.find(v);
+          auto itr_nhits  = v_nhits.find(v);
+          if ( itr_charge != v_charge.end() ) {
+             // If the new SP is a doublet and the exisiting SP is a triplet, skip
+             if ( hits.size() <  itr_nhits->value() ) { continue; }
+             // If the new SP is composed of the same number of hits and has smaller charge, skip
+             if ( hits.size() == itr_nhits->value() && charge < itr_charge->value()  ) { continue; }
           }
 
           //if (!(v_chi2.find(vox_id) == larcv::kINVALID_VOXEL))
