@@ -8,6 +8,7 @@
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "larcv/core/DataFormat/EventVoxel3D.h"
 
+
 template <typename T, typename M>
 inline void dump_sim_channels(T const& sim_chnls, M const& meta, std::string fname)
 {
@@ -184,6 +185,7 @@ namespace larcv {
     _post_averaging_threshold = cfg.get<double>("PostAveragingThreshold_cm", 0.3);
     _reco_charge_range = cfg.get<std::vector<double>>("RecoChargeRange", {0,9e99});
     assert(_reco_charge_range.size() == 2);
+    _voxel_size_factor = cfg.get<double>("VoxelSizeFactor", 1.);
   }
 
 
@@ -268,6 +270,7 @@ namespace larcv {
     true_hit_vv.resize(geop->Nchannels());
 
     // Fill a hit list container
+		//meta3d.update(meta3d.num_voxel_x()/_voxel_size_factor, meta3d.num_voxel_y()/_voxel_size_factor, meta3d.num_voxel_z()/_voxel_size_factor);
     for(auto const& sch : LArData<supera::LArSimCh_t>()){
       // Get a unique readout channel number
       auto ch = sch.Channel();
@@ -284,6 +287,7 @@ namespace larcv {
           if(_use_true_pos) x_pos = edep.x;
 
           auto vox_id = meta3d.id(x_pos, edep.y, edep.z);
+					if ((x_pos > 0) && (x_pos < 10)) std::cout << x_pos << " " << edep.y << " " << edep.z << " " << vox_id << std::endl;
       	  if(vox_id == larcv::kINVALID_VOXELID) continue;
           true_voxel_ids.insert(vox_id);
 
@@ -296,6 +300,7 @@ namespace larcv {
           true_hit_vv[ch].push_back(std::move(hit));
       }
     }
+		//meta3d.update(meta3d.num_voxel_x()*_voxel_size_factor, meta3d.num_voxel_y()*_voxel_size_factor, meta3d.num_voxel_z() * _voxel_size_factor);
 
     LARCV_INFO() << "Created a list of true hits: " << true_hit_vv.size() << " channels" << std::endl;
     if(_debug) {
@@ -328,6 +333,7 @@ namespace larcv {
 			//hit_finder_v.push_back(hit_finder);
 		//}
 		//std::cout << "final " << space_pts.size() << std::endl;
+		//meta3d.update(meta3d.num_voxel_x()/_voxel_size_factor, meta3d.num_voxel_y()/_voxel_size_factor, meta3d.num_voxel_z()/_voxel_size_factor);
 
     size_t n_dropped = 0;
     for (size_t i = 0; i < space_pts->size(); ++i) {
@@ -382,10 +388,11 @@ namespace larcv {
             auto const& v2 = matched_voxels[p2];
 
             //overlaps between planes p1 and p2
-            std::set_intersection(
+            /*std::set_intersection(
                 v1.begin(), v1.end(),
                 v2.begin(), v2.end(),
-                std::inserter(overlaps, overlaps.end()));
+                std::inserter(overlaps, overlaps.end()));*/
+						set_intersection_factor(meta3d, v1, v2, overlaps);
           }
         }
       }
@@ -402,24 +409,31 @@ namespace larcv {
             // temporary storage
             std::set<TrackVoxel_t> overlaps_;
 
-            std::set_intersection(
+            /*std::set_intersection(
                 overlaps.begin(), overlaps.end(),
                 v.begin(), v.end(),
-                std::inserter(overlaps_, overlaps_.end()));
+                std::inserter(overlaps_, overlaps_.end()));*/
+						set_intersection_factor(meta3d, overlaps, v, overlaps_);
 
             overlaps = std::move(overlaps_);
         }
       }
 
       RecoVoxel3D reco_voxel3d(reco_voxel_id);
-      for (auto const& true_pt: overlaps)
+      for (auto const& true_pt: overlaps) {
+		    //meta3d.update(meta3d.num_voxel_x()/_voxel_size_factor, meta3d.num_voxel_y()/_voxel_size_factor, meta3d.num_voxel_z()/_voxel_size_factor);
+				//auto pos = meta3d.position(true_pt.voxel_id);
+		    //meta3d.update(meta3d.num_voxel_x()*_voxel_size_factor, meta3d.num_voxel_y()*_voxel_size_factor, meta3d.num_voxel_z()*_voxel_size_factor);
+				//TrackVoxel_t true_pt_translated(meta3d.id(pos.x, pos.y, pos.z), true_pt.track_id);
         insert_one_to_many(_true2reco, true_pt, reco_voxel3d);
+			}
     } // end looping reco pts
 		std::cout
       << "Dropping " << n_dropped
       << " out of " << space_pts->size()
       << " reco pts from " << _sps_producer << std::endl;
 	} // end looping producers
+		//meta3d.update(meta3d.num_voxel_x()*_voxel_size_factor, meta3d.num_voxel_y()*_voxel_size_factor, meta3d.num_voxel_z()*_voxel_size_factor);
 
 
     // debug in csv file
@@ -429,11 +443,14 @@ namespace larcv {
     if (_dump_to_csv)
       dump_true2reco(_true2reco, save_to("true2reco_all"));
 
+		//meta3d.update(meta3d.num_voxel_x()/_voxel_size_factor, meta3d.num_voxel_y()/_voxel_size_factor, meta3d.num_voxel_z()/_voxel_size_factor);
+
     if (_post_averaging)
       set_ghost_with_averaging(meta3d);
     else
       set_ghost();
 
+		//meta3d.update(meta3d.num_voxel_x()*_voxel_size_factor, meta3d.num_voxel_y()*_voxel_size_factor, meta3d.num_voxel_z()*_voxel_size_factor);
 
     // -----------------------------------------------------------------------
     // TODO(2020-04-08 kvtsang) Remove this part?
@@ -515,6 +532,62 @@ namespace larcv {
     return true;
   }
 
+  void SuperaTrue2RecoVoxel3D::set_intersection_factor(
+			const larcv::Voxel3DMeta& meta3d,
+			const std::set<TrackVoxel_t>& v1,
+			const std::set<TrackVoxel_t>& v2,
+			std::set<TrackVoxel_t>& overlaps) {
+		  // If no voxel size factor specified, do a standard set intersection
+		  if (_voxel_size_factor == 1.) {
+				std::set_intersection(v1.begin(), v1.end(),
+						 									v2.begin(), v2.end(),
+															std::inserter(overlaps, overlaps.end()));
+				return;
+			}
+			// else we start by creating an alternate meta
+			// with large voxels
+		  auto meta_translated = meta3d;
+		  meta_translated.update(meta3d.num_voxel_x()/_voxel_size_factor, meta3d.num_voxel_y()/_voxel_size_factor, meta3d.num_voxel_z()/_voxel_size_factor);
+
+			std::set<TrackVoxel_t> overlaps_translated;
+			// then we translated v1 and v2 in this new meta
+			auto translate = [&](const std::set<TrackVoxel_t>& v) {
+				std::set<TrackVoxel_t> v_translated;
+				for (auto a : v) {
+				  auto a_pos = meta3d.position(a.voxel_id);
+				  TrackVoxel_t a_translated(meta_translated.id(a_pos.x, a_pos.y, a_pos.z), a.track_id);
+		      v_translated.insert(a_translated);
+				}
+				return v_translated;
+			};
+			std::set<TrackVoxel_t> v1_translated = translate(v1);
+			std::set<TrackVoxel_t> v2_translated = translate(v2);
+
+		  /*bool compFactor (const TrackVoxel_t& a, const TrackVoxel_t& b) {
+				auto b_pos = meta3d.position(b.voxel_id);
+				TrackVoxel_t b_translated(meta_translated.id(b_pos.x, b_pos.y, b_pos.z), b.track_id);
+				return a_translated < b_translated;
+			}*/
+			// now finding intersection based on voxel id in new meta
+      std::set_intersection(
+                v1_translated.begin(), v1_translated.end(),
+                v2_translated.begin(), v2_translated.end(),
+                std::inserter(overlaps_translated, overlaps_translated.end()));
+			//  all_v is the union of v1 and v2
+			std::set<TrackVoxel_t> all_v;
+			std::set_union(v1.begin(), v1.end(),
+																	v2.begin(), v2.end(),
+																	std::inserter(all_v, all_v.end()));
+			// we loop over all_v to find voxels whose alternate id
+			// is in the overlap we just computed
+			for (auto track_voxel : all_v) {
+				auto pos = meta3d.position(track_voxel.voxel_id);
+				TrackVoxel_t translated(meta_translated.id(pos.x, pos.y, pos.z), track_voxel.track_id);
+				if (overlaps_translated.find(translated) != overlaps_translated.end()) {
+					overlaps.insert(track_voxel); // we want to keep it with the original voxel id
+				}
+			}
+  }
 
   void SuperaTrue2RecoVoxel3D::set_ghost_with_averaging(
       const larcv::Voxel3DMeta& meta3d)
@@ -589,6 +662,12 @@ namespace larcv {
   void SuperaTrue2RecoVoxel3D::find_hit_peaks(const std::vector<TrueHit_t>& hits,
       double t_start, double t_end, std::set<TrackVoxel_t>& track_voxel_ids)
   {
+		//
+		// Fill track_voxel_ids with (voxel_ids, track_id)
+		// from true hits whose time falls in the window
+		//  [t_start, t_end].
+		//
+
     std::map<int, size_t> track_idx;
     std::vector<double> n_electrons;
     std::vector<VoxelID_t> voxel_ids;
