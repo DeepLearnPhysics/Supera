@@ -71,7 +71,8 @@ namespace larcv {
     bool _hit_peak_finding;
     double _hit_threshold_ne;
     double _hit_window_ticks;
-    double _voxel_size_factor;
+		double _voxel_size_factor;
+    double _voxel_distance_threshold;
 
     std::vector<double> _reco_charge_range;
 
@@ -114,6 +115,12 @@ namespace larcv {
 
     // make ghost labels with averaging over reco pts for each true pt
     void set_ghost_with_averaging(const larcv::Voxel3DMeta& meta3d);
+
+    void set_intersection_distance(
+			const larcv::Voxel3DMeta& meta3d,
+			const std::set<TrackVoxel_t>& v1,
+			const std::set<TrackVoxel_t>& v2,
+			std::set<TrackVoxel_t>& overlaps);
 
     void set_intersection_factor(
 			const larcv::Voxel3DMeta& meta3d,

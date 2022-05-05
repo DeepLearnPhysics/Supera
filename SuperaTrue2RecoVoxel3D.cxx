@@ -186,6 +186,7 @@ namespace larcv {
     _reco_charge_range = cfg.get<std::vector<double>>("RecoChargeRange", {0,9e99});
     assert(_reco_charge_range.size() == 2);
     _voxel_size_factor = cfg.get<double>("VoxelSizeFactor", 1.);
+    _voxel_distance_threshold = cfg.get<double>("VoxelDistanceThreshold", -1.);
   }
 
 
@@ -388,11 +389,15 @@ namespace larcv {
             auto const& v2 = matched_voxels[p2];
 
             //overlaps between planes p1 and p2
-            /*std::set_intersection(
-                v1.begin(), v1.end(),
-                v2.begin(), v2.end(),
-                std::inserter(overlaps, overlaps.end()));*/
-						set_intersection_factor(meta3d, v1, v2, overlaps);
+						if (_voxel_distance_threshold < 0) {
+							std::set_intersection(
+									v1.begin(), v1.end(),
+									v2.begin(), v2.end(),
+									std::inserter(overlaps, overlaps.end()));
+						} else {
+						//set_intersection_factor(meta3d, v1, v2, overlaps);
+							set_intersection_distance(meta3d, v1, v2, overlaps);
+						}
           }
         }
       }
@@ -409,11 +414,15 @@ namespace larcv {
             // temporary storage
             std::set<TrackVoxel_t> overlaps_;
 
-            /*std::set_intersection(
-                overlaps.begin(), overlaps.end(),
-                v.begin(), v.end(),
-                std::inserter(overlaps_, overlaps_.end()));*/
-						set_intersection_factor(meta3d, overlaps, v, overlaps_);
+						if (_voxel_distance_threshold < 0) {
+							std::set_intersection(
+									overlaps.begin(), overlaps.end(),
+									v.begin(), v.end(),
+									std::inserter(overlaps_, overlaps_.end()));
+						} else {
+						//set_intersection_factor(meta3d, overlaps, v, overlaps_);
+							set_intersection_distance(meta3d, overlaps, v, overlaps_);
+						}
 
             overlaps = std::move(overlaps_);
         }
@@ -531,6 +540,39 @@ namespace larcv {
     dump_true2reco(_true2reco, save_to("true2reco"));
     return true;
   }
+
+  void SuperaTrue2RecoVoxel3D::set_intersection_distance(
+			const larcv::Voxel3DMeta& meta3d,
+			const std::set<TrackVoxel_t>& v1,
+			const std::set<TrackVoxel_t>& v2,
+			std::set<TrackVoxel_t>& overlaps) {
+
+	auto comp = [&](const TrackVoxel_t& lhs, const TrackVoxel_t& rhs) {
+	  if (lhs.voxel_id == rhs.voxel_id) return lhs.track_id < rhs.track_id;
+		auto lpos = meta3d.position(lhs.voxel_id);
+		auto rpos = meta3d.position(rhs.voxel_id);
+		// euclidean distance in voxel units
+		//double distance = sqrt(pow((lpos.x - rpos.x)/meta3d.size_voxel_x(), 2) + pow((lpos.y - rpos.y)/meta3d.size_voxel_y(), 2) + pow((lpos.z - rpos.z)/meta3d.size_voxel_z(), 2));
+		// cube distance in voxel units
+		double distance = std::max(std::max(std::fabs(lpos.x - rpos.x)/meta3d.size_voxel_x(), std::fabs(lpos.y - rpos.y)/meta3d.size_voxel_y()), std::fabs(lpos.z - rpos.z)/meta3d.size_voxel_z());
+		//std::cout << distance << " " << distance_cube << std::endl;
+		// Need to account for tiny differences due to floating point (double) comparison
+		// distance should be integer values > 0
+		bool not_within_distance = (distance - _voxel_distance_threshold) >= -0.5;
+		if (not_within_distance) return lhs.voxel_id < rhs.voxel_id;
+		/*std::cout << "distance zero should not print " << distance  << " " << _voxel_distance_threshold << " " << not_within_distance << " " << (distance - _voxel_distance_threshold) << " " << lhs.voxel_id << " " << rhs.voxel_id << std::endl;
+		std::cout << "\t" << lpos.x << " " << rpos.x << " " << std::fabs(lpos.x - rpos.x)/meta3d.size_voxel_x() << std::endl;
+		std::cout << "\t" << lpos.y << " " << rpos.y << " " << std::fabs(lpos.y - rpos.y)/meta3d.size_voxel_y() << std::endl;
+		std::cout << "\t" << lpos.z << " " << rpos.z << " " << std::fabs(lpos.z - rpos.z)/meta3d.size_voxel_z() << std::endl;*/
+		return lhs.track_id < rhs.track_id;
+		//return (distance >= _voxel_distance_threshold) || (lhs.voxel_id < rhs.voxel_id);
+	};
+
+	std::set_intersection(v1.begin(), v1.end(),
+												 v2.begin(), v2.end(),
+												 std::inserter(overlaps, overlaps.end()),
+												 comp);
+	}
 
   void SuperaTrue2RecoVoxel3D::set_intersection_factor(
 			const larcv::Voxel3DMeta& meta3d,

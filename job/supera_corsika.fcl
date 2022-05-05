@@ -18,11 +18,11 @@ ProcessDriver: {
   }
 
   ProcessList: {
-		EmptyTensorFilter: {
-			Profile: true
-			Tensor3DProducerList: ["reco"]
-			MinVoxel3DCountList:  [1]
-		}
+    EmptyTensorFilter: {
+      Profile: true
+      Tensor3DProducerList: ["reco"]
+      MinVoxel3DCountList:  [1]
+    }
     ThresholdTensor3D: {
       Profile: true
       TargetProducer: "reco"
@@ -47,8 +47,8 @@ ProcessDriver: {
       #MaskedTrue2RecoCluster3D: "masked_true2reco"
       DeltaSize: 10
       # IonizationSize
-		  # ComptonSize: 100
-			# EnergyDepositThreshold: 0.5
+      # ComptonSize: 100
+      # EnergyDepositThreshold: 0.5
       LArSimEnergyDepositProducer: "largeant TPCActive"
       LArSimChProducer: ""
       #LArSimEnergyDepositProducer: ""
@@ -70,7 +70,7 @@ ProcessDriver: {
         Verbosity: 1
         Meta3DFromCluster3D: "pcluster"
         LArSimChProducer: "largeant"
-        LArSpacePointProducers: ["cluster3DCryo0","cluster3DCryo1"]
+        LArSpacePointProducers: ["cluster3DCryoE","cluster3DCryoW"]
         OutputTensor3D:  "masked_true"
         OutputCluster3D: "masked_true2reco"
         TwofoldMatching: true
@@ -94,7 +94,7 @@ ProcessDriver: {
     }
     MultiPartRain:   {
       Profile: true
-			Verbosity: 2
+      Verbosity: 2
       LArMCTruthProducer: "cosmgen"
       OutParticleLabel: "mpr"
       Origin: 0
@@ -109,12 +109,10 @@ ProcessDriver: {
       Cluster3DLabels: ["mcst","pcluster","sed","masked_true2reco"]
       Tensor3DLabels:  ["reco","pcluster_index","masked_true"]
       #BBoxSize: [230.4,230.4,230.4]
-			BBoxSize: [1843.2,1843.2,1843.2] # Covers the whole detector with the smallest possible cube
-      #BBoxSize: [1789.902,1789.902,1798.902] # based on geometry?
-			VoxelSize: [0.3,0.3,0.3]
-      #BBoxBottom: [-365.0,-138.65,-500.]
-			BBoxBottom: [-460.8,-230.4,-921.6]
-			#BBoxBottom: [-368.49,-181.86,-894.951] # based on geometry?
+      BBoxSize: [1843.2,1843.2,1843.2] # Covers the whole detector with the smallest possible cube
+      VoxelSize: [0.3,0.3,0.3]
+      #BBoxBottom: [-358.49,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml
+      BBoxBottom: [-500,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml
       CryostatList: [0,0,0,0,1,1,1,1]
       TPCList: [0,1,2,3,0,1,2,3]
       UseFixedBBox: true
@@ -161,10 +159,10 @@ ProcessDriver: {
     SuperaSpacePoint: {
       Profile: true
       Verbosity: 1
-      SpacePointProducers: ["cluster3DCryo0","cluster3DCryo1"]
+      SpacePointProducers: ["cluster3DCryoE","cluster3DCryoW"]
       OutputLabel:        "reco"
-      DropOutput: ["hit_*"]
-      #StoreWireInfo: false
+      #DropOutput: ["hit_*"]
+      StoreWireInfo: true
       RecoChargeRange: [-1000, 50000]
     }
 

@@ -109,7 +109,8 @@ ProcessDriver: {
       BBoxSize: [1843.2,1843.2,1843.2] # Covers the whole detector with the smallest possible cube -> yields 6144 = 1024*6 px
       #BBoxBottom: [-460.8,-230.4,-921.6]
       #BBoxSize: [1789.902,1789.902,1789.902]
-      BBoxBottom: [-358.49,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml
+      #BBoxBottom: [-358.49,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml
+      BBoxBottom: [-500,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml
       UseFixedBBox: true
       VoxelSize: [0.3,0.3,0.3]
       CryostatList: [0,0,0,0,1,1,1,1]

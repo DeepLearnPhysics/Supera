@@ -2,7 +2,6 @@
 #include "largeantmodules_icarus.fcl"
 #include "detsimmodules_ICARUS.fcl"
 #include "multipartvertex_icarus.fcl"
-#include "reco_icarus.fcl"
 #include "stage0_icarus_defs.fcl"
 #include "stage0_icarus_mc_defs.fcl"
 #include "stage1_icarus_defs.fcl"
@@ -11,6 +10,7 @@
 #include "corsika_icarus.fcl"
 #include "FilterNeutrinoActive.fcl"
 #include "FilterNeutrinoInteraction.fcl"
+#include "mcreco.fcl"
 
 process_name: BNBNueCosmicSupera
 
@@ -82,8 +82,8 @@ physics:
 						@sequence::icarus_stage0_multiTPC_TPC, # decon1droi, roifinder
 						@sequence::icarus_stage0_EastHits_TPC,
 						@sequence::icarus_stage0_WestHits_TPC,
-						@sequence::icarus_reco_cluster3DCryoE,
-						@sequence::icarus_reco_cluster3DCryoW]
+						cluster3DCryoE,
+						cluster3DCryoW]
  analyze: [supera]
  out_stream: [ out1   ]
 
@@ -158,7 +158,7 @@ services.LArG4Parameters.FillSimEnergyDeposits: true
 services.LArG4Parameters.KeepEMShowerDaughters: true
 #services.LArG4Parameters.NoElectronPropagation: true
 services.LArG4Parameters.NoPhotonPropagation: true
-services.LArG4Parameters.ParticleKineticEnergyCut: 0.0005
+services.LArG4Parameters.ParticleKineticEnergyCut: 0.0005 # GeV
 #services.LArG4Parameters.DisableWireplanes: true
 #services.LArG4Parameters.EnabledPhysics: ["Em","SynchrotronAndGN","Ion","Stopping","FastOptical"]
 #services.LArG4Parameters.EnabledPhysics: ["Em","SynchrotronAndGN","Ion","Hadron","Decay","HadronElastic","Stopping"]
@@ -171,7 +171,7 @@ services.LArPropertiesService.ScintByParticleType: false
 #
 # https://github.com/SBNSoftware/icaruscode/blob/develop/fcl/detsim/standard_detsim_icarus.fcl#L52
 #services.SignalShapingICARUSService.NoiseFactVec:  [ [ 0.6, 0.6, 0.6 ], [ 0.6, 0.6, 0.6 ], [ 0.6, 0.6, 0.6] ]
-services.SignalShapingICARUSService.NoiseFactVec:  [ [ 1., 1., 1. ], [ 1., 1., 1. ], [ 1., 1., 1.] ]
+#services.SignalShapingICARUSService.NoiseFactVec:  [ [ 1., 1., 1. ], [ 1., 1., 1. ], [ 1., 1., 1.] ]
 
 outputs:
 {

@@ -4,7 +4,7 @@ ProcessDriver: {
   EnableFilter: true
   RandomAccess: false
   ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter"]
-  ProcessName:  ["MultiPartVrtx","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter"]
+  ProcessName:  ["MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter"]
 
   IOManager: {
     Verbosity:   2
@@ -46,14 +46,16 @@ ProcessDriver: {
       #MaskedTrueTensor3D: "masked_true"
       #MaskedTrue2RecoCluster3D: "masked_true2reco"
       DeltaSize: 10
-      #EnergyDepositThreshold: 0.5
+      # IonizationSize
+      # ComptonSize: 100
+      # EnergyDepositThreshold: 0.5
       LArSimEnergyDepositProducer: "largeant TPCActive"
-      #LArSimChProducer: ""
+      LArSimChProducer: ""
       #LArSimEnergyDepositProducer: ""
       #LArSimChProducer: "largeant"
       Meta3DFromCluster3D: "mcst"
       Meta2DFromTensor2D:  ""
-      Verbosity: 1
+      Verbosity: 2
       UseSimEnergyDeposit: true
       UseSimEnergyDepositPoints: true
       CryostatList: [0,0,0,0,1,1,1,1]
@@ -67,20 +69,28 @@ ProcessDriver: {
         Profile: true
         Verbosity: 1
         Meta3DFromCluster3D: "pcluster"
-        LArMCParticleProducer: "largeant"
         LArSimChProducer: "largeant"
-        LArSpacePointProducers: ["cluster3DCryoE","cluster3DCryoW"]
+        #LArSpacePointProducers: ["cluster3DCryoE","cluster3DCryoW"]
+        LArSpacePointProducers: ["cluster3DCryoW","cluster3DCryoE"]
         OutputTensor3D:  "masked_true"
         OutputCluster3D: "masked_true2reco"
         TwofoldMatching: true
         UseTruePosition: true
+        #UseTruePosition: false
         HitThresholdNe: 100
-        HitWindowTicks: 5
+        #HitThresholdNe: 0
+        #HitThresholdNe: 0
+        HitWindowTicks: 10
+        #HitWindowTicks: 20
         HitPeakFinding: false
         PostAveraging: true
         PostAveragingThreshold_cm: 0.425
+        #PostAveragingThreshold_cm: 1.0
         DumpToCSV: false
         RecoChargeRange: [-1000,50000]
+        #RecoChargeRange: [-50000,50000]
+        VoxelSizeFactor: 3.
+				VoxelDistanceThreshold: 2.
       }
 
     }
@@ -99,27 +109,25 @@ ProcessDriver: {
       Origin: 0
     }
     SuperaBBoxInteraction: {
-      Verbosity: 0
+      Verbosity: 1
       Profile: true
-      LArMCTruthProducer: "generator"
+      #LArMCTruthProducer: "generator"
+      LArMCTruthProducer: "cosmgen"
       LArSimEnergyDepositProducer: "largeant TPCActive"
       Origin: 0
       Cluster3DLabels: ["mcst","pcluster","sed","masked_true2reco"]
       Tensor3DLabels:  ["reco","pcluster_index","masked_true"]
       #BBoxSize: [230.4,230.4,230.4]
       BBoxSize: [1843.2,1843.2,1843.2] # Covers the whole detector with the smallest possible cube
-      #BBoxSize: [1789.902,1789.902,1798.902] # based on geometry?
       VoxelSize: [0.3,0.3,0.3]
-      #BBoxBottom: [-365.0,-138.65,-500.]
-      #BBoxBottom: [-460.8,-230.4,-921.6]
-      #BBoxBottom: [-368.49,-181.86,-894.951] # based on geometry?
-      BBoxBottom: [-358.49,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml
+      #BBoxBottom: [-358.49,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml
+      BBoxBottom: [-450,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml
       CryostatList: [0,0,0,0,1,1,1,1]
       TPCList: [0,1,2,3,0,1,2,3]
       UseFixedBBox: true
     }
     SuperaSimEnergyDeposit: {
-      Verbosity: 1
+      Verbosity: 2
       Profile: true
       LArSimEnergyDepositProducer: "largeant TPCActive"
       LArMCShowerProducer: "mcreco"
@@ -159,11 +167,14 @@ ProcessDriver: {
 
     SuperaSpacePoint: {
       Profile: true
-      Verbosity: 2
+      Verbosity: 1
+      #SpacePointProducers: ["cluster3DCryoE","cluster3DCryoW"]
       SpacePointProducers: ["cluster3DCryoW","cluster3DCryoE"]
+      #SpacePointProducers: ["cluster3DCryoE"]
+      #SpacePointProducers: ["cluster3DCryoW"]
       OutputLabel:        "reco"
       #DropOutput: ["hit_*"]
-      #StoreWireInfo: true
+      StoreWireInfo: true
       RecoChargeRange: [-1000, 50000]
     }
 

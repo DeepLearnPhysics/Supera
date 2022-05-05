@@ -172,6 +172,16 @@ physics.producers.MCDecodeTPCROI.FragmentsLabelVec: ["daq3:PHYSCRATEDATATPCWW","
 physics.producers.MCDecodeTPCROI.OutInstanceLabelVec: ["PHYSCRATEDATATPCWW","PHYSCRATEDATATPCWE","PHYSCRATEDATATPCEW","PHYSCRATEDATATPCEE"]
 physics.producers.roifinder.WireModuleLabelVec: ["decon1droi:PHYSCRATEDATATPCWW","decon1droi:PHYSCRATEDATATPCWE","decon1droi:PHYSCRATEDATATPCEW","decon1droi:PHYSCRATEDATATPCEE"]
 #
+# Cluster3D
+physics.producers.cluster3DCryoE.Hit3DBuilderAlg.SaveMythicalPoints: true
+physics.producers.cluster3DCryoW.Hit3DBuilderAlg.SaveMythicalPoints: true
+
+physics.producers.cluster3DCryoE.Hit3DBuilderAlg.MinPHFor2HitPoints: 0.
+physics.producers.cluster3DCryoW.Hit3DBuilderAlg.MinPHFor2HitPoints: 0.
+
+physics.producers.cluster3DCryoE.Hit3DBuilderAlg.OutputHistograms: false
+physics.producers.cluster3DCryoW.Hit3DBuilderAlg.OutputHistograms: false
+#
 #
 # Services
 #
@@ -183,11 +193,6 @@ services.LArG4Parameters.ParticleKineticEnergyCut: 0.0005
 services.LArPropertiesService.ScintYield: 0
 services.LArPropertiesService.ScintByParticleType: false
 
-#
-# *Temporarily* tone down the noise level
-#
-# https://github.com/SBNSoftware/icaruscode/blob/develop/fcl/detsim/standard_detsim_icarus.fcl#L52
-services.SignalShapingICARUSService.NoiseFactVec:  [ [ 1., 1., 1. ], [ 1., 1., 1. ], [ 1., 1., 1.] ]
 
 
 outputs:
