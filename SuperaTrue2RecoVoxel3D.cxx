@@ -395,7 +395,7 @@ namespace larcv {
 									v2.begin(), v2.end(),
 									std::inserter(overlaps, overlaps.end()));
 						} else {
-						//set_intersection_factor(meta3d, v1, v2, overlaps);
+							//set_intersection_factor(meta3d, v1, v2, overlaps);
 							set_intersection_distance(meta3d, v1, v2, overlaps);
 						}
           }
@@ -547,6 +547,7 @@ namespace larcv {
 			const std::set<TrackVoxel_t>& v2,
 			std::set<TrackVoxel_t>& overlaps) {
 
+	// Comparison function
 	auto comp = [&](const TrackVoxel_t& lhs, const TrackVoxel_t& rhs) {
 	  if (lhs.voxel_id == rhs.voxel_id) return lhs.track_id < rhs.track_id;
 		auto lpos = meta3d.position(lhs.voxel_id);
@@ -555,24 +556,26 @@ namespace larcv {
 		//double distance = sqrt(pow((lpos.x - rpos.x)/meta3d.size_voxel_x(), 2) + pow((lpos.y - rpos.y)/meta3d.size_voxel_y(), 2) + pow((lpos.z - rpos.z)/meta3d.size_voxel_z(), 2));
 		// cube distance in voxel units
 		double distance = std::max(std::max(std::fabs(lpos.x - rpos.x)/meta3d.size_voxel_x(), std::fabs(lpos.y - rpos.y)/meta3d.size_voxel_y()), std::fabs(lpos.z - rpos.z)/meta3d.size_voxel_z());
-		//std::cout << distance << " " << distance_cube << std::endl;
 		// Need to account for tiny differences due to floating point (double) comparison
 		// distance should be integer values > 0
 		bool not_within_distance = (distance - _voxel_distance_threshold) >= -0.5;
 		if (not_within_distance) return lhs.voxel_id < rhs.voxel_id;
-		/*std::cout << "distance zero should not print " << distance  << " " << _voxel_distance_threshold << " " << not_within_distance << " " << (distance - _voxel_distance_threshold) << " " << lhs.voxel_id << " " << rhs.voxel_id << std::endl;
-		std::cout << "\t" << lpos.x << " " << rpos.x << " " << std::fabs(lpos.x - rpos.x)/meta3d.size_voxel_x() << std::endl;
-		std::cout << "\t" << lpos.y << " " << rpos.y << " " << std::fabs(lpos.y - rpos.y)/meta3d.size_voxel_y() << std::endl;
-		std::cout << "\t" << lpos.z << " " << rpos.z << " " << std::fabs(lpos.z - rpos.z)/meta3d.size_voxel_z() << std::endl;*/
 		return lhs.track_id < rhs.track_id;
-		//return (distance >= _voxel_distance_threshold) || (lhs.voxel_id < rhs.voxel_id);
 	};
 
-	std::set_intersection(v1.begin(), v1.end(),
-												 v2.begin(), v2.end(),
-												 std::inserter(overlaps, overlaps.end()),
-												 comp);
+	int overlap_count;
+	for (auto a : v1) {
+		overlap_count = 0;
+		for (auto b : v2) {
+			if (!comp(a, b) && !comp(b, a)){
+				overlaps.insert(b);
+				++overlap_count;
+			}
+		}
+		if (overlap_count > 0) overlaps.insert(a);
 	}
+
+}
 
   void SuperaTrue2RecoVoxel3D::set_intersection_factor(
 			const larcv::Voxel3DMeta& meta3d,
