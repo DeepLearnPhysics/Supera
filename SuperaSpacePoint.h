@@ -50,6 +50,7 @@ namespace larcv {
     std::string _output_label;
     size_t _max_debug_dropping = 0; // Max debug message for dropping space points
     unsigned short _n_planes = 3;
+		float _shift_x = 0.;
     bool _store_wire_info = false;
     std::unordered_set<std::string> _drop_output;
     std::vector<double> _reco_charge_range;
@@ -62,7 +63,7 @@ namespace larcv {
   class SuperaSpacePointProcessFactory : public ProcessFactoryBase {
   public:
     /// ctor
-    SuperaSpacePointProcessFactory() { 
+    SuperaSpacePointProcessFactory() {
         ProcessFactory::get().add_factory("SuperaSpacePoint", this);
     }
     /// dtor

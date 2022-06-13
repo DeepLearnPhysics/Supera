@@ -69,24 +69,26 @@ ProcessDriver: {
         Meta3DFromCluster3D: "pcluster"
         LArMCParticleProducer: "largeant"
         LArSimChProducer: "largeant"
-        LArSpacePointProducers: ["cluster3DCryoE","cluster3DCryoW"]
+        # LArSpacePointProducers: ["cluster3DCryoE","cluster3DCryoW"]
+        LArSpacePointProducers: ["cluster3DCryoE"]
         OutputTensor3D:  "masked_true"
         OutputCluster3D: "masked_true2reco"
         TwofoldMatching: true
         UseTruePosition: true
         HitThresholdNe: 100
-        HitWindowTicks: 5
+        HitWindowTicks: 15 #5
         HitPeakFinding: false
         PostAveraging: true
         PostAveragingThreshold_cm: 0.425
         DumpToCSV: false
         RecoChargeRange: [-1000,50000]
+				VoxelDistanceThreshold: 3.
       }
 
     }
     MultiPartVrtx: {
       Profile: true
-      Verbosity: 0
+      Verbosity: 1
       LArMCTruthProducer: "generator"
       OutParticleLabel: "mpv"
       Origin: 0
@@ -113,7 +115,9 @@ ProcessDriver: {
       #BBoxBottom: [-365.0,-138.65,-500.]
       #BBoxBottom: [-460.8,-230.4,-921.6]
       #BBoxBottom: [-368.49,-181.86,-894.951] # based on geometry?
-      BBoxBottom: [-358.49,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml
+      #BBoxBottom: [-358.49,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml
+			# 358.49+340*1.6/10 = 412.89
+      BBoxBottom: [-412.89,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml taking readout window into account
       CryostatList: [0,0,0,0,1,1,1,1]
       TPCList: [0,1,2,3,0,1,2,3]
       UseFixedBBox: true
@@ -160,7 +164,8 @@ ProcessDriver: {
     SuperaSpacePoint: {
       Profile: true
       Verbosity: 2
-      SpacePointProducers: ["cluster3DCryoW","cluster3DCryoE"]
+      # SpacePointProducers: ["cluster3DCryoW","cluster3DCryoE"]
+      SpacePointProducers: ["cluster3DCryoE"]
       OutputLabel:        "reco"
       #DropOutput: ["hit_*"]
       #StoreWireInfo: true

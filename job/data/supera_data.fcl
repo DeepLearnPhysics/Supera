@@ -1,0 +1,60 @@
+ProcessDriver: {
+
+  Verbosity:    2
+  EnableFilter: true
+  RandomAccess: false
+  ProcessType:  ["SuperaBBoxInteraction","SuperaSpacePoint","EmptyTensorFilter"]
+  ProcessName:  ["SuperaBBoxInteraction","SuperaSpacePoint","EmptyTensorFilter"]
+
+  IOManager: {
+    Verbosity:   2
+    Name:        "IOManager"
+    IOMode:      1
+    OutFileName: "out_test.root"
+    InputFiles:  []
+    InputDirs:   []
+    StoreOnlyType: []
+    StoreOnlyName: []
+  }
+
+  ProcessList: {
+    EmptyTensorFilter: {
+      Profile: true
+      Tensor3DProducerList: ["reco"]
+      MinVoxel3DCountList:  [1]
+    }
+
+    SuperaBBoxInteraction: {
+      Verbosity: 0
+      Profile: true
+      #LArMCTruthProducer: "generator"
+      #LArSimEnergyDepositProducer: "largeant TPCActive"
+      Origin: 0
+      Cluster3DLabels: []
+      Tensor3DLabels:  ["reco"]
+      #BBoxSize: [230.4,230.4,230.4]
+      BBoxSize: [1843.2,1843.2,1843.2] # Covers the whole detector with the smallest possible cube
+      #BBoxSize: [1789.902,1789.902,1798.902] # based on geometry?
+      VoxelSize: [0.3,0.3,0.3]
+      #BBoxBottom: [-358.49,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml
+			# 358.49+340*1.6/10 = 412.89
+      BBoxBottom: [-412.89,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml taking readout window into account
+      CryostatList: [0,0,0,0,1,1,1,1]
+      TPCList: [0,1,2,3,0,1,2,3]
+      UseFixedBBox: true
+    }
+
+    SuperaSpacePoint: {
+      Profile: true
+      Verbosity: 0
+      SpacePointProducers: ["cluster3DCryoW","cluster3DCryoE"]
+      # SpacePointProducers: ["cluster3DCryoE"]
+      OutputLabel:        "reco"
+      #DropOutput: ["hit_*"]
+      #StoreWireInfo: true
+      RecoChargeRange: [-1000, 50000]
+    }
+
+  }
+}
+

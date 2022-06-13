@@ -56,12 +56,13 @@ namespace larcv {
     _output_label       = cfg.get<std::string>("OutputLabel");
     _max_debug_dropping = cfg.get<size_t>("MaxDebugForDropping", 0);
     _n_planes           = cfg.get<size_t>("NumOfPlanes", 3);
+    _shift_x            = cfg.get<float>("ShiftX", 0.);
 
     auto to_drop = cfg.get<std::vector<std::string>>("DropOutput", {});
     _drop_output.insert(to_drop.cbegin(), to_drop.cend());
     _store_wire_info = _drop_output.count("hit_*") == 0;
 
-    _reco_charge_range = cfg.get<std::vector<double>>("RecoChargeRange", {0,9e99}); 
+    _reco_charge_range = cfg.get<std::vector<double>>("RecoChargeRange", {0,9e99});
     assert(_reco_charge_range.size() == 2);
 
     // for backward compatibility
@@ -184,7 +185,7 @@ namespace larcv {
               || (i_pt < 1000 && i_pt % 100 == 0)
               || (i_pt < 10000 && i_pt % 1000 ==0)
               || (i_pt % 10000 == 0)) {
-            LARCV_INFO() << "Processing " << label << ": " 
+            LARCV_INFO() << "Processing " << label << ": "
               << i_pt << "/" << points.size() << '\n';
           }
 
@@ -199,8 +200,8 @@ namespace larcv {
           }
 
           auto *xyz = pt.XYZ();
-          VoxelID_t vox_id = meta.id(xyz[0], xyz[1], xyz[2]);
-          if(vox_id == larcv::kINVALID_VOXELID) { 
+          VoxelID_t vox_id = meta.id(xyz[0] + _shift_x, xyz[1], xyz[2]);
+          if(vox_id == larcv::kINVALID_VOXELID) {
               //if (n_dropped < _max_debug_dropping)
               //    LARCV_DEBUG() << "Dropping space point ("
                   std::cout << "Dropping space point ("
@@ -210,13 +211,13 @@ namespace larcv {
                       << std::endl;
               ++n_dropped;
               continue;
-          } 
+          }
 
 
           // Find the hits associated with the space point
           std::vector<art::Ptr<recob::Hit>> hits;
           find_hits.get(i_pt, hits);
-          
+
           v_occupancy.emplace(vox_id, 1, true);
 
           // Check if the voxel the space point falls into already exists.
@@ -241,12 +242,12 @@ namespace larcv {
 
           if (_store_wire_info) {
             if (hits.size() > _n_planes) {
-                //LARCV_WARNING() 
+                //LARCV_WARNING()
                 std::cout
                     << "Dropping space point - "
                     << "Wrong number of hits: "
                     << hits.size()
-                    << " (expecting " << _n_planes << ")" 
+                    << " (expecting " << _n_planes << ")"
                     << std::endl;
                 ++n_dropped;
                 continue;
@@ -273,39 +274,39 @@ namespace larcv {
                 //v_hit_tpc   [plane].emplace(vox_id, hit->WireID().TPC,      !replace);
                 v_hit_key   [plane].emplace(vox_id, hit_id,                 !replace);
             }
-	
-           //std::cout << "Vector sizes before: " << v_hit_charge[0].size() << "  " 
-           //                              << v_hit_charge[1].size() << "  " 
+
+           //std::cout << "Vector sizes before: " << v_hit_charge[0].size() << "  "
+           //                              << v_hit_charge[1].size() << "  "
            //                              << v_hit_charge[2].size() << std::endl;
             if (planes.size() != _n_planes) {
               //std::cout << "Sizes: " << planes.size() << " " << _n_planes << std::endl;
               for (size_t k = 0; k < _n_planes; k++) {
                 bool exists = false;
                 for (size_t plane : planes) {
-                  if ( k == plane ) exists = true; 
+                  if ( k == plane ) exists = true;
                 }
                 //std::cout << "Exists ? " << k << "  " << exists << std::endl;
                 if ( !exists ) {
                   //std::cout << "Adding missing plane" << std::endl;
                   v_hit_charge[k].emplace(vox_id, -1, !replace);
                   v_hit_amp   [k].emplace(vox_id, -1, !replace);
-                  v_hit_time  [k].emplace(vox_id, -1, !replace); 
-                  v_hit_rms   [k].emplace(vox_id, -1, !replace); 
-                  v_hit_mult  [k].emplace(vox_id, -1, !replace); 
-                  //v_hit_cryo  [k].emplace(vox_id, -1, !replace); 
-                  //v_hit_tpc   [k].emplace(vox_id, -1, !replace); 
-                  v_hit_key   [k].emplace(vox_id, -1, !replace); 
+                  v_hit_time  [k].emplace(vox_id, -1, !replace);
+                  v_hit_rms   [k].emplace(vox_id, -1, !replace);
+                  v_hit_mult  [k].emplace(vox_id, -1, !replace);
+                  //v_hit_cryo  [k].emplace(vox_id, -1, !replace);
+                  //v_hit_tpc   [k].emplace(vox_id, -1, !replace);
+                  v_hit_key   [k].emplace(vox_id, -1, !replace);
                 }
               }
             }
-           //std::cout << "Vector sizes after: " << v_hit_charge[0].size() << "  " 
-           //                              << v_hit_charge[1].size() << "  " 
+           //std::cout << "Vector sizes after: " << v_hit_charge[0].size() << "  "
+           //                              << v_hit_charge[1].size() << "  "
            //                              << v_hit_charge[2].size() <<  "\n" << std::endl;
          }
       }
 
-      LARCV_INFO() << n_dropped << " out of " << points.size() 
-          << " SpacePoints dropped from " << label 
+      LARCV_INFO() << n_dropped << " out of " << points.size()
+          << " SpacePoints dropped from " << label
           << std::endl;
     }
 
@@ -366,7 +367,7 @@ namespace larcv {
 
     return true;
   }
-      
+
   void SuperaSpacePoint::finalize()
   {}
 
@@ -388,7 +389,7 @@ namespace larcv {
           idx0 = std::max(start,    idx0);
           idx1 = std::min(stop + 1, idx1);
       }
-      
+
       /* std::cout << "Idx " << idx0 << " -> " << idx1 << std::endl; */
 
       auto integrate = [&](const auto& hit)

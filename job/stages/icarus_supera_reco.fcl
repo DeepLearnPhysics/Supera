@@ -1,0 +1,32 @@
+#include "icarus_supera_common.fcl"
+
+process_name: SuperaReco
+
+source:
+{
+	module_type: RootInput
+}
+
+physics.simulate: [ rns,
+						@sequence::icarus_stage0_multiTPC_TPC, # decon1droi, roifinder
+						@sequence::icarus_stage0_EastHits_TPC,
+						@sequence::icarus_stage0_WestHits_TPC,
+						cluster3DCryoE]
+						#cluster3DCryoW]
+physics.end_paths: [ analyze ]
+
+#
+# decond1droi
+#
+physics.producers.decon1droi.RawDigitLabelVec: ["MCDecodeTPCROI:PHYSCRATEDATATPCWW","MCDecodeTPCROI:PHYSCRATEDATATPCWE","MCDecodeTPCROI:PHYSCRATEDATATPCEW","MCDecodeTPCROI:PHYSCRATEDATATPCEE"]
+#
+# Cluster3D
+#
+physics.producers.cluster3DCryoE.Hit3DBuilderAlg.SaveMythicalPoints: true
+physics.producers.cluster3DCryoW.Hit3DBuilderAlg.SaveMythicalPoints: true
+
+physics.producers.cluster3DCryoE.Hit3DBuilderAlg.MinPHFor2HitPoints: 0.
+physics.producers.cluster3DCryoW.Hit3DBuilderAlg.MinPHFor2HitPoints: 0.
+
+physics.producers.cluster3DCryoE.Hit3DBuilderAlg.OutputHistograms: false
+physics.producers.cluster3DCryoW.Hit3DBuilderAlg.OutputHistograms: false

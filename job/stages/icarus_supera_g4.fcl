@@ -1,0 +1,34 @@
+#
+# G4 stage
+#
+#include "icarus_supera_common.fcl"
+
+process_name: G4
+
+source:
+{
+	module_type: RootInput
+}
+
+physics.simulate: [ rns, largeant ]
+physics.end_paths: [ out_stream ]
+
+#
+# LARG4
+#
+physics.producers.largeant.KeepParticlesInVolumes: [ "volCryostat" ]
+#physics.producers.largeant.KeepParticlesInVolumes: [ "volDetEnclosure" ]
+#physics.producers.largeant.KeepParticlesInVolumes: [ ]
+#physics.producers.largeant.DumpParticleList: true
+#physics.producers.largeant.GEANTSeed: 123
+#physics.producers.largeant.PropagationSeed: 123
+
+#
+# Services
+#
+services.LArG4Parameters.FillSimEnergyDeposits: true
+services.LArG4Parameters.KeepEMShowerDaughters: true
+#services.LArG4Parameters.NoElectronPropagation: true
+services.LArG4Parameters.NoPhotonPropagation: true
+services.LArG4Parameters.ParticleKineticEnergyCut: 0.0005 # GeV
+

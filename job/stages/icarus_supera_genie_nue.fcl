@@ -1,0 +1,30 @@
+#
+# GENIE stage
+#
+#include "icarus_supera_common.fcl"
+
+process_name: BNBNue
+
+source:
+{
+	module_type: EmptyEvent
+	timestampPlugin: { plugin_type: "GeneratedEventTimestamp" }
+	maxEvents: 10
+	firstRun: 1
+	firstEvent: 1
+}
+
+physics.simulate: [ rns, generator, eventActive ]
+physics.end_paths: [ out_stream ]
+
+
+#
+# Generator BNB
+#
+# Fixing error 65 = missing flux files when running neutrino interaction
+physics.producers.generator.FluxCopyMethod: "IFDH"
+physics.producers.generator.GenFlavors: [ 12 ] # 12 for nue, 14 for numu
+#physics.producers.generator.MixerConfig: "map 14:12 -14:-12 12:14 -12:-14" # oscillated
+physics.producers.generator.TopVolume: "volCryostat" #"volDetEnclosure" #box including all cryostats, instead of "volCryostat" which is only C:0
+
+outputs.out1.SelectEvents: [ simulate ]

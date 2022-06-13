@@ -1,0 +1,10 @@
+#
+# GENIE stage
+#
+#include "icarus_supera_genie_nue.fcl"
+
+process_name: BNBNumu
+#
+# Generator BNB
+#
+physics.producers.generator.GenFlavors: [ 14 ] # 12 for nue, 14 for numu

@@ -220,10 +220,10 @@ namespace larcv {
 	  grp.type = supera::kNeutron;
 	result[track_id] = grp;
       }
-      /*
+
       std::cout<<"Track ID " << grp.part.track_id() << " PDG " << grp.part.pdg_code() << " " << grp.part.creation_process()
 	       <<" ... parent Track ID " << grp.part.parent_track_id() << " PDG " << grp.part.parent_pdg_code() << std::endl;
-      */
+
     }
 
     // fill parentage information
@@ -245,6 +245,8 @@ namespace larcv {
 
     LARCV_INFO() << "Processing SimEnergyDeposit array: " << sedep_v.size() << std::endl;
     size_t bad_sedep_counter = 0;
+    size_t bad_sedep_counter2 = 0;
+    size_t bad_sedep_counter3 = 0;
     std::set<size_t> missing_trackid;
     for(size_t sedep_idx=0; sedep_idx<sedep_v.size(); ++sedep_idx) {
       auto const& sedep = sedep_v.at(sedep_idx);
@@ -273,6 +275,7 @@ namespace larcv {
 	pt.dedx = pt.e / sqrt(pow(dx,2)+pow(dy,2)+pow(dz,2));
       }
       int track_id = abs(sedep.TrackID());
+			if (track_id == 4 || track_id == 8 || track_id == 9 || track_id == 10) std::cout << "Found " << track_id << std::endl;
       if(track_id >= ((int)(trackid2index.size()))) {
 	bad_sedep_counter++;
 	missing_trackid.insert(track_id);
@@ -307,6 +310,7 @@ namespace larcv {
       else if(track_id >= (int)(true2reco_v.size()) || true2reco_v[track_id].empty()) {
 	// translation doesn't exist for this voxel
 	++bad_sedep_counter;
+	++bad_sedep_counter2;
       }
       else {
 	auto const& true2reco_m = true2reco_v[track_id];
@@ -314,6 +318,7 @@ namespace larcv {
 	if(true2reco_iter == true2reco_m.end() || true2reco_iter->second.empty()) {
 	  // translation doesn't exist for this voxel
 	  ++bad_sedep_counter;
+		++bad_sedep_counter3;
 	}
 	else{
 	  //ctr_b.insert(vox_id);
@@ -350,8 +355,11 @@ namespace larcv {
       LARCV_WARNING() << bad_sedep_counter << " / " << sedep_v.size() << " SimEnergyDeposits "
 		      << "(from " << missing_trackid.size() << " particles) did not find corresponding MCParticle!"
 		      << std::endl;
+			LARCV_WARNING() << bad_sedep_counter << " " << bad_sedep_counter2 << " " << bad_sedep_counter3 << std::endl;
+			for (auto trackid : missing_trackid) std::cout << trackid << std::endl;
     }
     //std::cout<<(mgr.get_data<larcv::EventSparseTensor3D>("masked_true")).size()<<" : "<<ctr_a.size()<<" : "<<ctr_b.size()<<std::endl;
+
   }
 
   void SuperaMCParticleCluster::AnalyzeFirstLastStep(const larcv::Voxel3DMeta& meta,
@@ -1152,6 +1160,7 @@ namespace larcv {
 
     // Build MCParticle List
     auto const& larmcp_v = LArData<supera::LArMCParticle_t>();
+		std::cout << "larmcp_v size = " << larmcp_v.size() << std::endl;
     auto const *ev = GetEvent();
     _mcpl.Update(larmcp_v,ev->id().run(),ev->id().event());
 

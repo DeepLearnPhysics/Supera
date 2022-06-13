@@ -82,14 +82,14 @@ physics:
 						@sequence::icarus_stage0_multiTPC_TPC, # decon1droi, roifinder
 						@sequence::icarus_stage0_EastHits_TPC,
 						@sequence::icarus_stage0_WestHits_TPC,
-						cluster3DCryoE,
-						cluster3DCryoW]
+						cluster3DCryoE]
+						#cluster3DCryoW]
  analyze: [supera]
  out_stream: [ out1   ]
 
  trigger_paths: [simulate]
- #end_paths:     [analyze,out_stream]
- end_paths:     [analyze]
+ end_paths:     [analyze,out_stream]
+ #end_paths:     [analyze]
  #end_paths: [out_stream]
 }
 
@@ -115,6 +115,11 @@ physics.producers.mcreco.MCRecoPart.SavePathPDGList: [13,-13,211,-211,111,311,31
 # LARG4
 #
 physics.producers.largeant.KeepParticlesInVolumes: [ "volCryostat" ]
+#physics.producers.largeant.KeepParticlesInVolumes: [ "volDetEnclosure" ]
+#physics.producers.largeant.KeepParticlesInVolumes: [ ]
+#physics.producers.largeant.DumpParticleList: true
+#physics.producers.largeant.GEANTSeed: 123
+#physics.producers.largeant.PropagationSeed: 123
 
 #
 # DAQ
@@ -145,12 +150,19 @@ physics.producers.decon1droi.RawDigitLabelVec: ["MCDecodeTPCROI:PHYSCRATEDATATPC
 physics.producers.MCDecodeTPCROI.FragmentsLabelVec: ["daq3:PHYSCRATEDATATPCWW","daq2:PHYSCRATEDATATPCWE","daq1:PHYSCRATEDATATPCEW","daq0:PHYSCRATEDATATPCEE"]
 physics.producers.MCDecodeTPCROI.OutInstanceLabelVec: ["PHYSCRATEDATATPCWW","PHYSCRATEDATATPCWE","PHYSCRATEDATATPCEW","PHYSCRATEDATATPCEE"]
 physics.producers.roifinder.WireModuleLabelVec: ["decon1droi:PHYSCRATEDATATPCWW","decon1droi:PHYSCRATEDATATPCWE","decon1droi:PHYSCRATEDATATPCEW","decon1droi:PHYSCRATEDATATPCEE"]
-#physics.producers.roifinder.ROIFinderToolVec.ROIFinderPlane0: @local::decoderroifinder_0
-#physics.producers.roifinder.ROIFinderToolVec.ROIFinderPlane1: @local::decoderroifinder_1
-#physics.producers.roifinder.ROIFinderToolVec.ROIFinderPlane2: @local::decoderroifinder_2
-#physics.producers.roifinder.ROIFinderToolVec.ROIFinderPlane0.ROILabelVec: ["MCDecodeTPCROI:PHYSCRATEDATATPCWW","MCDecodeTPCROI:PHYSCRATEDATATPCWE","MCDecodeTPCROI:PHYSCRATEDATATPCEW","MCDecodeTPCROI:PHYSCRATEDATATPCEE"] #["MCDecodeTPCROI"]
-#physics.producers.roifinder.ROIFinderToolVec.ROIFinderPlane1.ROILabelVec: ["MCDecodeTPCROI:PHYSCRATEDATATPCWW","MCDecodeTPCROI:PHYSCRATEDATATPCWE","MCDecodeTPCROI:PHYSCRATEDATATPCEW","MCDecodeTPCROI:PHYSCRATEDATATPCEE"] #["MCDecodeTPCROI"]
-#physics.producers.roifinder.ROIFinderToolVec.ROIFinderPlane2.ROILabelVec: ["MCDecodeTPCROI:PHYSCRATEDATATPCWW","MCDecodeTPCROI:PHYSCRATEDATATPCWE","MCDecodeTPCROI:PHYSCRATEDATATPCEW","MCDecodeTPCROI:PHYSCRATEDATATPCEE"] #["MCDecodeTPCROI"]
+
+#
+# Cluster3D
+#
+physics.producers.cluster3DCryoE.Hit3DBuilderAlg.SaveMythicalPoints: true
+physics.producers.cluster3DCryoW.Hit3DBuilderAlg.SaveMythicalPoints: true
+
+physics.producers.cluster3DCryoE.Hit3DBuilderAlg.MinPHFor2HitPoints: 0.
+physics.producers.cluster3DCryoW.Hit3DBuilderAlg.MinPHFor2HitPoints: 0.
+
+physics.producers.cluster3DCryoE.Hit3DBuilderAlg.OutputHistograms: false
+physics.producers.cluster3DCryoW.Hit3DBuilderAlg.OutputHistograms: false
+
 #
 # Services
 #
@@ -159,10 +171,6 @@ services.LArG4Parameters.KeepEMShowerDaughters: true
 #services.LArG4Parameters.NoElectronPropagation: true
 services.LArG4Parameters.NoPhotonPropagation: true
 services.LArG4Parameters.ParticleKineticEnergyCut: 0.0005 # GeV
-#services.LArG4Parameters.DisableWireplanes: true
-#services.LArG4Parameters.EnabledPhysics: ["Em","SynchrotronAndGN","Ion","Stopping","FastOptical"]
-#services.LArG4Parameters.EnabledPhysics: ["Em","SynchrotronAndGN","Ion","Hadron","Decay","HadronElastic","Stopping"]
-#services.LArG4Parameters.EnabledPhysics: ["Em","SynchrotronAndGN","Ion","Hadron","Decay","HadronElastic","Stopping","Optical"]
 services.LArPropertiesService.ScintYield: 0
 services.LArPropertiesService.ScintByParticleType: false
 

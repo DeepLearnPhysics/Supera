@@ -1,0 +1,6 @@
+# Intrinsic numu events
+
+#include "run_nue.fcl"
+
+physics.producers.generator.GenFlavors: [ 14 ]
+#physics.producers.generator.EventGeneratorList: "CCQE"

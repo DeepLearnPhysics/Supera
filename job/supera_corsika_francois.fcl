@@ -80,7 +80,7 @@ ProcessDriver: {
         HitThresholdNe: 100
         #HitThresholdNe: 0
         #HitThresholdNe: 0
-        HitWindowTicks: 10
+        HitWindowTicks: 15
         #HitWindowTicks: 20
         HitPeakFinding: false
         PostAveraging: true
@@ -90,7 +90,7 @@ ProcessDriver: {
         RecoChargeRange: [-1000,50000]
         #RecoChargeRange: [-50000,50000]
         VoxelSizeFactor: 3.
-				VoxelDistanceThreshold: 2.
+				VoxelDistanceThreshold: 3.
       }
 
     }

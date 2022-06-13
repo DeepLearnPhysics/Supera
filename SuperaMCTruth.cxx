@@ -106,6 +106,7 @@ namespace larcv {
 
       for(int i=0; i<mct.NParticles(); ++i) {
 	auto const& mcp = mct.GetParticle(i);
+	if(mcp.StatusCode() != 1) std::cout << "bad particle: track id = " << mcp.TrackId() << " PDG = " << mcp.PdgCode() << " StatusCode = " << mcp.StatusCode() << std::endl;
 	if(mcp.StatusCode() != 1) continue;
 
 	auto const& pos = mcp.Position(0);
