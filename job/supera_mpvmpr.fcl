@@ -3,8 +3,8 @@ ProcessDriver: {
   Verbosity:    2
   EnableFilter: true
   RandomAccess: false
-  ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter"]
-  ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter"]
+  ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D"]
+  ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D"]
 
   IOManager: {
     Verbosity:   2
@@ -22,6 +22,12 @@ ProcessDriver: {
       Profile: true
       Tensor3DProducerList: ["reco"]
       MinVoxel3DCountList:  [1]
+    }
+    RescaleChargeTensor3D: {
+      HitKeyProducerList:    ["reco_hit_key0","reco_hit_key1","reco_hit_key2"]
+      HitChargeProducerList: ["reco_hit_charge0","reco_hit_charge1","reco_hit_charge2"]
+      OutputProducer:        "reco_rescaled"
+      ReferenceProducer:     "pcluster"
     }
     ThresholdTensor3D: {
       Profile: true
