@@ -9,6 +9,7 @@
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/RecoBase/Wire.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RawData/OpDetWaveform.h"
@@ -16,6 +17,7 @@
 #include "lardataobj/MCBase/MCTrack.h"
 #include "lardataobj/Simulation/SimChannel.h"
 #include "lardataobj/Simulation/SimEnergyDeposit.h"
+#include "larcore/CoreUtils/ServiceUtil.h"
 
 namespace supera {
   typedef larcv::PSet        Config_t;
@@ -30,6 +32,7 @@ namespace supera {
   typedef sim::MCStep        LArMCStep_t;
   typedef sim::SimEnergyDeposit LArSimEnergyDeposit_t;
   typedef recob::SpacePoint  LArSpacePoint_t;
+	typedef recob::OpFlash     LArOpFlash_t;
 }
 //
 // Utility functions (geometry, lar properties, etc.)
