@@ -61,7 +61,7 @@ public:
   void beginJob() override;
   void endJob() override;
 
-	template<typename LArSoftDataType> void get_label(const art::Event& e, ::supera::LArDataType_t SuperaDataType, bool checkLength = false);
+	template<class LArSoftDataType> void get_label(const art::Event& e, ::supera::LArDataType_t SuperaDataType, bool checkLength = false);
 
 private:
 

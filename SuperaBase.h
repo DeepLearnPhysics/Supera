@@ -123,6 +123,9 @@ namespace larcv {
   template <> const std::vector<supera::LArMCShower_t>& SuperaBase::LArData<supera::LArMCShower_t>() const;
 
   template <> const std::vector<supera::LArSimEnergyDeposit_t>& SuperaBase::LArData<supera::LArSimEnergyDeposit_t>() const;
+
+  template <> const std::vector<supera::LArSimEnergyDepositLite_t>& SuperaBase::LArData<supera::LArSimEnergyDepositLite_t>() const;
+
   template <> const std::vector<supera::LArSpacePoint_t>& SuperaBase::LArData<supera::LArSpacePoint_t>() const;
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArWire_t>& data_v);
@@ -142,6 +145,8 @@ namespace larcv {
   template <> void SuperaBase::LArData(const std::vector<supera::LArSimCh_t>& data_v);
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArSimEnergyDeposit_t>& data_v);
+
+  template <> void SuperaBase::LArData(const std::vector<supera::LArSimEnergyDepositLite_t>& data_v);
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArSpacePoint_t>& data_v);
 

@@ -57,14 +57,14 @@ ProcessDriver: {
       #MaskedTrue2RecoCluster3D: "masked_true2reco"
       DeltaSize: 10
       #EnergyDepositThreshold: 0.5
-      LArSimEnergyDepositProducer: "largeant TPCActive"
-      LArSimChProducer: ""
-      #LArSimEnergyDepositProducer: ""
-      #LArSimChProducer: "largeant"
+      #LArSimEnergyDepositProducer: "largeant TPCActive"
+      LArSimEnergyDepositLiteProducer: "sedlite"
+      #LArSimChProducer: ""
       Meta3DFromCluster3D: "mcst"
       Meta2DFromTensor2D:  ""
       Verbosity: 1
-      UseSimEnergyDeposit: true
+      UseSimEnergyDeposit: false
+      UseSimEnergyDepositLite: true
       UseSimEnergyDepositPoints: true
       CryostatList: [0,0,0,0,1,1,1,1]
       TPCList: [0,1,2,3,0,1,2,3]
@@ -113,7 +113,9 @@ ProcessDriver: {
       Verbosity: 2
       Profile: true
       LArMCTruthProducer: "generator"
-      LArSimEnergyDepositProducer: "largeant TPCActive"
+      #LArSimEnergyDepositProducer: "largeant TPCActive"
+      LArSimEnergyDepositLiteProducer: "sedlite"
+			UseSEDLite: true
       Origin: 0
       Cluster3DLabels: ["mcst","pcluster","sed","masked_true2reco"]
       Tensor3DLabels:  ["reco","pcluster_index","masked_true"]
@@ -133,8 +135,10 @@ ProcessDriver: {
     SuperaSimEnergyDeposit: {
       Verbosity: 1
       Profile: true
-      LArSimEnergyDepositProducer: "largeant TPCActive"
+      #LArSimEnergyDepositProducer: "largeant TPCActive"
+      LArSimEnergyDepositLiteProducer: "sedlite"
       LArMCShowerProducer: "mcreco"
+			UseSEDLite: true
       ParticleProducer: "pcluster"
       OutCluster3DLabel: "sed"
       StoreLength: false

@@ -38,12 +38,15 @@ namespace larcv {
 
     void initialize();
 
+		template <class T> void AdaptBBoxToSED(std::vector<T> const& sedep_v, larcv::BBox3D& bbox);
+
     bool process(IOManager& mgr);
 
     void finalize();
 
   private:
 
+		bool _use_sed_lite; ///< whether to use sim::SimEnergyDeposit or sim::SimEnergyDepositLite
     unsigned short _origin;
     double _xlen, _ylen, _zlen;
     double _xvox, _yvox, _zvox;

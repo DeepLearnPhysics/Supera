@@ -47,7 +47,7 @@ namespace larcv {
 
 		// If we want to use SED, we have the option
 		// to use SEDLite.
-		_use_sed = cfg.get<bool>("UseSimEnergyDeposit");
+		_use_sed = cfg.get<bool>("UseSimEnergyDeposit", true);
     _use_sed_lite = cfg.get<bool>("UseSimEnergyDepositLite", false);
 
     _use_sed_points = cfg.get<bool>("UseSimEnergyDepositPoints");
