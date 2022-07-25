@@ -17,6 +17,7 @@
 #include "lardataobj/MCBase/MCTrack.h"
 #include "lardataobj/Simulation/SimChannel.h"
 #include "lardataobj/Simulation/SimEnergyDeposit.h"
+#include "lardataobj/Simulation/SimEnergyDepositLite.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
 
 namespace supera {
@@ -31,6 +32,7 @@ namespace supera {
   typedef sim::SimChannel    LArSimCh_t;
   typedef sim::MCStep        LArMCStep_t;
   typedef sim::SimEnergyDeposit LArSimEnergyDeposit_t;
+  typedef sim::SimEnergyDepositLite LArSimEnergyDepositLite_t;
   typedef recob::SpacePoint  LArSpacePoint_t;
 	typedef recob::OpFlash     LArOpFlash_t;
 }

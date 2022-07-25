@@ -2,7 +2,7 @@
  * \file SuperaBase.h
  *
  * \ingroup Package_Name
- * 
+ *
  * \brief Class def header for a class SuperaBase
  *
  * @author kazuhiro
@@ -34,10 +34,10 @@ namespace larcv {
   class SuperaBase : public ProcessBase {
 
   public:
-    
+
     /// Default constructor
     SuperaBase(const std::string name="SuperaBase");
-    
+
     /// Default destructor
     ~SuperaBase(){}
 
@@ -60,7 +60,7 @@ namespace larcv {
     { _csv_fname = fname; }
 
     // FIXME(kvtsang) Temporary solution to access associations
-    void SetEvent(const art::Event *ev) { _event = ev; }; 
+    void SetEvent(const art::Event *ev) { _event = ev; };
 
     void ClearEventData();
 
@@ -94,6 +94,7 @@ namespace larcv {
     std::vector<supera::LArMCTrack_t>*    _ptr_mct_v;
     std::vector<supera::LArMCShower_t>*   _ptr_mcs_v;
     std::vector<supera::LArSimEnergyDeposit_t>* _ptr_simedep_v;
+    std::vector<supera::LArSimEnergyDepositLite_t>* _ptr_simedep_lite_v;
     std::vector<supera::LArSpacePoint_t>* _ptr_spacepoint_v;
     std::string _csv_fname;
 
@@ -163,5 +164,5 @@ namespace larcv {
 }
 
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 

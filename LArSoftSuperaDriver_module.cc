@@ -26,6 +26,7 @@
 #include "lardataobj/MCBase/MCTrack.h"
 #include "lardataobj/Simulation/SimChannel.h"
 #include "lardataobj/Simulation/SimEnergyDeposit.h"
+#include "lardataobj/Simulation/SimEnergyDepositLite.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 #include "larcore/Geometry/Geometry.h"
@@ -59,6 +60,9 @@ public:
 
   void beginJob() override;
   void endJob() override;
+
+	template<typename LArSoftDataType> void get_label(const art::Event& e, ::supera::LArDataType_t SuperaDataType, bool checkLength = false);
+
 private:
 
   // Declare member data here.
@@ -129,6 +133,28 @@ void LArSoftSuperaDriver::beginJob()
   _supera.initialize();
 }
 
+// Define boilerplate function to be used for
+// various data types. Use templates for now.
+template <class LArSoftDataType> void LArSoftSuperaDriver::get_label(const art::Event& e, ::supera::LArDataType_t SuperaDataType, bool checkLength) {
+	for(auto const& label : _supera.DataLabels(SuperaDataType)) {
+		if(label.empty()) continue;
+		art::Handle<std::vector<LArSoftDataType> > data_h;
+		if(label.find(" ")<label.size()) {
+			e.getByLabel(label.substr(0,label.find(" ")),
+			 label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
+			 data_h);
+		}else{ e.getByLabel(label, data_h); }
+		if(!data_h.isValid() || (checkLength ? data_h->empty() : false)) {
+			std::cerr<< "Attempted to load data: " << label << std::endl;
+			if(_strictDataLoading)
+				throw ::larcv::larbys("Could not locate data!");
+			else
+				return;
+		}
+		_supera.SetDataPointer(*data_h,label);
+	}
+}
+
 void LArSoftSuperaDriver::analyze(art::Event const & e)
 {
   // FIXME(kvtsang) Temporary solution to access associations
@@ -137,213 +163,46 @@ void LArSoftSuperaDriver::analyze(art::Event const & e)
   //
   // set data pointers
   //
-  /*
+
+
+
   // hit
-  for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArHit_t)) {
-    if(label.empty()) continue;
-    art::Handle<std::vector<recob::Hit> > data_h;
-    if(label.find(" ")<label.size()) {
-      e.getByLabel(label.substr(0,label.find(" ")),
-		   label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
-		   data_h);
-    }else{ e.getByLabel(label, data_h); }
-    if(!data_h.isValid()) {
-      std::cerr<< "Attempted to load data: " << label << std::endl;
-      throw ::larcv::larbys("Could not locate data!");
-    }
-    _supera.SetDataPointer(*data_h,label);
-  }
-  */
+	//get_label<::supera::LArDataType_t::kLArHit_t, recob::Hit>();
+
   // wire
-  for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArWire_t)) {
-    if(label.empty()) continue;
-    art::Handle<std::vector<recob::Wire> > data_h;
-    if(label.find(" ")<label.size()) {
-      e.getByLabel(label.substr(0,label.find(" ")),
-		   label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
-		   data_h);
-    }else{ e.getByLabel(label, data_h); }
-    if(!data_h.isValid()) {
-      std::cerr<< "Attempted to load data: " << label << std::endl;
-      if(_strictDataLoading)
-				throw ::larcv::larbys("Could not locate data!");
-			else
-				return;
-    }
-    _supera.SetDataPointer(*data_h,label);
-  }
+  if(_verbosity==0) std::cout << "Checking Wire data request" << std::endl;
+	get_label<recob::Wire>(e, ::supera::LArDataType_t::kLArWire_t);
 
   // opdigit
-  /*
-  for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArOpDigit_t)) {
-    if(label.empty()) continue;
-    art::Handle<std::vector<raw::OpDetWaveform> > data_h;
-    if(label.find(" ")<label.size()) {
-      e.getByLabel(label.substr(0,label.find(" ")),
-		   label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
-		   data_h);
-    }else{ e.getByLabel(label, data_h); }
-    if(!data_h.isValid()) {
-      std::cerr<< "Attempted to load data: " << label << std::endl;
-      throw ::larcv::larbys("Could not locate data!");
-    }
-    _supera.SetDataPointer(*data_h,label);
-  }
-  */
-  // mctruth
+	//get_label<::supera::LArDataType_t::kLArOpDigit_t, raw::OpDetWaveform>();
+
+	// mctruth
   if(_verbosity==0) std::cout << "Checking MCTruth data request" << std::endl;
-  for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArMCTruth_t)) {
-    if(label.empty()) continue;
-    art::Handle<std::vector<simb::MCTruth> > data_h;
-    if(label.find(" ")<label.size()) {
-      e.getByLabel(label.substr(0,label.find(" ")),
-		   label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
-		   data_h);
-    }else{ e.getByLabel(label, data_h); }
-    if(!data_h.isValid()) {
-      std::cerr<< "Attempted to load data: " << label << std::endl;
-      if(_strictDataLoading)
-				throw ::larcv::larbys("Could not locate data!");
-			else
-				return;
-    }
-    _supera.SetDataPointer(*data_h,label);
-  }
+	get_label<simb::MCTruth>(e, ::supera::LArDataType_t::kLArMCTruth_t);
 
   // mcparticle
   if(_verbosity==0) std::cout << "Checking MCParticle data request" << std::endl;
-  for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArMCParticle_t)) {
-    if(label.empty()) continue;
-    art::Handle<std::vector<simb::MCParticle> > data_h;
-    //art::Assns<simb::MCTruth,simb::MCParticle,sim::GeneratedParticleInfo> ass_h;
-    if(label.find(" ")<label.size()) {
-      e.getByLabel(label.substr(0,label.find(" ")),
-		   label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
-		   data_h);
-      //e.getByLabel(label.substr(0,label.find(" ")),
-      //	   label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
-      //	   ass_h);
-    }else{
-      e.getByLabel(label, data_h);
-      //e.getByLabel(label, ass_h);
-    }
-    if(!data_h.isValid() || data_h->empty()) {
-      std::cerr<< "Attempted to load data: " << label << std::endl;
-      if(_strictDataLoading)
-				throw ::larcv::larbys("Could not locate data!");
-			else
-				return;
-    }
-    /*
-    std::vector<art::Handle<std::vector<simb::MCTruth>>> mclists;
-    e.getManyByType(mclists);
-
-    //Find tracks associated with hits
-    art::FindManyP<simb::MCTruth> ass(data_h,e);
-    for (size_t i = 0; data_h->size(); ++i) {
-      auto const mct = ass.at(i);
-    }
-    */
-    _supera.SetDataPointer(*data_h,label);
-  }
-
+	get_label<simb::MCParticle>(e, ::supera::LArDataType_t::kLArMCParticle_t, true);
+	//
   // SimEnergyDeposit
   if(_verbosity==0) std::cout << "Checking SimEnergyDeposit data request" << std::endl;
-  for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArSimEnergyDeposit_t)) {
-    if(_verbosity==0) std::cout << "Requested: " << label << std::endl;
-    if(label.empty()) continue;
-    art::Handle<std::vector<sim::SimEnergyDeposit> > data_h;
-    if(label.find(" ")<label.size()) {
-      e.getByLabel(label.substr(0,label.find(" ")),
-		   label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
-		   data_h);
-    }else{ e.getByLabel(label, data_h); }
-    if(!data_h.isValid()) {
-      std::cerr<< "Attempted to load data: " << label << std::endl;
-      if(_strictDataLoading)
-				throw ::larcv::larbys("Could not locate data!");
-			else
-				return;
-    }
-    _supera.SetDataPointer(*data_h,label);
-  }
+	get_label<sim::SimEnergyDeposit>(e, ::supera::LArDataType_t::kLArSimEnergyDeposit_t);
+
+  // SimEnergyDepositLite
+  if(_verbosity==0) std::cout << "Checking SimEnergyDepositLite data request" << std::endl;
+	get_label<sim::SimEnergyDepositLite>(e, ::supera::LArDataType_t::kLArSimEnergyDepositLite_t);
 
   // mctrack
-  for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArMCTrack_t)) {
-    if(label.empty()) continue;
-    art::Handle<std::vector<sim::MCTrack> > data_h;
-    if(label.find(" ")<label.size()) {
-      e.getByLabel(label.substr(0,label.find(" ")),
-		   label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
-		   data_h);
-    }else{ e.getByLabel(label, data_h); }
-    if(!data_h.isValid()) {
-      std::cerr<< "Attempted to load data: " << label << std::endl;
-      if(_strictDataLoading)
-				throw ::larcv::larbys("Could not locate data!");
-			else
-				return;
-    }
-    _supera.SetDataPointer(*data_h,label);
-  }
+	get_label<sim::MCTrack>(e, ::supera::LArDataType_t::kLArMCTrack_t);
 
   // mcshower
-  for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArMCShower_t)) {
-    if(label.empty()) continue;
-    art::Handle<std::vector<sim::MCShower> > data_h;
-    if(label.find(" ")<label.size()) {
-      e.getByLabel(label.substr(0,label.find(" ")),
-		   label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
-		   data_h);
-    }else{ e.getByLabel(label, data_h); }
-    if(!data_h.isValid()) {
-      std::cerr<< "Attempted to load data: " << label << std::endl;
-      if(_strictDataLoading)
-				throw ::larcv::larbys("Could not locate data!");
-			else
-				return;
-    }
-    _supera.SetDataPointer(*data_h,label);
-  }
+	get_label<sim::MCShower>(e, ::supera::LArDataType_t::kLArMCShower_t);
 
   // SpacePoint
-  for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArSpacePoint_t)) {
-    if(label.empty()) continue;
-    art::Handle<std::vector<recob::SpacePoint> > data_h;
-    if(label.find(" ")<label.size()) {
-      e.getByLabel(label.substr(0,label.find(" ")),
-		   label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
-		   data_h);
-    }else{ e.getByLabel(label, data_h); }
-    if(!data_h.isValid()) {
-      std::cerr<< "Attempted to load data: " << label << std::endl;
-      if(_strictDataLoading)
-				throw ::larcv::larbys("Could not locate data!");
-			else
-				return;
-    }
-    _supera.SetDataPointer(*data_h,label);
-  }
-
+	get_label<recob::SpacePoint>(e, ::supera::LArDataType_t::kLArSpacePoint_t);
 
   // simch
-  for(auto const& label : _supera.DataLabels(::supera::LArDataType_t::kLArSimCh_t)) {
-    if(label.empty()) continue;
-    art::Handle<std::vector<sim::SimChannel> > data_h;
-    if(label.find(" ")<label.size()) {
-      e.getByLabel(label.substr(0,label.find(" ")),
-		   label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
-		   data_h);
-    }else{ e.getByLabel(label, data_h); }
-    if(!data_h.isValid()) {
-      std::cerr<< "Attempted to load data: " << label << std::endl;
-      if(_strictDataLoading)
-				throw ::larcv::larbys("Could not locate data!");
-			else
-				return;
-    }
-    _supera.SetDataPointer(*data_h,label);
-  }
+	get_label<sim::SimChannel>(e, ::supera::LArDataType_t::kLArSimCh_t);
   /*
   // chstatus
   auto supera_chstatus = _supera.SuperaChStatusPointer();

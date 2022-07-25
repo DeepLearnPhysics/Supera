@@ -16,6 +16,7 @@ namespace supera {
     kLArMCShower_t,  ///< sim::MCShower
     kLArSimCh_t,     ///< sim::SimChannel
     kLArSimEnergyDeposit_t, ///< sim::SimEnergyDeposit
+    kLArSimEnergyDepositLite_t, ///< sim::SimEnergyDepositLite
     kLArSpacePoint_t, ///< simb::SpacePoint
 		kLArOpFlash_t,   ///< recob::OpFlash
     kLArDataTypeMax
@@ -33,6 +34,7 @@ namespace supera {
   template<> LArDataType_t LArDataType<supera::LArMCShower_t>();
   template<> LArDataType_t LArDataType<supera::LArSimCh_t>();
   template<> LArDataType_t LArDataType<supera::LArSimEnergyDeposit_t>();
+  template<> LArDataType_t LArDataType<supera::LArSimEnergyDepositLite_t>();
   template<> LArDataType_t LArDataType<supera::LArSpacePoint_t>();
   template<> LArDataType_t LArDataType<supera::LArOpFlash_t>();
 

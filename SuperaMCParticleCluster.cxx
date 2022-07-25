@@ -44,7 +44,12 @@ namespace larcv {
     _compton_size = cfg.get<size_t>("ComptonSize",10);
     _edep_threshold = cfg.get<double>("EnergyDepositThreshold",0.01);
     _projection_id = cfg.get<int>("ProjectionID",-1);
-    _use_sed = cfg.get<bool>("UseSimEnergyDeposit");
+
+		// If we want to use SED, we have the option
+		// to use SEDLite.
+		_use_sed = cfg.get<bool>("UseSimEnergyDeposit");
+    _use_sed_lite = cfg.get<bool>("UseSimEnergyDepositLite", false);
+
     _use_sed_points = cfg.get<bool>("UseSimEnergyDepositPoints");
     _store_dedx = cfg.get<bool>("StoreDEDX",false);
     _use_true_pos = cfg.get<bool>("UseTruePosition",true);
@@ -231,12 +236,12 @@ namespace larcv {
     return result;
   }
 
-  void SuperaMCParticleCluster::AnalyzeSimEnergyDeposit(const larcv::Voxel3DMeta& meta,
+  template<typename sed_type> void SuperaMCParticleCluster::AnalyzeSimEnergyDeposit(const larcv::Voxel3DMeta& meta,
 							std::vector<supera::ParticleGroup>& part_grp_v,
 							larcv::IOManager& mgr)
   {
     //std::set<size_t> ctr_a, ctr_b;
-    auto const& sedep_v = LArData<supera::LArSimEnergyDeposit_t>();
+    auto const& sedep_v = LArData<sed_type>();
     auto const& trackid2index = _mcpl.TrackIdToIndex();
 
     std::vector<std::map<VoxelID_t,std::unordered_set<VoxelID_t> > > true2reco_v;
@@ -268,12 +273,13 @@ namespace larcv {
       pt.z = sedep.Z();
       pt.t = sedep.T();
       pt.e = sedep.Energy();
-      if(_store_dedx) {
+      /* Commenting out for now because of SEDLite
+			 if(_store_dedx) {
 	double dx = sedep.EndX() - sedep.StartX();
 	double dy = sedep.EndY() - sedep.StartY();
 	double dz = sedep.EndZ() - sedep.StartZ();
 	pt.dedx = pt.e / sqrt(pow(dx,2)+pow(dy,2)+pow(dz,2));
-      }
+      }*/
       int track_id = abs(sedep.TrackID());
 			if (track_id == 4 || track_id == 8 || track_id == 9 || track_id == 10) std::cout << "Found " << track_id << std::endl;
       if(track_id >= ((int)(trackid2index.size()))) {
@@ -362,10 +368,10 @@ namespace larcv {
 
   }
 
-  void SuperaMCParticleCluster::AnalyzeFirstLastStep(const larcv::Voxel3DMeta& meta,
+  template<typename sed_type> void SuperaMCParticleCluster::AnalyzeFirstLastStep(const larcv::Voxel3DMeta& meta,
 						     std::vector<supera::ParticleGroup>& part_grp_v)
   {
-    auto const& sedep_v = LArData<supera::LArSimEnergyDeposit_t>();
+    auto const& sedep_v = LArData<sed_type>();
     auto const& trackid2index = _mcpl.TrackIdToIndex();
     double tmin,tmax,xmax,xmin;
     xmin=tmin=1.e20;
@@ -1171,16 +1177,24 @@ namespace larcv {
 
     // Fill Voxel Information
     LARCV_INFO() << "Analyzing SimChannel/SimEnergyDeposit" << std::endl;
-    if(_use_sed)
-      this->AnalyzeSimEnergyDeposit(meta3d, part_grp_v, mgr);
-    else
+    if(_use_sed) {
+      if (_use_sed_lite) {
+				this->AnalyzeSimEnergyDeposit<supera::LArSimEnergyDepositLite_t>(meta3d, part_grp_v, mgr);
+			} else {
+				this->AnalyzeSimEnergyDeposit<supera::LArSimEnergyDeposit_t>(meta3d, part_grp_v, mgr);
+			}
+		} else {
       this->AnalyzeSimChannel(meta3d, part_grp_v, mgr);
-
+		}
     // Define particle first/last points based on SED
     LARCV_INFO() << "Analyzing First Step" << std::endl;
-    if(_use_sed_points && !_use_sed)
-      this->AnalyzeFirstLastStep(meta3d, part_grp_v);
-
+    if(_use_sed_points && !_use_sed) {
+			if (_use_sed_lite) {
+				this->AnalyzeFirstLastStep<supera::LArSimEnergyDepositLite_t>(meta3d, part_grp_v);
+			}else {
+				this->AnalyzeFirstLastStep<supera::LArSimEnergyDeposit_t>(meta3d, part_grp_v);
+			}
+		}
     /*
     std::cout<< "Listing non-zero voxel particles..." << std::endl;
     for(auto const& grp : part_grp_v) {
