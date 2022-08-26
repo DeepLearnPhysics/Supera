@@ -16,27 +16,15 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-#include "nusimdata/SimulationBase/MCTruth.h"
-#include "nusimdata/SimulationBase/MCParticle.h"
-#include "lardataobj/RecoBase/Hit.h"
-#include "lardataobj/RecoBase/Wire.h"
-#include "lardataobj/RecoBase/SpacePoint.h"
-#include "lardataobj/RawData/OpDetWaveform.h"
-#include "lardataobj/MCBase/MCShower.h"
-#include "lardataobj/MCBase/MCTrack.h"
-#include "lardataobj/Simulation/SimChannel.h"
-#include "lardataobj/Simulation/SimEnergyDeposit.h"
-#include "lardataobj/Simulation/SimEnergyDepositLite.h"
+#include "FMWKInterface.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
-#include "larcore/Geometry/Geometry.h"
 #include <TString.h>
 #include <TTimeStamp.h>
 
 //#include "LArCVMetaMaker.h"
 #include "LArCVSuperaDriver.h"
 #include "GenRandom.h"
-#include "larcv/core/Base/PSet.h"
 #include "CLHEP/Random/RandFlat.h"
 #include "TRandom.h"
 #include "nurandom/RandomUtils/NuRandomService.h"
@@ -61,7 +49,7 @@ public:
   void beginJob() override;
   void endJob() override;
 
-	template<class LArSoftDataType> void get_label(const art::Event& e, ::supera::LArDataType_t SuperaDataType, bool checkLength = false);
+  template<class LArSoftDataType> void get_label(const art::Event& e, ::supera::LArDataType_t SuperaDataType, bool checkLength = false);
 
 private:
 
@@ -69,7 +57,7 @@ private:
   larcv::LArCVSuperaDriver _supera;
   unsigned int _verbosity;
   CLHEP::HepRandomEngine& fFlatEngine;
-	bool _strictDataLoading;
+  bool _strictDataLoading;
 };
 
 
@@ -80,7 +68,7 @@ LArSoftSuperaDriver::LArSoftSuperaDriver(fhicl::ParameterSet const & p)
 {
   //fEfficiencyEngine(art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "Efficiencies"))
   _verbosity = p.get<unsigned int>("Verbosity",3);
-	_strictDataLoading = p.get<bool>("StrictDataLoading", true);
+  _strictDataLoading = p.get<bool>("StrictDataLoading", true);
   // Setup random number generator
   supera::GenRandom::get().SetFlatGen(new CLHEP::RandFlat(fFlatEngine,0,1));
 
@@ -136,23 +124,23 @@ void LArSoftSuperaDriver::beginJob()
 // Define boilerplate function to be used for
 // various data types. Use templates for now.
 template <class LArSoftDataType> void LArSoftSuperaDriver::get_label(const art::Event& e, ::supera::LArDataType_t SuperaDataType, bool checkLength) {
-	for(auto const& label : _supera.DataLabels(SuperaDataType)) {
-		if(label.empty()) continue;
-		art::Handle<std::vector<LArSoftDataType> > data_h;
-		if(label.find(" ")<label.size()) {
-			e.getByLabel(label.substr(0,label.find(" ")),
-			 label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
-			 data_h);
-		}else{ e.getByLabel(label, data_h); }
-		if(!data_h.isValid() || (checkLength ? data_h->empty() : false)) {
-			std::cerr<< "Attempted to load data: " << label << std::endl;
-			if(_strictDataLoading)
-				throw ::larcv::larbys("Could not locate data!");
-			else
-				return;
-		}
-		_supera.SetDataPointer(*data_h,label);
-	}
+  for(auto const& label : _supera.DataLabels(SuperaDataType)) {
+    if(label.empty()) continue;
+    art::Handle<std::vector<LArSoftDataType> > data_h;
+    if(label.find(" ")<label.size()) {
+      e.getByLabel(label.substr(0,label.find(" ")),
+       label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
+       data_h);
+    }else{ e.getByLabel(label, data_h); }
+    if(!data_h.isValid() || (checkLength ? data_h->empty() : false)) {
+      std::cerr<< "Attempted to load data: " << label << std::endl;
+      if(_strictDataLoading)
+        throw ::larcv::larbys("Could not locate data!");
+      else
+        return;
+    }
+    _supera.SetDataPointer(*data_h,label);
+  }
 }
 
 void LArSoftSuperaDriver::analyze(art::Event const & e)
@@ -167,42 +155,51 @@ void LArSoftSuperaDriver::analyze(art::Event const & e)
 
 
   // hit
-	//get_label<::supera::LArDataType_t::kLArHit_t, recob::Hit>();
+  //get_label<::supera::LArDataType_t::kLArHit_t, recob::Hit>();
 
   // wire
   if(_verbosity==0) std::cout << "Checking Wire data request" << std::endl;
-	get_label<recob::Wire>(e, ::supera::LArDataType_t::kLArWire_t);
+  get_label<recob::Wire>(e, ::supera::LArDataType_t::kLArWire_t);
 
   // opdigit
-	//get_label<::supera::LArDataType_t::kLArOpDigit_t, raw::OpDetWaveform>();
+  //get_label<::supera::LArDataType_t::kLArOpDigit_t, raw::OpDetWaveform>();
 
-	// mctruth
+  // mctruth
   if(_verbosity==0) std::cout << "Checking MCTruth data request" << std::endl;
-	get_label<simb::MCTruth>(e, ::supera::LArDataType_t::kLArMCTruth_t);
+  get_label<simb::MCTruth>(e, ::supera::LArDataType_t::kLArMCTruth_t);
 
   // mcparticle
   if(_verbosity==0) std::cout << "Checking MCParticle data request" << std::endl;
-	get_label<simb::MCParticle>(e, ::supera::LArDataType_t::kLArMCParticle_t, true);
-	//
+  get_label<simb::MCParticle>(e, ::supera::LArDataType_t::kLArMCParticle_t, true);
+  //
   // SimEnergyDeposit
   if(_verbosity==0) std::cout << "Checking SimEnergyDeposit data request" << std::endl;
-	get_label<sim::SimEnergyDeposit>(e, ::supera::LArDataType_t::kLArSimEnergyDeposit_t);
+  get_label<sim::SimEnergyDeposit>(e, ::supera::LArDataType_t::kLArSimEnergyDeposit_t);
 
   // SimEnergyDepositLite
   if(_verbosity==0) std::cout << "Checking SimEnergyDepositLite data request" << std::endl;
-	get_label<sim::SimEnergyDepositLite>(e, ::supera::LArDataType_t::kLArSimEnergyDepositLite_t);
+  get_label<sim::SimEnergyDepositLite>(e, ::supera::LArDataType_t::kLArSimEnergyDepositLite_t);
 
   // mctrack
-	get_label<sim::MCTrack>(e, ::supera::LArDataType_t::kLArMCTrack_t);
+  get_label<sim::MCTrack>(e, ::supera::LArDataType_t::kLArMCTrack_t);
 
   // mcshower
-	get_label<sim::MCShower>(e, ::supera::LArDataType_t::kLArMCShower_t);
+  get_label<sim::MCShower>(e, ::supera::LArDataType_t::kLArMCShower_t);
 
   // SpacePoint
-	get_label<recob::SpacePoint>(e, ::supera::LArDataType_t::kLArSpacePoint_t);
+  get_label<recob::SpacePoint>(e, ::supera::LArDataType_t::kLArSpacePoint_t);
 
   // simch
-	get_label<sim::SimChannel>(e, ::supera::LArDataType_t::kLArSimCh_t);
+  get_label<sim::SimChannel>(e, ::supera::LArDataType_t::kLArSimCh_t);
+
+  // OpFlash
+  if(_verbosity==0) std::cout << "Checking OpFlash data request" << std::endl;
+  get_label<recob::OpFlash>(e, ::supera::LArDataType_t::kLArOpFlash_t);
+
+  // CRTHit
+  if(_verbosity==0) std::cout << "Checking OpFlash data request" << std::endl;
+  get_label<sbn::crt::CRTHit>(e, ::supera::LArDataType_t::kLArCRTHit_t);
+
   /*
   // chstatus
   auto supera_chstatus = _supera.SuperaChStatusPointer();

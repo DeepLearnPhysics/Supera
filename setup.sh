@@ -21,6 +21,7 @@ else
 	export SUPERADIR=$SUPERA_DIR;
 	ln -sf $SUPERA_DIR/experiments/$experiment/FMWKInterface.* $SUPERA_DIR;
 	ln -sf $SUPERA_DIR/experiments/$experiment/CMakeLists.txt $SUPERA_DIR;
+	ln -sf $SUPERA_DIR/experiments/$experiment/ExperimentTypes.h $SUPERA_DIR;
 	echo "set up for $experiment"
     fi
 fi

@@ -25,12 +25,12 @@ namespace larcv {
   */
   class SuperaOptical : public SuperaBase {
 
-	public:
-		/// Default constructor
-		SuperaOptical(const std::string name = "SuperaOptical");
+  public:
+    /// Default constructor
+    SuperaOptical(const std::string name = "SuperaOptical");
 
-		/// Default destructor
-		~SuperaOptical() {}
+    /// Default destructor
+    ~SuperaOptical() {}
 
     void configure(const PSet&);
 
@@ -40,11 +40,11 @@ namespace larcv {
 
     void finalize();
 
-	private:
-		std::vector<std::string> _opflash_producer_label_v;
-		std::vector<std::string> _opflash_output_label_v;
+  private:
+    std::vector<std::string> _opflash_producer_label_v;
+    std::vector<std::string> _opflash_output_label_v;
 
-	};
+  };
 
   /**
      \class larcv::SuperaOpticalFactory

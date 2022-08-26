@@ -19,6 +19,7 @@
 #include "lardataobj/Simulation/SimEnergyDeposit.h"
 #include "lardataobj/Simulation/SimEnergyDepositLite.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
+#include "ExperimentTypes.h"
 
 namespace supera {
   typedef larcv::PSet        Config_t;

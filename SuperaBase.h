@@ -96,6 +96,8 @@ namespace larcv {
     std::vector<supera::LArSimEnergyDeposit_t>* _ptr_simedep_v;
     std::vector<supera::LArSimEnergyDepositLite_t>* _ptr_simedep_lite_v;
     std::vector<supera::LArSpacePoint_t>* _ptr_spacepoint_v;
+    std::vector<supera::LArOpFlash_t>*    _ptr_opflash_v;
+    std::vector<supera::LArCRTHit_t>*     _ptr_crthit_v;
     std::string _csv_fname;
 
     // FIXME(kvtsang) Temporary solution to access associations
@@ -128,6 +130,10 @@ namespace larcv {
 
   template <> const std::vector<supera::LArSpacePoint_t>& SuperaBase::LArData<supera::LArSpacePoint_t>() const;
 
+  template <> const std::vector<supera::LArOpFlash_t>& SuperaBase::LArData<supera::LArOpFlash_t>() const;
+
+  template <> const std::vector<supera::LArCRTHit_t>& SuperaBase::LArData<supera::LArCRTHit_t>() const;
+
   template <> void SuperaBase::LArData(const std::vector<supera::LArWire_t>& data_v);
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArHit_t>& data_v);
@@ -150,6 +156,9 @@ namespace larcv {
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArSpacePoint_t>& data_v);
 
+  template <> void SuperaBase::LArData(const std::vector<supera::LArOpFlash_t>& data_v);
+
+  template <> void SuperaBase::LArData(const std::vector<supera::LArCRTHit_t>& data_v);
   /**
      \class larcv::SuperaBaseFactory
      \brief A concrete factory class for larcv::SuperaBase

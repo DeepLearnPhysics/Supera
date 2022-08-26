@@ -15,5 +15,6 @@ namespace supera {
   template<> LArDataType_t LArDataType<supera::LArSimEnergyDepositLite_t>()    { return LArDataType_t::kLArSimEnergyDepositLite_t; }
   template<> LArDataType_t LArDataType<supera::LArSpacePoint_t>()              { return LArDataType_t::kLArSpacePoint_t; }
   template<> LArDataType_t LArDataType<supera::LArOpFlash_t>()                 { return LArDataType_t::kLArOpFlash_t; }
+  template<> LArDataType_t LArDataType<supera::LArCRTHit_t>()                  { return LArDataType_t::kLArCRTHit_t; }
 }
 #endif

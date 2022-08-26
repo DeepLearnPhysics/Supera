@@ -18,7 +18,8 @@ namespace supera {
     kLArSimEnergyDeposit_t, ///< sim::SimEnergyDeposit
     kLArSimEnergyDepositLite_t, ///< sim::SimEnergyDepositLite
     kLArSpacePoint_t, ///< simb::SpacePoint
-		kLArOpFlash_t,   ///< recob::OpFlash
+    kLArOpFlash_t,   ///< recob::OpFlash
+    kLArCRTHit_t,    ///< sbn::crt::CRTHit
     kLArDataTypeMax
   };
 
@@ -37,6 +38,7 @@ namespace supera {
   template<> LArDataType_t LArDataType<supera::LArSimEnergyDepositLite_t>();
   template<> LArDataType_t LArDataType<supera::LArSpacePoint_t>();
   template<> LArDataType_t LArDataType<supera::LArOpFlash_t>();
+  template<> LArDataType_t LArDataType<supera::LArCRTHit_t>();
 
   class RSEID {
   public:

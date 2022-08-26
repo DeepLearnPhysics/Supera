@@ -37,6 +37,8 @@ namespace larcv {
     auto producer_simedep  = cfg.get<std::string>("LArSimEnergyDepositProducer", "");
     auto producer_simedep_lite  = cfg.get<std::string>("LArSimEnergyDepositLiteProducer", "");
     auto producer_sps      = cfg.get<std::string>("LArSpacePoint",         "");
+    auto producer_opflash  = cfg.get<std::string>("LArOpFlashProducer",         "");
+    auto producer_crthit   = cfg.get<std::string>("LArCRTHitProducer",         "");
 
     if(!producer_wire.empty()    ) {
       LARCV_INFO() << "Requesting Wire data product by " << producer_wire << std::endl;
@@ -92,6 +94,16 @@ namespace larcv {
       LARCV_INFO() << "Requesting SpacePoint data product by " << producer_sps << std::endl;
       Request(supera::LArDataType_t::kLArSpacePoint_t, producer_sps);
     }
+
+    if(!producer_opflash.empty() ) {
+      LARCV_INFO() << "Requesting Opflash data product by " << producer_opflash << std::endl;
+      Request(supera::LArDataType_t::kLArOpFlash_t, producer_opflash);
+    }
+
+    if(!producer_crthit.empty() ) {
+      LARCV_INFO() << "Requesting CRTHit data product by " << producer_crthit << std::endl;
+      Request(supera::LArDataType_t::kLArCRTHit_t, producer_crthit);
+    }
   }
 
   void SuperaBase::initialize()
@@ -121,6 +133,8 @@ namespace larcv {
     _ptr_mcs_v      = nullptr;
     _ptr_simedep_v  = nullptr;
     _ptr_simedep_lite_v  = nullptr;
+    _ptr_opflash_v  = nullptr;
+    _ptr_crthit_v   = nullptr;
 
     // FIXME(kvtsang) Temporary solution to access associations
     _event          = nullptr;
@@ -166,6 +180,12 @@ namespace larcv {
   template <> const std::vector<supera::LArSpacePoint_t>& SuperaBase::LArData<supera::LArSpacePoint_t>() const
   { if(!_ptr_spacepoint_v) throw larbys("SpacePoint data pointer not available"); return *_ptr_spacepoint_v; }
 
+  template <> const std::vector<supera::LArOpFlash_t>& SuperaBase::LArData<supera::LArOpFlash_t>() const
+  { if(!_ptr_opflash_v) throw larbys("OpFlash data pointer not available"); return *_ptr_opflash_v; }
+
+  template <> const std::vector<supera::LArCRTHit_t>& SuperaBase::LArData<supera::LArCRTHit_t>() const
+  { if(!_ptr_crthit_v) throw larbys("CRTHit data pointer not available"); return *_ptr_crthit_v; }
+
   template <> void SuperaBase::LArData(const std::vector<supera::LArWire_t>& data_v)
   { _ptr_wire_v = (std::vector<supera::LArWire_t>*)(&data_v); }
 
@@ -199,6 +219,11 @@ namespace larcv {
   template <> void SuperaBase::LArData(const std::vector<supera::LArSpacePoint_t>& data_v)
   { _ptr_spacepoint_v = (std::vector<supera::LArSpacePoint_t>*)(&data_v); }
 
+  template <> void SuperaBase::LArData(const std::vector<supera::LArOpFlash_t>& data_v)
+  { _ptr_opflash_v = (std::vector<supera::LArOpFlash_t>*)(&data_v); }
+
+  template <> void SuperaBase::LArData(const std::vector<supera::LArCRTHit_t>& data_v)
+  { _ptr_crthit_v = (std::vector<supera::LArCRTHit_t>*)(&data_v); }
 }
 
 #endif

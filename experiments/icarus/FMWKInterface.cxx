@@ -10,22 +10,6 @@
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h" // RanItay Add
 
-//#include "LArUtil/SpaceChargeMicroBooNE.h"
-//
-//#include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h" // RanItay Add
-//
-//#include "lardataobj/Simulation/SimEnergyDeposit.h"// RanItay Add
-//#include "larevt/SpaceChargeServices/SpaceChargeService.h" // RanItay Add
-//#include "ubevt/SpaceCharge/SpaceChargeMicroBooNE.h" // RanItay Add
-//
-
-
-
-//#include "lardataobj/Simulation/SimEnergyDeposit.h"// RanItay Add
-//#include "larevt/SpaceChargeServices/SpaceChargeService.h" // RanItay Add
-//#include "ubevt/SpaceCharge/SpaceChargeMicroBooNE.h" // RanItay Add
-
-
 namespace supera {
 
   ::geo::WireID ChannelToWireID(unsigned int ch)
