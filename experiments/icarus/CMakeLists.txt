@@ -1,8 +1,18 @@
-set( LARCV_LIB -L$ENV{LARCV_LIBDIR} -llarcv )
+# If larcv2 is found via UPS product, LARCV2_* will be defined.
+# If larcv2 is built locally, more likely that LARCV_* will be defined.
+# Prioritize the local build over UPS product.
+
+if(DEFINED ENV{LARCV_LIBDIR})
+  set( LARCV_LIB -L$ENV{LARCV_LIBDIR} -llarcv )
+else()
+  set( LARCV_LIB -L$ENV{LARCV2_LIBDIR} -llarcv )
 
 set( ICARUS_LIB -L$ENV{ICARUS_LIB} )
 
-include_directories ( $ENV{LARCV_INCDIR} )
+if(DEFINED ENV{LARCV_INCDIR})
+  include_directories ( $ENV{LARCV_INCDIR} )
+else()
+  include_directories ( $ENV{LARCV2_INCDIR} )
 
 link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} -lboost_system ${ROOTLIB} ${LARCV_LIB}) # All execs need this.
 
@@ -77,7 +87,7 @@ art_make( BASENAME_ONLY
 #simple_plugin(LArCVMetaMaker "service"
 #	      TFileMetadataMicroBooNE_service
 #	      FileCatalogMetadataMicroBooNE_service
-#	      ${ART_FRAMEWORK_SERVICES_SYSTEM_FILECATALOGMETADATA_SERVICE}	      
+#	      ${ART_FRAMEWORK_SERVICES_SYSTEM_FILECATALOGMETADATA_SERVICE}
 #	      art_Utilities #canvas_Utilities
 #	      ${MF_MESSAGELOGGER}
 #	      ${MF_UTILITIES}
