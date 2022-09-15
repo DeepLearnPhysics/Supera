@@ -6,6 +6,7 @@ if(DEFINED ENV{LARCV_LIBDIR})
   set( LARCV_LIB -L$ENV{LARCV_LIBDIR} -llarcv )
 else()
   set( LARCV_LIB -L$ENV{LARCV2_LIBDIR} -llarcv )
+endif()
 
 set( ICARUS_LIB -L$ENV{ICARUS_LIB} )
 
@@ -13,6 +14,7 @@ if(DEFINED ENV{LARCV_INCDIR})
   include_directories ( $ENV{LARCV_INCDIR} )
 else()
   include_directories ( $ENV{LARCV2_INCDIR} )
+endif()
 
 link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} -lboost_system ${ROOTLIB} ${LARCV_LIB}) # All execs need this.
 
