@@ -7,6 +7,7 @@ namespace supera {
   template<> LArDataType_t LArDataType<supera::LArWire_t>()       { return LArDataType_t::kLArWire_t;      }
   template<> LArDataType_t LArDataType<supera::LArOpDigit_t>()    { return LArDataType_t::kLArOpDigit_t;   }
   template<> LArDataType_t LArDataType<supera::LArMCParticle_t>() { return LArDataType_t::kLArMCParticle_t;}
+  template<> LArDataType_t LArDataType<supera::LArMCMiniPart_t>() { return LArDataType_t::kLArMCMiniPart_t;}
   template<> LArDataType_t LArDataType<supera::LArMCTruth_t>()    { return LArDataType_t::kLArMCTruth_t;   }
   template<> LArDataType_t LArDataType<supera::LArMCTrack_t>()    { return LArDataType_t::kLArMCTrack_t;   }
   template<> LArDataType_t LArDataType<supera::LArMCShower_t>()   { return LArDataType_t::kLArMCShower_t;  }

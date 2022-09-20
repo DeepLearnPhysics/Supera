@@ -31,6 +31,7 @@ namespace larcv {
     auto producer_opdigit  = cfg.get<std::string>("LArOpDigitProducer",    "");
     auto producer_mctruth  = cfg.get<std::string>("LArMCTruthProducer",    "");
     auto producer_mcpart   = cfg.get<std::string>("LArMCParticleProducer", "");
+    auto producer_mcmp     = cfg.get<std::string>("LArMCMiniPartProducer", "");
     auto producer_mctrack  = cfg.get<std::string>("LArMCTrackProducer",    "");
     auto producer_mcshower = cfg.get<std::string>("LArMCShowerProducer",   "");
     auto producer_simch    = cfg.get<std::string>("LArSimChProducer",      "");
@@ -63,6 +64,11 @@ namespace larcv {
     if(!producer_mcpart.empty() ) {
       LARCV_INFO() << "Requesting MCParticle data product by " << producer_mcpart << std::endl;
       Request(supera::LArDataType_t::kLArMCParticle_t, producer_mcpart );
+    }
+
+    if(!producer_mcmp.empty() ) {
+      LARCV_INFO() << "Requesting MCMiniPart data product by " << producer_mcmp << std::endl;
+      Request(supera::LArDataType_t::kLArMCMiniPart_t, producer_mcmp );
     }
 
     if(!producer_mctrack.empty() ) {
@@ -129,6 +135,7 @@ namespace larcv {
     _ptr_sch_v      = nullptr;
     _ptr_mctruth_v  = nullptr;
     _ptr_mcp_v      = nullptr;
+    _ptr_mcmp_v     = nullptr;
     _ptr_mct_v      = nullptr;
     _ptr_mcs_v      = nullptr;
     _ptr_simedep_v  = nullptr;
@@ -138,6 +145,7 @@ namespace larcv {
 
     // FIXME(kvtsang) Temporary solution to access associations
     _event          = nullptr;
+    _combined_mcmp   = false;
   }
 
   // FIXME(kvtsang) Temporary solution to access associations
@@ -161,6 +169,9 @@ namespace larcv {
 
   template <> const std::vector<supera::LArMCParticle_t>& SuperaBase::LArData<supera::LArMCParticle_t>() const
   { if(!_ptr_mcp_v) throw larbys("MCParticle data pointer not available"); return *_ptr_mcp_v; }
+
+  template <> const std::vector<supera::LArMCMiniPart_t>& SuperaBase::LArData<supera::LArMCMiniPart_t>() const
+  { if(!_ptr_mcmp_v) throw larbys("MCMiniPart data pointer not available"); return *_ptr_mcmp_v; }
 
   template <> const std::vector<supera::LArMCTrack_t>& SuperaBase::LArData<supera::LArMCTrack_t>() const
   { if(!_ptr_mct_v) throw larbys("MCTrack data pointer not available"); return *_ptr_mct_v; }
@@ -199,7 +210,22 @@ namespace larcv {
   { _ptr_mctruth_v = (std::vector<supera::LArMCTruth_t>*)(&data_v); }
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArMCParticle_t>& data_v)
-  { _ptr_mcp_v = (std::vector<supera::LArMCParticle_t>*)(&data_v); }
+  {
+    _ptr_mcp_v = (std::vector<supera::LArMCParticle_t>*)(&data_v);
+    if(_ptr_mcmp_v && !_combined_mcmp) {
+      for (auto const& mcmp : (*_ptr_mcmp_v)) _ptr_mcp_v->push_back(supera::LArMCParticle_t(mcmp));
+      _combined_mcmp = true;
+    }
+  }
+
+  template <> void SuperaBase::LArData(const std::vector<supera::LArMCMiniPart_t>& data_v)
+  {
+    _ptr_mcmp_v = (std::vector<supera::LArMCMiniPart_t>*)(&data_v);
+    if(_ptr_mcp_v && !_combined_mcmp) {
+      for (auto const& mcmp : (*_ptr_mcmp_v)) _ptr_mcp_v->push_back(supera::LArMCParticle_t(mcmp));
+      _combined_mcmp = true;
+    }
+  }
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArMCTrack_t>& data_v)
   { _ptr_mct_v = (std::vector<supera::LArMCTrack_t>*)(&data_v); }

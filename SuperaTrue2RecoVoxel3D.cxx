@@ -288,7 +288,6 @@ namespace larcv {
           if(_use_true_pos) x_pos = edep.x;
 
           auto vox_id = meta3d.id(x_pos, edep.y, edep.z);
-					if ((x_pos > 0) && (x_pos < 10)) std::cout << x_pos << " " << edep.y << " " << edep.z << " " << vox_id << std::endl;
       	  if(vox_id == larcv::kINVALID_VOXELID) continue;
           true_voxel_ids.insert(vox_id);
 

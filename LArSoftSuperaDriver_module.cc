@@ -171,6 +171,10 @@ void LArSoftSuperaDriver::analyze(art::Event const & e)
   // mcparticle
   if(_verbosity==0) std::cout << "Checking MCParticle data request" << std::endl;
   get_label<simb::MCParticle>(e, ::supera::LArDataType_t::kLArMCParticle_t, true);
+
+  // mcminipart
+  if(_verbosity==0) std::cout << "Checking MCMiniPart data request" << std::endl;
+  get_label<sim::MCParticleLite>(e, ::supera::LArDataType_t::kLArMCMiniPart_t, true);
   //
   // SimEnergyDeposit
   if(_verbosity==0) std::cout << "Checking SimEnergyDeposit data request" << std::endl;

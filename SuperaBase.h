@@ -91,6 +91,7 @@ namespace larcv {
     std::vector<supera::LArSimCh_t>*      _ptr_sch_v;
     std::vector<supera::LArMCTruth_t>*    _ptr_mctruth_v;
     std::vector<supera::LArMCParticle_t>* _ptr_mcp_v;
+    std::vector<supera::LArMCMiniPart_t>* _ptr_mcmp_v;
     std::vector<supera::LArMCTrack_t>*    _ptr_mct_v;
     std::vector<supera::LArMCShower_t>*   _ptr_mcs_v;
     std::vector<supera::LArSimEnergyDeposit_t>* _ptr_simedep_v;
@@ -99,6 +100,7 @@ namespace larcv {
     std::vector<supera::LArOpFlash_t>*    _ptr_opflash_v;
     std::vector<supera::LArCRTHit_t>*     _ptr_crthit_v;
     std::string _csv_fname;
+    bool        _combined_mcmp;
 
     // FIXME(kvtsang) Temporary solution to access associations
     const art::Event *_event;
@@ -143,6 +145,8 @@ namespace larcv {
   template <> void SuperaBase::LArData(const std::vector<supera::LArMCTruth_t>& data_v);
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArMCParticle_t>& data_v);
+
+  template <> void SuperaBase::LArData(const std::vector<supera::LArMCMiniPart_t>& data_v);
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArMCTrack_t>& data_v);
 

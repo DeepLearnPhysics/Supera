@@ -12,6 +12,7 @@ namespace supera {
     kLArOpDigit_t,   ///< raw::OpDetWaveform
     kLArMCTruth_t,   ///< simb::MCTruth
     kLArMCParticle_t,///< simb::MCParticle
+    kLArMCMiniPart_t,///< sim::MCParticleLite
     kLArMCTrack_t,   ///< sim::MCTrack
     kLArMCShower_t,  ///< sim::MCShower
     kLArSimCh_t,     ///< sim::SimChannel
@@ -31,6 +32,7 @@ namespace supera {
   template<> LArDataType_t LArDataType<supera::LArOpDigit_t>();
   template<> LArDataType_t LArDataType<supera::LArMCTruth_t>();
   template<> LArDataType_t LArDataType<supera::LArMCParticle_t>();
+  template<> LArDataType_t LArDataType<supera::LArMCMiniPart_t>();
   template<> LArDataType_t LArDataType<supera::LArMCTrack_t>();
   template<> LArDataType_t LArDataType<supera::LArMCShower_t>();
   template<> LArDataType_t LArDataType<supera::LArSimCh_t>();
