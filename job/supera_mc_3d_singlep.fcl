@@ -1,0 +1,238 @@
+ProcessDriver: {
+
+  Verbosity:    2
+  EnableFilter: false
+  RandomAccess: false
+  #ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaSimEnergyDeposit","SuperaMCParticleCluster","MaskByIndex3D","Tensor3DFromCluster3D","ParticleCorrector","ParticleCorrector","RemoveDetectorInfo"]
+  #ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaSimEnergyDeposit","SuperaMCParticleCluster","MaskByIndex3D","Tensor3DFromCluster3D","ParticleCorrector","MaskedParticleCorrector","RemoveDetectorInfo"]
+  #ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","MaskByIndex3D","Tensor3DFromCluster3D","ParticleCorrector","ParticleCorrector","RemoveDetectorInfo"]
+  #ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","MaskByIndex3D","Tensor3DFromCluster3D","ParticleCorrector","MaskedParticleCorrector","RemoveDetectorInfo"]
+  #ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","MaskByIndex3D","Tensor3DFromCluster3D","ParticleCorrector","ParticleCorrector","RemoveDetectorInfo"]
+  #ProcessName:  ["MultiPartVrtx","SuperaBBoxInteraction","SuperaMCParticleCluster","MaskByIndex3D","Tensor3DFromCluster3D","ParticleCorrector","MaskedParticleCorrector","RemoveDetectorInfo"]
+  #ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector","RemoveDetectorInfo"]
+  #ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector","RemoveDetectorInfo"]
+  #ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector","RemoveDetectorInfo"]
+  #ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector","RemoveDetectorInfo"]
+  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector"]#,"RemoveDetectorInfo"]
+  ProcessName:  ["MultiPartVrtx","SuperaBBoxInteraction","SuperaMCParticleCluster","Tensor3DFromCluster3D","ParticleCorrector"]#,"RemoveDetectorInfo"]
+
+  IOManager: {
+    Verbosity:   2
+    Name:        "IOManager"
+    IOMode:      1
+    OutFileName: "out_test.root"
+    InputFiles:  []
+    InputDirs:   []
+    StoreOnlyType: []
+    StoreOnlyName: []
+  }
+
+  ProcessList: {
+    RemoveDetectorInfo: {
+    Cluster3DMetaProducer: "pcluster"
+    }
+    MultiPartVrtx: {
+      Profile: true
+      Verbosity: 1
+      LArMCTruthProducer: "generator"
+      OutParticleLabel: "mpv"
+      Origin: 0
+    }
+    MultiPartRain:   {
+      Profile: true
+      LArMCTruthProducer: "rain"
+      OutParticleLabel: "mpr"
+      Origin: 0
+    }
+    ThresholdTensor3D: {
+      TargetProducer: "reco"
+      OutputProducer: "reco"
+      MinThreshold: -1000
+      MaxThreshold: 40000
+    }
+    SuperaMCParticleCluster: {
+      Profile: true
+      OutputLabel: "pcluster"
+      LArMCParticleProducer: "largeant"
+      LArMCShowerProducer: "mcreco"
+      LArMCTrackProducer:  "mcreco"
+      #MaskedTrueTensor3D: "masked_true"
+      #MaskedTrue2RecoCluster3D: "masked_true2reco"
+      TouchDistance: 3
+      DeltaSize: 60
+      IonizationSize: 20 #5
+      ComptonSize: 60 #10
+      EnergyDepositThreshold: 0.001 #0.01
+      LArSimEnergyDepositProducer: "largeant TPCActive"
+      LArSimChProducer: ""
+      #LArSimEnergyDepositProducer: ""
+      #LArSimChProducer: "largeant"
+      Meta3DFromCluster3D: "pcluster"
+      Meta2DFromTensor2D:  ""
+      Verbosity: 2
+      StoreDEDX: true
+      UseSimEnergyDeposit: true
+      UseSimEnergyDepositPoints: true
+      CryostatList: [0,0]
+      TPCList: [0,1]
+      PlaneList: []
+      #SemanticPriority: [2,1,0,3,4] # 0-4 for shower track michel delta LE-scattering
+      SemanticPriority: [1,2,0,3,4] # 0-4 for shower track michel delta LE-scattering
+
+    }
+    SuperaMCTruth: {
+      Profile: true
+      Verbosity: 2
+      DebugMode: 1
+      LArMCTruthProducer: "generator"
+      OutParticleLabel: "mctruth"
+      Origin: 0
+    }
+    SuperaBBoxInteraction: {
+      Verbosity: 0
+      Profile: true
+      LArMCTruthProducer: "generator"
+      LArSimEnergyDepositProducer: "largeant TPCActive"
+      Origin: 0
+      Cluster3DLabels: ["mcst","pcluster","sed"]
+      Tensor3DLabels:  ["reco","pcluster_index"]
+      BBoxSize:   [307.2,307.2,307.2]
+      VoxelSize:  [0.3,0.3,0.3]
+      #BBoxBottom: [-365.0,-138.65,-500.]
+      #BBoxSize:   [230.4,230.4,230.4]
+      #VoxelSize:  [0.01,0.01,0.01]
+      #BBoxBottom: [-365.0,-138.65,-500.]
+      #BBoxSize: [227.0208,340.5312,340.5312]
+      #VoxelSize: [0.4434,0.4434,0.4434]
+      #BBoxBottom: [-333.7254,-193.7156,-170.2656]
+      #UseFixedBBox: true
+      CryostatList: [0,0,0,0]
+      TPCList: [0,1,2,3]
+    }
+    SuperaMCParticle: {
+      Verbosity: 2
+      Profile: true
+      OutParticleLabel:    "mcst"
+      LArMCTruthProducer:  "generator"
+      LArMCTrackProducer:  "mcreco"
+      LArMCShowerProducer: "mcreco"
+      Origin: 0
+      FilterTargetPDG:      []
+      FilterTargetInitEMin: []
+      FilterTargetDepEMin:  []
+      TrackInitEMin:  0
+      TrackDepEMin:   5
+      ShowerInitEMin: 0
+      ShowerDepEMin:  5
+      MCParticleTree: {
+        Verbosity:    2
+        UseG4Primary: false
+	DTMax:        10000
+      }
+      MCParticleMaker: {
+        Verbosity:    2
+	ApplySCE:     true
+      }
+    }
+    SuperaSimEnergyDeposit: {
+      Verbosity: 2
+      Profile: true
+      LArSimEnergyDepositProducer: "largeant TPCActive"
+      LArMCShowerProducer: "mcreco"
+      ParticleProducer: "pcluster"
+      OutCluster3DLabel: "sed"
+      StoreLength: true
+      StoreCharge: false
+      StorePhoton: false
+      StoreDiffTime: false
+      StoreAbsTime: true
+      StoreDEDX: true
+      CryostatList: [0,0]
+      TPCList: [0,1]
+    }
+
+    BBoxFromCluster3D: {
+      Verbosity: 2
+      Profile: true
+      Cluster3DProducer: "mcst"
+      ParticleProducer: "mcst"
+      OutputProducer:   "mcst"
+      Threshold: 0.2
+    }
+
+    ParticleCorrector: {
+      Verbosity: 2
+      Profile: true
+      #Cluster3DProducer: "mcst_true"
+      #ParticleProducer: "mcst"
+      #Cluster3DProducer: "pcluster_reco"
+      Cluster3DProducer: "pcluster_highE"
+      ParticleProducer:  "pcluster"
+      OutputProducer:    "corrected"
+      VoxelMinValue:     -1000
+    }
+
+    MaskedParticleCorrector: {
+      Verbosity: 2
+      Profile: true
+      #Cluster3DProducer: "mcst_true"
+      #ParticleProducer: "mcst"
+      #Cluster3DProducer: "pcluster_reco"
+      Cluster3DProducer: "pcluster_highE_masked"
+      ParticleProducer:  "pcluster"
+      OutputProducer:    "corrected_masked"
+      VoxelMinValue:     -1000
+    }
+
+    MaskTensor2D: {
+      Profile: true
+      MinVoxelValueList:     [-1000,-1000,-1000,-1000,-1000,-1000]
+      TargetProducerList:    ["wire_0_0_0","wire_0_0_1","wire_0_0_2","pcluster_semantics2d_0_0_0","pcluster_semantics2d_0_0_1","pcluster_semantics2d_0_0_2"]
+      ReferenceProducerList: ["pcluster_semantics2d_0_0_0","pcluster_semantics2d_0_0_1","pcluster_semantics2d_0_0_2","wire_0_0_0","wire_0_0_1","wire_0_0_2"]
+      OutputProducerList:    ["wire_0_0_0","wire_0_0_1","wire_0_0_2","pcluster_semantics2d_0_0_0","pcluster_semantics2d_0_0_1","pcluster_semantics2d_0_0_2"]
+    }
+
+    MaskTensor3D: {
+      Profile: true
+      MinVoxelValueList:     [-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000]
+      TargetProducerList:    ["pcluster","reco","semantics_reco","reco_chi2","reco_inv_chi2","reco_hit_charge0","reco_hit_charge1","reco_hit_charge2","reco_hit_time0","reco_hit_time1","reco_hit_time2","reco_hit_rms0","reco_hit_rms1","reco_hit_rms2","reco_hit_amp0","reco_hit_amp1","reco_hit_amp2","reco_occupancy","reco_charge_asym"]
+      ReferenceProducerList: ["reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco","reco"]
+      OutputProducerList:    ["pcluster_reco","reco","semantics_reco","reco_chi2","reco_inv_chi2","reco_hit_charge0","reco_hit_charge1","reco_hit_charge2","reco_hit_time0","reco_hit_time1","reco_hit_time2","reco_hit_rms0","reco_hit_rms1","reco_hit_rms2","reco_hit_amp0","reco_hit_amp1","reco_hit_amp2","reco_occupancy","reco_charge_asym"]
+    }
+
+    MaskCluster2D: {
+      Profile: true
+      MinVoxelValueList:     [-1000,-1000,-1000]
+      TargetProducerList:    ["pcluster_0_0_0","pcluster_0_0_1","pcluster_0_0_2"]
+      ReferenceProducerList: ["wire_0_0_0","wire_0_0_1","wire_0_0_2"]
+      OutputProducerList:    ["pcluster_0_0_0","pcluster_0_0_1","pcluster_0_0_2"]
+    }
+
+    MaskCluster3D: {
+      Profile: true
+      MinVoxelValueList: [-1000, -1000,-1000]
+      TargetProducerList:    ["pcluster","pcluster_highE","pcluster_lowE"]
+      ReferenceProducerList: ["semantics_reco","semantics_reco","semantics_reco"]
+      OutputProducerList:    ["pcluster_reco","pcluster_highE_reco","pcluster_lowE_reco"]
+    }
+
+    Tensor3DFromCluster3D: {
+      Verbosity: 2
+      Profile: true
+      #Cluster3DProducerList: ["mcst_dedx"]
+      #OutputProducerList:    ["mcst_dedx"]
+      #PITypeList: [1]
+      #FixedPIList: [0.]
+      #Cluster3DProducerList: ["mcst_true","mcst_true","mcst_dx","mcst_dedx","mcst_reco","mcst_reco"]
+      #OutputProducerList:    ["mcst","mcst_group","mcst_dx","mcst_dedx","mcst_reco","mcst_reco_group"]
+      #PITypeList:  [1,2,1,1,1,2]
+      #FixedPIList: [0.,0.,0.,0.,0.,0.]
+      Cluster3DProducerList: ["pcluster","pcluster_masked"]#,"sed","sed_dedx","sed_at"]
+      OutputProducerList:    ["pcluster","pcluster_masked"]#,"sed","sed_dedx","sed_at"]
+      PITypeList:  [1,1]#,1,1,1]
+      FixedPIList: [0.,0.]#,0.,0.,0.]
+    }
+
+  }
+}
+

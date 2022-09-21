@@ -1,0 +1,206 @@
+#include "services_icarus_simulation.fcl"
+##include "services_icarus.fcl"
+#include "largeantmodules_icarus.fcl"
+#include "detsimmodules_ICARUS.fcl"
+#include "opdetsim_pmt_icarus.fcl"
+#include "crtsimmodules_icarus.fcl"
+#include "multipartvertex_icarus.fcl"
+#include "mcreco.fcl"
+#include "reco_icarus.fcl"
+#include "prodsingle_common_icarus.fcl"
+
+process_name: G4m
+
+services:
+{
+  #@table::icarus_simulation_services
+  @table::icarus_wirecalibration_services
+  LArG4Parameters:                       @local::icarus_largeantparameters
+  LArVoxelCalculator:                    @local::icarus_larvoxelcalculator
+  SpaceChargeService:                    @local::icarus_spacecharge
+  MagneticField:                         @local::no_mag_larsoft
+  #PhotonVisibilityService:         @local::standard_library_vuv_prop_timing_photonvisibilityservice
+}
+
+source:
+{
+  module_type: EmptyEvent
+  timestampPlugin: { plugin_type: "GeneratedEventTimestamp" }
+  maxEvents:   100
+  firstRun:    1
+  firstEvent:  1
+#	module_type: RootInput
+}
+
+physics:
+{
+
+ producers:
+ {
+   generator: @local::icarus_singlep
+   largeant:  @local::icarus_largeant
+   ionization: {
+                 module_type: "larsim/ElectronDrift/ShiftEdepSCE"
+                 EDepTag:     "largeant:TPCActive"
+                 MakeAnaTree: false
+               }
+   mcreco:   @local::standard_mcreco
+   #crtdaq:   @local::icarus_crtsim
+   #opdaq:    @local::icarus_simpmt_nonoise
+   @table::icarus_reco_producers
+   daq0:      @local::icarus_simwire
+   daq1:      @local::icarus_simwire
+   rns:      { module_type: "RandomNumberSaver" }
+
+ }
+ analyzers:
+ {
+	supera: {
+		module_type: "LArSoftSuperaDriver"
+		supera_params: "supera_mc_3d_singlep.fcl"
+		out_filename: "larcv.root"
+		unique_filename: false
+		stream: "mc"
+		Verbosity: 2
+	}
+ }
+
+ #simulate: [ rns, generator, rain, largeant, mcreco ]
+ #simulate: [ rns, generator, rain, largeant, mcreco, daq, rawdigitfilter, decon1droi, gaushit, gaushitsel, cluster3d]
+ #simulate: [ rns, generator, largeant, mcreco, daq0, daq1, rawdigitfilter, decon1droi, gaushit, gaushitsel, cluster3d]
+ simulate: [rns, generator, largeant, mcreco]
+            #daq0, daq1, 
+            #@sequence::icarus_reco_SigProcTPC0Gauss,
+            #@sequence::icarus_reco_SigProcTPC1Gauss,
+            #@sequence::icarus_reco_cluster3DCryo0]
+
+ ana_stream: [ supera ]
+ out_stream: [ out1   ]
+  
+ trigger_paths: [simulate]
+ #end_paths:     [ana_stream, out_stream]
+ #end_paths:     [out_stream]
+ end_paths:     [ana_stream]
+}
+
+services.LArG4Parameters.FillSimEnergyDeposits: true
+services.LArG4Parameters.KeepEMShowerDaughters: true
+#services.LArG4Parameters.EnabledPhysics: ["Em","SynchrotronAndGN","Ion","Stopping","FastOptical"]
+services.LArG4Parameters.EnabledPhysics: ["Em","SynchrotronAndGN","Ion","Hadron","Decay","HadronElastic","Stopping"]
+#services.LArG4Parameters.EnabledPhysics: ["Em","SynchrotronAndGN","Ion","Hadron","Decay","HadronElastic","Stopping","Optical"]
+services.LArPropertiesService.ScintYield: 0
+services.LArPropertiesService.ScintByParticleType: false
+
+physics.producers.generator.PDG: [ 22 ]
+physics.producers.generator.PosDist: 0             # Flat position dist.
+physics.producers.generator.X0: [ -210.215 ]
+physics.producers.generator.Y0: [ -23.45 ]
+physics.producers.generator.Z0: [ 0.0 ]
+physics.producers.generator.T0: [ 0.0 ]
+physics.producers.generator.SigmaX: [  100.0 ]      # x = (0, 256)
+physics.producers.generator.SigmaY: [  100.0   ]      # y = (-116.5, 116.5)
+physics.producers.generator.SigmaZ: [  100.0   ]      # z = (0, 1037)
+physics.producers.generator.SigmaT: [  0.0 ]        # In time
+physics.producers.generator.PDist: 0               # Flat momentum dist. (0.05-2.0 GeV)
+#physics.producers.generator.P0: [ 0.175 ]
+#physics.producers.generator.SigmaP: [ 0.075 ]
+physics.producers.generator.P0: [ 0.450 ]
+physics.producers.generator.SigmaP: [ 0.350 ]
+physics.producers.generator.AngleDist: 0           # Flat angle dist.
+
+#Travel toward (1,0,0)
+#physics.producers.generator.Theta0XZ: [ 90. ]       # y-azimuth
+#physics.producers.generator.Theta0YZ: [ 0. ]       # y-latitude
+#physics.producers.generator.SigmaThetaXZ: [ 0. ] # Quasi-isotropic
+#physics.producers.generator.SigmaThetaYZ: [ 0. ]
+#Travel toward (0,0,1)
+#physics.producers.generator.Theta0XZ: [ 0. ]       # y-azimuth
+#physics.producers.generator.Theta0YZ: [ 0. ]       # y-latitude
+#physics.producers.generator.SigmaThetaXZ: [ 0. ] # Quasi-isotropic
+#physics.producers.generator.SigmaThetaYZ: [ 0. ]
+#Travel toward (0,1,0)
+#physics.producers.generator.Theta0XZ: [ 0. ]       # y-azimuth
+#physics.producers.generator.Theta0YZ: [ 90. ]       # y-latitude
+#physics.producers.generator.SigmaThetaXZ: [ 0. ] # Quasi-isotropic
+#physics.producers.generator.SigmaThetaYZ: [ 0. ]
+#Random (isotropic)
+#physics.producers.generator.Theta0XZ: [ 0. ]       # y-azimuth
+#physics.producers.generator.Theta0YZ: [ 0. ]       # y-latitude
+#physics.producers.generator.SigmaThetaXZ: [ 180. ] # Quasi-isotropic
+#physics.producers.generator.SigmaThetaYZ: [ 90. ]
+
+
+physics.producers.largeant.KeepParticlesInVolumes: ["volCryostat"] #only keep MCParticles that cross the cryostat
+physics.producers.mcreco.SimChannelLabel: "largeant:TPCActive"
+physics.producers.mcreco.MCParticleLabel: "largeant"
+physics.producers.mcreco.UseSimEnergyDeposit: true
+physics.producers.mcreco.MCRecoPart.SavePathPDGList: [13,-13,211,-211,111,311,310,130,321,-321,2212,2112,2224,2214,2114,1114,3122,1000010020,1000010030,1000020030,1000020040]
+
+#services.Geometry:               @local::icarus_single_induction_nooverburden_geometry
+#services.ExptGeoHelperInterface: @local::icarus_single_induction_geometry_helper
+
+physics.producers.daq0.SuppressNoSignal: true
+physics.producers.daq0.Cryostat:         0
+physics.producers.daq0.TPC:              0
+physics.producers.daq1.SuppressNoSignal: true
+physics.producers.daq1.Cryostat:         0
+physics.producers.daq1.TPC:              1
+
+#physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane0.NumSigma: 2.5
+#physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane1.NumSigma: 2.5
+#physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane2.NumSigma: 2.5
+#physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane0.NumSigma: 2.5
+#physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane1.NumSigma: 2.5
+#physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane2.NumSigma: 2.5
+
+#physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane0.roiLeadTrailPad:  [30,30]
+#physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane1.roiLeadTrailPad:  [30,30]
+#physics.producers.decon1DroiTPC0.ROIFinderToolVec.ROIFinderToolPlane2.roiLeadTrailPad:  [30,30]
+#physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane0.roiLeadTrailPad:  [30,30]
+#physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane1.roiLeadTrailPad:  [30,30]
+#physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane2.roiLeadTrailPad:  [30,30]
+
+physics.producers.cluster3DCryo0.Hit3DBuilderAlg:                        @local::standard_snippethit3dbuilder
+physics.producers.cluster3DCryo0.Hit3DBuilderAlg.HitFinderTagVec:        ["gaushitTPC0", "gaushitTPC1"]
+physics.producers.cluster3DCryo0.Hit3DBuilderAlg.HitWidthScaleFactor:    3.0
+physics.producers.cluster3DCryo0.Hit3DBuilderAlg.DeltaPeakTimeSig:       1.75
+physics.producers.cluster3DCryo0.Hit3DBuilderAlg.PulseHeightFraction:    0.2
+physics.producers.cluster3DCryo0.Hit3DBuilderAlg.LongHitsStretchFactor:  1.0
+physics.producers.cluster3DCryo0.ClusterAlg.MinPairPts:                  1000000
+
+outputs:
+{
+ out1:
+ {
+   module_type: RootOutput
+   fileName:    "larsoft.root"
+   dataTier:    "supera"
+   compressionLevel: 1
+   # skim output (if needed)
+   #outputCommands: [ "drop *", 
+   #                  "keep *_mcreco_*_*",
+   #                 "keep recob::Hit*_gaushit_*_*"
+   #                ]
+ }
+}
+
+services.TFileService.fileName: "ana.root"
+services.LArG4Parameters.FillSimEnergyDeposits: true
+#services.LArG4Parameters.KeepEMShowerDaughters: false
+
+services.message.destinations :
+{
+  STDCOUT:
+  {
+     type:      "cout"      #tells the message service to output this destination to cout
+     threshold: "INFO"      #tells the message service that this destination applies to WARNING and higher level messages
+     categories:
+     {
+       default:
+       {
+         limit:       1000  #don't print anything at the infomsg level except the explicitly named categories
+         reportEvery: 1
+       }
+     }
+  }
+}
