@@ -11,8 +11,8 @@ physics.simulate: [ rns,
 						@sequence::icarus_stage0_multiTPC_TPC, # decon1droi, roifinder
 						@sequence::icarus_stage0_EastHits_TPC,
 						@sequence::icarus_stage0_WestHits_TPC,
-						cluster3DCryoE]
-						#cluster3DCryoW]
+						cluster3DCryoE,
+						cluster3DCryoW]
 physics.end_paths: [ analyze ]
 
 #

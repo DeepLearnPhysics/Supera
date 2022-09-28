@@ -1,0 +1,38 @@
+#
+# This file is meant to be included to define Supera-specific
+# SAM metadata.
+#
+
+#include "services_common_icarus.fcl"
+
+# SAM metadata
+services.FileCatalogMetadata: @local::art_file_catalog_mc
+#services.FileCatalogMetadata.applicationFamily: "art"
+#services.FileCatalogMetadata.applicationVersion:
+#services.FileCatalogMetadata.fileType: "mc"
+#services.FileCatalogMetadata.runType: "physics"
+#services.FileCatalogMetadata.group: "icarus"
+services.FileCatalogMetadataSBN:
+{
+  FCLName: "test_supera.fcl"
+  Experiment: "icarus"
+  ProjectName: "supera"
+  ProjectStage: "test"
+  ProjectSoftware: "supera_software"
+  ProjectVersion: "v0"
+  ProductionName: "test"
+  ProductionType: "test"
+}
+#services.FileCatalogMetadataSBN.FCLName: "test_supera.fcl"
+#services.FileCatalogMetadataSBN.Experiment: "icarus"
+#services.FileCatalogMetadataSBN.ProjectName:
+#services.FileCatalogMetadataSBN.ProjectStage:
+#services.FileCatalogMetadataSBN.ProjectSoftware:
+#services.FileCatalogMetadataSBN.ProjectVersion:
+#services.FileCatalogMetadataSBN.ProductionName:
+#services.FileCatalogMetadataSBN.ProductionType:
+services.MetadataSBN.JSONFileName: "test.json"
+services.MetadataSBN.fileFormat: "root"
+services.MetadataSBN.Experiment: "icarus"
+services.MetadataSBN.dataTier: "larcv"
+services.MetadataSBN.GenerateTFileMetadata: true

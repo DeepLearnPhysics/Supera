@@ -1,0 +1,39 @@
+#include "services_icarus_simulation.fcl"
+#include "channelmapping_icarus.fcl"
+#include "sam_supera.fcl"
+#include "supera_modules.fcl"
+
+process_name: Supera
+
+services:
+{
+  @table::icarus_g4_services
+	@table::icarus_detsim_services
+	@table::icarus_gen_services
+	IFDH: {}
+	IICARUSChannelMap: @local::icarus_channelmappinggservice
+}
+
+source:
+{
+  module_type: RootInput
+}
+
+physics:
+{
+  producers:
+  {
+	 rns: { module_type: RandomNumberSaver }
+  }
+  analyzers:
+  {
+    supera: @local::icarus_supera_MC_all_cryo
+  }
+
+  simulate: [ rns ]
+  analyze:  [ supera ]
+
+  trigger_paths: [ simulate ]
+  end_paths:     [ analyze]
+}
+

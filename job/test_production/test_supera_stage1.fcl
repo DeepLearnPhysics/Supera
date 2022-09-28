@@ -1,0 +1,23 @@
+#include "stage1_multiTPC_icarus_gauss_MC.fcl"
+
+#physics.reco: [ #@sequence::icarus_reco_cluster3DCryoE,
+                #@sequence::icarus_reco_cluster3DCryoW ]
+                #@sequence::icarus_reco_pandoraGausCryoW ]
+#                @sequence::icarus_reco_Gauss_CryoE ,
+#                @sequence::icarus_reco_Gauss_CryoW ,
+#                @sequence::icarus_reco_fm,
+#                caloskimCalorimetryCryoE, caloskimCalorimetryCryoW,
+#                mcassociationsGausCryoE,  mcassociationsGausCryoW]
+#physics.end_paths:         [ stream1 ]
+#physics.outana:            [ caloskimE,
+#                            caloskimW]
+                              #simpleLightAna]
+# Cluster3D
+physics.producers.cluster3DCryoE.Hit3DBuilderAlg.SaveMythicalPoints: true
+physics.producers.cluster3DCryoW.Hit3DBuilderAlg.SaveMythicalPoints: true
+
+physics.producers.cluster3DCryoE.Hit3DBuilderAlg.MinPHFor2HitPoints: 0.
+physics.producers.cluster3DCryoW.Hit3DBuilderAlg.MinPHFor2HitPoints: 0.
+
+physics.producers.cluster3DCryoE.Hit3DBuilderAlg.OutputHistograms: false
+physics.producers.cluster3DCryoW.Hit3DBuilderAlg.OutputHistograms: false

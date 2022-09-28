@@ -1,0 +1,26 @@
+#include "cosmics_g4_icarus_sce_lite.fcl"
+
+
+#outputs.rootoutput.outputCommands: [ "keep *_*_*_*", "drop sim::OpDetBacktrackerRecords_*_*_*" ]
+#outputs.rootoutput.outputCommands: [ "keep *_*_*_*", "drop sim::OpDetBacktrackerRecords_*_*_*", "drop sim::SimEnergyDeposits_*_*_*", "keep sim::SimEnergyDeposits_largeant_TPCActive_*.obj.edep" ]
+
+physics.producers.sedlite: {
+	module_type: "G4InfoReducer"
+	SimEnergyDepositLabel: "largeant:TPCActive"
+	OutputLabel: "sedlite"
+	VoxelSizeX: 0.3
+	VoxelSizeY: 0.3
+	VoxelSizeZ: 0.3
+}
+physics.simulate: [ "rns", "largeant", "ionization", "sedlite" ]
+#physics.simulate: [ "rns", "largeant", "ionization" ]
+
+physics.producers.largeant.StoreDroppedMCParticles: true
+#services.LArG4Parameters.KeepEMShowerDaughters: true
+
+
+#services.LArG4Parameters.FillSimEnergyDeposits: true
+#services.LArG4Parameters.NoPhotonPropagation: true
+#services.LArG4Parameters.ParticleKineticEnergyCut: 0.0005
+#services.LArPropertiesService.ScintYield: 0
+#services.LArPropertiesService.ScintByParticleType: false
