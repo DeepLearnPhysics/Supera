@@ -5,19 +5,23 @@
 #include "FMWKInterface.h"
 namespace supera {
 
-  /// enum to define LAr* data type 
+  /// enum to define LAr* data type
   enum class LArDataType_t : unsigned int{
-    kLArWire_t,      ///< recob::Wire 
+    kLArWire_t,      ///< recob::Wire
     kLArHit_t,       ///< recob::Hit
     kLArOpDigit_t,   ///< raw::OpDetWaveform
     kLArMCTruth_t,   ///< simb::MCTruth
     kLArMCParticle_t,///< simb::MCParticle
+    kLArMCMiniPart_t,///< sim::MCParticleLite
     kLArMCTrack_t,   ///< sim::MCTrack
     kLArMCShower_t,  ///< sim::MCShower
     kLArSimCh_t,     ///< sim::SimChannel
     kLArSimEnergyDeposit_t, ///< sim::SimEnergyDeposit
+    kLArSimEnergyDepositLite_t, ///< sim::SimEnergyDepositLite
     kLArSpacePoint_t, ///< simb::SpacePoint
-    kLArDataTypeMax 
+    kLArOpFlash_t,   ///< recob::OpFlash
+    kLArCRTHit_t,    ///< sbn::crt::CRTHit
+    kLArDataTypeMax
   };
 
   template <class T>
@@ -28,11 +32,15 @@ namespace supera {
   template<> LArDataType_t LArDataType<supera::LArOpDigit_t>();
   template<> LArDataType_t LArDataType<supera::LArMCTruth_t>();
   template<> LArDataType_t LArDataType<supera::LArMCParticle_t>();
+  template<> LArDataType_t LArDataType<supera::LArMCMiniPart_t>();
   template<> LArDataType_t LArDataType<supera::LArMCTrack_t>();
   template<> LArDataType_t LArDataType<supera::LArMCShower_t>();
   template<> LArDataType_t LArDataType<supera::LArSimCh_t>();
   template<> LArDataType_t LArDataType<supera::LArSimEnergyDeposit_t>();
+  template<> LArDataType_t LArDataType<supera::LArSimEnergyDepositLite_t>();
   template<> LArDataType_t LArDataType<supera::LArSpacePoint_t>();
+  template<> LArDataType_t LArDataType<supera::LArOpFlash_t>();
+  template<> LArDataType_t LArDataType<supera::LArCRTHit_t>();
 
   class RSEID {
   public:
@@ -64,7 +72,7 @@ namespace supera {
 
     size_t run, subrun, event;
   };
-  
+
 }
 //#endif
 //#endif

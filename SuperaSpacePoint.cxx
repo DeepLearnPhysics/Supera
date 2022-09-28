@@ -342,7 +342,7 @@ namespace larcv {
     };
 
     store_v2(v_charge,      "");
-    store_v2(v_charge_asym, "charge_asym");
+    //store_v2(v_charge_asym, "charge_asym");
     store_v2(v_chi2,        "chi2");
     store_v2(v_occupancy,   "occupancy");
     store_v2(v_nhits,       "nhits");

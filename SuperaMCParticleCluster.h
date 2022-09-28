@@ -55,13 +55,13 @@ namespace larcv {
 
     std::vector<supera::ParticleGroup> CreateParticleGroups();
 
-    void AnalyzeSimEnergyDeposit(const larcv::Voxel3DMeta& meta,
+    template<typename sed_type> void AnalyzeSimEnergyDeposit(const larcv::Voxel3DMeta& meta,
 				 std::vector<supera::ParticleGroup>& part_grp_v,
          larcv::IOManager& mgr);
     void AnalyzeSimChannel(const larcv::Voxel3DMeta& meta,
 			   std::vector<supera::ParticleGroup>& part_grp_v,
 			   larcv::IOManager& mgr);
-    void AnalyzeFirstLastStep(const larcv::Voxel3DMeta& meta,
+    template<typename sed_type> void AnalyzeFirstLastStep(const larcv::Voxel3DMeta& meta,
 			      std::vector<supera::ParticleGroup>& part_grp_v);
     void MergeShowerTouchingLEScatter(const larcv::Voxel3DMeta& meta,
 				      std::vector<supera::ParticleGroup>& part_grp_v);
@@ -101,6 +101,7 @@ namespace larcv {
     double _edep_threshold;
     bool _use_true_pos;
     bool _use_sed;
+		bool _use_sed_lite;
     bool _check_particle_validity;
     int  _projection_id;
     bool _merge_shower_delta;
@@ -109,6 +110,7 @@ namespace larcv {
     std::vector<size_t> _semantic_priority;
     size_t _valid_nplanes;
     std::vector<larcv::ImageMeta> _meta2d_v;
+    bool _useOrigTrackID; ///< Whether to use origTrackID or trackID from SimChannel/SimEnergyDeposit
   };
 
   /**

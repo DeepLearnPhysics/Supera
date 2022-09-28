@@ -7,27 +7,28 @@
 #include "larcv/core/DataFormat/EventVoxel3D.h"
 
 namespace larcv {
-  
+
   static SuperaBBoxInteractionProcessFactory __global_SuperaBBoxInteractionProcessFactory__;
-  
+
   SuperaBBoxInteraction::SuperaBBoxInteraction(const std::string name)
     : SuperaBase(name)
   {}
   void SuperaBBoxInteraction::configure(const PSet& cfg)
   {
     SuperaBase::configure(cfg);
-    
+		_use_sed_lite = cfg.get<bool>("UseSEDLite", false);
+
     _origin = cfg.get<unsigned short>("Origin",0);
-    
+
     _cluster3d_labels = cfg.get<std::vector<std::string> >("Cluster3DLabels");
     _tensor3d_labels  = cfg.get<std::vector<std::string> >("Tensor3DLabels");
-    
+
     auto bbox_size = cfg.get<std::vector<double> >("BBoxSize");
     assert(bbox_size.size() == 3);
     _xlen = bbox_size.at(0);
     _ylen = bbox_size.at(1);
     _zlen = bbox_size.at(2);
-    
+
     auto voxel_size = cfg.get<std::vector<double> >("VoxelSize");
     assert(voxel_size.size() == 3);
     _xvox = voxel_size.at(0);
@@ -49,7 +50,7 @@ namespace larcv {
       auto const& t = tpc_v[idx];
       auto const& cryostat = geop->Cryostat(c);
       if(!cryostat.HasTPC(t)) {
-	LARCV_CRITICAL() << "Invalid TPCList: cryostat " << c 
+	LARCV_CRITICAL() << "Invalid TPCList: cryostat " << c
 			 << " does not contain tpc " << t << std::endl;
 	throw larbys();
       }
@@ -62,14 +63,24 @@ namespace larcv {
       if(max_pt.z < tpcabox.MaxZ()) max_pt.z = tpcabox.MaxZ();
     }
     _world_bounds.update(min_pt,max_pt);
-    
+
   }
-  
+
   void SuperaBBoxInteraction::initialize()
   {
     SuperaBase::initialize();
   }
-  
+
+	template <class T> void SuperaBBoxInteraction::AdaptBBoxToSED(std::vector<T> const& sedep_v, larcv::BBox3D& bbox) {
+		LARCV_INFO() << "Processing SimEnergyDeposit array: " << sedep_v.size() << std::endl;
+		for(size_t sedep_idx=0; sedep_idx<sedep_v.size(); ++sedep_idx) {
+			auto const& sedep = sedep_v.at(sedep_idx);
+			larcv::Point3D pt;
+			pt.x = sedep.X(); pt.y = sedep.Y(); pt.z=sedep.Z();
+			if(!update_bbox(bbox,pt)) break;
+		}
+	}
+
   bool SuperaBBoxInteraction::process(IOManager& mgr)
   {
     SuperaBase::process(mgr);
@@ -120,7 +131,7 @@ namespace larcv {
         for(int i=0; i<mct.NParticles(); ++i) {
           auto const& mcp = mct.GetParticle(i);
           if(mcp.StatusCode() != 1) {
-            LARCV_INFO() << "Skipping MCTruth::MCParticle of status code: " 
+            LARCV_INFO() << "Skipping MCTruth::MCParticle of status code: "
               << (int)(mcp.StatusCode()) << std::endl;
             continue;
           }
@@ -136,15 +147,12 @@ namespace larcv {
       }
 
       // Register particle energy deposition coordinates
-      auto const& sedep_v = LArData<supera::LArSimEnergyDeposit_t>();
-      LARCV_INFO() << "Processing SimEnergyDeposit array: " << sedep_v.size() << std::endl;
-      for(size_t sedep_idx=0; sedep_idx<sedep_v.size(); ++sedep_idx) {
-        auto const& sedep = sedep_v.at(sedep_idx);
-        larcv::Point3D pt;
-        pt.x = sedep.X(); pt.y = sedep.Y(); pt.z=sedep.Z();
-        if(!update_bbox(bbox,pt)) break;
-      }
-    
+			if (_use_sed_lite) {
+				AdaptBBoxToSED<sim::SimEnergyDepositLite>(LArData<supera::LArSimEnergyDepositLite_t>(), bbox);
+			} else {
+				AdaptBBoxToSED<sim::SimEnergyDeposit>(LArData<supera::LArSimEnergyDeposit_t>(), bbox);
+			}
+
       // Randomize BBox location
       randomize_bbox_center(bbox);
     }
@@ -158,7 +166,7 @@ namespace larcv {
     size_t znum = _zlen/_zvox;
     meta.set(min_pt.x, min_pt.y, min_pt.z, max_pt.x, max_pt.y, max_pt.z, xnum, ynum, znum);
     LARCV_INFO() << "3D Meta:" << meta.dump() << std::endl;
-    
+
     // Create Cluster3D
     for(auto const& name : _cluster3d_labels) {
       auto& cluster3d = mgr.get_data<larcv::EventClusterVoxel3D>(name);
@@ -171,10 +179,10 @@ namespace larcv {
     }
     return true;
   }
-  
+
   void SuperaBBoxInteraction::finalize()
   {}
-  
+
   bool SuperaBBoxInteraction::update_bbox(larcv::BBox3D& bbox,
 					  const larcv::Point3D& pt) {
     larcv::Point3D min_pt, max_pt;
@@ -234,9 +242,9 @@ namespace larcv {
 	     (max_pt.y - min_pt.y) < _ylen ||
 	     (max_pt.z - min_pt.z) < _zlen );
   }
-  
+
   void SuperaBBoxInteraction::randomize_bbox_center(larcv::BBox3D& bbox) {
-    
+
     larcv::Point3D min_pt = bbox.bottom_left();
     larcv::Point3D max_pt = bbox.top_right();
     LARCV_INFO() << "Randomize before:" << bbox.dump() << std::endl;
@@ -262,9 +270,9 @@ namespace larcv {
     bbox.update(min_pt,max_pt);
     LARCV_INFO() << "Randomize after:" << bbox.dump() << std::endl;
   }
-  
-  
-  
+
+
+
 }
 
 #endif

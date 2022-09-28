@@ -8,6 +8,8 @@
 #include "larcv/core/DataFormat/DataFormatTypes.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
+//#include "lardataobj/MCBase/MCMiniPart.h"
+#include "lardataobj/MCBase/MCParticleLite.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/RecoBase/Wire.h"
@@ -17,7 +19,9 @@
 #include "lardataobj/MCBase/MCTrack.h"
 #include "lardataobj/Simulation/SimChannel.h"
 #include "lardataobj/Simulation/SimEnergyDeposit.h"
+#include "lardataobj/Simulation/SimEnergyDepositLite.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
+#include "ExperimentTypes.h"
 
 namespace supera {
   typedef larcv::PSet        Config_t;
@@ -26,11 +30,13 @@ namespace supera {
   typedef recob::Hit         LArHit_t;
   typedef simb::MCTruth      LArMCTruth_t;
   typedef simb::MCParticle   LArMCParticle_t;
+  typedef sim::MCParticleLite  LArMCMiniPart_t;
   typedef sim::MCTrack       LArMCTrack_t;
   typedef sim::MCShower      LArMCShower_t;
   typedef sim::SimChannel    LArSimCh_t;
   typedef sim::MCStep        LArMCStep_t;
   typedef sim::SimEnergyDeposit LArSimEnergyDeposit_t;
+  typedef sim::SimEnergyDepositLite LArSimEnergyDepositLite_t;
   typedef recob::SpacePoint  LArSpacePoint_t;
 	typedef recob::OpFlash     LArOpFlash_t;
 }

@@ -3,8 +3,6 @@
 
 #include "SuperaSimEnergyDeposit.h"
 #include "GenRandom.h"
-#include "larcv/core/DataFormat/EventParticle.h"
-#include "larcv/core/DataFormat/EventVoxel3D.h"
 
 namespace larcv {
 
@@ -24,6 +22,7 @@ namespace larcv {
     _store_dt = cfg.get<bool>("StoreDiffTime");
     _store_at = cfg.get<bool>("StoreAbsTime");
     _store_dedx = cfg.get<bool>("StoreDEDX");
+		_use_lite = cfg.get<bool>("UseSEDLite", false);
 
     auto cryostat_v   = cfg.get<std::vector<unsigned short> >("CryostatList");
     auto tpc_v        = cfg.get<std::vector<unsigned short> >("TPCList"     );
@@ -36,7 +35,7 @@ namespace larcv {
       auto const& t = tpc_v[idx];
       auto const& cryostat = geop->Cryostat(c);
       if(!cryostat.HasTPC(t)) {
-	LARCV_CRITICAL() << "Invalid TPCList: cryostat " << c 
+	LARCV_CRITICAL() << "Invalid TPCList: cryostat " << c
 			 << " does not contain tpc " << t << std::endl;
 	throw larbys();
       }
@@ -48,13 +47,120 @@ namespace larcv {
       if(max_pt.y < tpcabox.MaxY()) max_pt.y = tpcabox.MaxY();
       if(max_pt.z < tpcabox.MaxZ()) max_pt.z = tpcabox.MaxZ();
     }
-    _world_bounds.update(min_pt,max_pt); 
+    _world_bounds.update(min_pt,max_pt);
   }
 
   void SuperaSimEnergyDeposit::initialize()
   {
     SuperaBase::initialize();
   }
+
+	void SuperaSimEnergyDeposit::fill_sedep_v(
+			const std::vector<larcv::Particle> mcp_v,
+			std::vector<int>& part_idx_v,
+			larcv::Voxel3DMeta meta,
+			larcv::EventClusterVoxel3D& event_de_v
+			) {
+
+		auto const& sedep_v = LArData<supera::LArSimEnergyDepositLite_t>();
+		LARCV_INFO() << "Processing SimEnergyDeposit array: " << sedep_v.size() << std::endl;
+		for(size_t sedep_idx=0; sedep_idx<sedep_v.size(); ++sedep_idx) {
+			auto const& sedep = sedep_v.at(sedep_idx);
+
+			larcv::Point3D pt;
+			VoxelID_t vox_id = meta.id(sedep.X(), sedep.Y(), sedep.Z());
+			int track_id = std::abs(sedep.TrackID());
+			if(vox_id == larcv::kINVALID_VOXELID || !_world_bounds.contains(sedep.X(),sedep.Y(),sedep.Z())) {
+	LARCV_DEBUG() << "Skipping sedep from track id " << track_id
+					<< " E=" << sedep.Energy()
+					<< " pos=(" << sedep.X() << "," << sedep.Y() << "," << sedep.Z() << ")" << std::endl;
+	continue;
+			}
+			LARCV_DEBUG() << "Recording sedep from track id " << track_id
+				<< " E=" << sedep.Energy() << std::endl;
+			size_t cluster_idx = mcp_v.size();
+			if(track_id < (int)(part_idx_v.size()) && part_idx_v.at(track_id)>=0)
+	cluster_idx = part_idx_v.at(track_id);
+			assert(cluster_idx == event_de_v.as_vector().size());
+			LARCV_DEBUG() << "Cluster index: " << cluster_idx << " / " << event_de_v.as_vector().size() << std::endl;
+			float de = sedep.Energy();
+			//float at = sedep.T();
+
+			larcv::Voxel v(vox_id, de);
+			event_de_v.writeable_voxel_set(cluster_idx).add(v);
+		} // end for
+	}
+
+	void SuperaSimEnergyDeposit::fill_sedep_v(
+			const std::vector<larcv::Particle> mcp_v,
+			std::vector<int>& part_idx_v,
+			larcv::Voxel3DMeta meta,
+			larcv::EventClusterVoxel3D& event_de_v,
+			larcv::EventClusterVoxel3D* event_dq_v,
+			larcv::EventClusterVoxel3D* event_dp_v,
+			larcv::EventClusterVoxel3D* event_dx_v,
+			larcv::EventClusterVoxel3D* event_dt_v,
+			larcv::EventClusterVoxel3D* event_at_v,
+			larcv::EventClusterVoxel3D* event_dedx_v
+			) {
+		auto const& sedep_v = LArData<supera::LArSimEnergyDeposit_t>();
+		LARCV_INFO() << "Processing SimEnergyDeposit array: " << sedep_v.size() << std::endl;
+		for(size_t sedep_idx=0; sedep_idx<sedep_v.size(); ++sedep_idx) {
+			auto const& sedep = sedep_v.at(sedep_idx);
+
+			larcv::Point3D pt;
+			VoxelID_t vox_id = meta.id(sedep.X(), sedep.Y(), sedep.Z());
+			int track_id = std::abs(sedep.TrackID());
+			if(vox_id == larcv::kINVALID_VOXELID || !_world_bounds.contains(sedep.X(),sedep.Y(),sedep.Z())) {
+	LARCV_DEBUG() << "Skipping sedep from track id " << track_id
+					<< " E=" << sedep.Energy()
+					<< " pos=(" << sedep.X() << "," << sedep.Y() << "," << sedep.Z() << ")" << std::endl;
+	continue;
+			}
+			LARCV_DEBUG() << "Recording sedep from track id " << track_id
+				<< " E=" << sedep.Energy() << std::endl;
+			size_t cluster_idx = mcp_v.size();
+			if(track_id < (int)(part_idx_v.size()) && part_idx_v.at(track_id)>=0)
+	cluster_idx = part_idx_v.at(track_id);
+			assert(cluster_idx == event_de_v.as_vector().size());
+			LARCV_DEBUG() << "Cluster index: " << cluster_idx << " / " << event_de_v.as_vector().size() << std::endl;
+			float de = sedep.Energy();
+			float at = sedep.T();
+
+			larcv::Voxel v(vox_id, de);
+			event_de_v.writeable_voxel_set(cluster_idx).add(v);
+
+			// What follows is only to store extra information
+			// (afaik not used currently)
+
+			if (event_dq_v != nullptr) {
+				assert(event_dp_v != nullptr);
+				assert(event_dx_v != nullptr);
+				assert(event_dt_v != nullptr);
+				assert(event_at_v != nullptr);
+				assert(event_dedx_v != nullptr);
+
+				assert(cluster_idx == event_dq_v->as_vector().size());
+				assert(cluster_idx == event_dp_v->as_vector().size());
+				assert(cluster_idx == event_dx_v->as_vector().size());
+				assert(cluster_idx == event_dt_v->as_vector().size());
+				assert(cluster_idx == event_at_v->as_vector().size());
+				assert(cluster_idx == event_dedx_v->as_vector().size());
+				if(_store_dq) { v.set(vox_id, sedep.NumElectrons()); event_dq_v->writeable_voxel_set(cluster_idx).add(v); }
+				if(_store_dp) { v.set(vox_id, sedep.NumPhotons()); event_dp_v->writeable_voxel_set(cluster_idx).add(v); }
+				if(_store_dt) { v.set(vox_id, sedep.EndT() - sedep.StartT()); event_dt_v->writeable_voxel_set(cluster_idx).add(v); }
+				if(_store_dx || _store_dedx) { v.set(vox_id, sedep.StepLength()); event_dx_v->writeable_voxel_set(cluster_idx).add(v); }
+				if(_store_at) {
+					auto& cluster = event_at_v->writeable_voxel_set(cluster_idx);
+					auto const& vox = cluster.find(vox_id);
+					if(vox.id() == larcv::kINVALID_VOXELID)
+						cluster.emplace(vox_id, at, true);
+					else if(at < vox.value())
+						cluster.emplace(vox_id, at, false);
+				}
+			}
+		} //end for
+	} // end fill_sedep_v
 
   bool SuperaSimEnergyDeposit::process(IOManager& mgr)
   {
@@ -76,7 +182,7 @@ namespace larcv {
     */
     // List particles to be stored
     static std::vector<int> part_idx_v(1e6,-1);
-    std::fill(part_idx_v.begin(),part_idx_v.end(),-1);    
+    std::fill(part_idx_v.begin(),part_idx_v.end(),-1);
     auto const& mcp_v = mgr.get_data<larcv::EventParticle>(_particle_label).as_vector();
     LARCV_INFO() << "Processing larcv::EventParticle array: " << mcp_v.size() << std::endl;
     auto const& mcshower_v = LArData<supera::LArMCShower_t>();
@@ -124,7 +230,7 @@ namespace larcv {
     if(_store_dedx)
       { event_dedx_v = (larcv::EventClusterVoxel3D*)(mgr.get_data("cluster3d", _output_label + "_dedx"));
 	event_dedx_v->resize(mcp_v.size()+1); event_dedx_v->meta(meta); }
-    if( event_de_v.as_vector().size()  != (mcp_v.size() + 1) ) 
+    if( event_de_v.as_vector().size()  != (mcp_v.size() + 1) )
       { LARCV_ERROR() << "event_de_v size mismatch with mcp_v: " << event_de_v.as_vector().size()  << " vs. " << mcp_v.size(); throw std::exception(); }
     if( event_dx_v   && event_dx_v->as_vector().size() != (mcp_v.size() + 1) )
       { LARCV_ERROR() << "event_dx_v size mismatch with mcp_v: " << event_dx_v->as_vector().size() << " vs. " << mcp_v.size(); throw std::exception(); }
@@ -137,63 +243,33 @@ namespace larcv {
     if( event_at_v   && event_at_v->as_vector().size() != (mcp_v.size() + 1) )
       { LARCV_ERROR() << "event_at_v size mismatch with mcp_v: " << event_at_v->as_vector().size() << " vs. " << mcp_v.size(); throw std::exception(); }
     if( event_dedx_v && event_dedx_v->as_vector().size() != (mcp_v.size() + 1) )
-      { LARCV_ERROR() << "event_dedx_v size mismatch with mcp_v: " << event_dedx_v->as_vector().size() << " vs. " << mcp_v.size(); throw std::exception(); }    
+      { LARCV_ERROR() << "event_dedx_v size mismatch with mcp_v: " << event_dedx_v->as_vector().size() << " vs. " << mcp_v.size(); throw std::exception(); }
     // Register particle energy deposition coordinates
-    auto const& sedep_v = LArData<supera::LArSimEnergyDeposit_t>();
-    LARCV_INFO() << "Processing SimEnergyDeposit array: " << sedep_v.size() << std::endl;
-    std::vector<int> store_idx_v;
-    store_idx_v.reserve(sedep_v.size());
-    for(size_t sedep_idx=0; sedep_idx<sedep_v.size(); ++sedep_idx) {
-      auto const& sedep = sedep_v.at(sedep_idx);
 
-      larcv::Point3D pt;
-      VoxelID_t vox_id = meta.id(sedep.X(), sedep.Y(), sedep.Z());
-      if(vox_id == larcv::kINVALID_VOXELID || !_world_bounds.contains(sedep.X(),sedep.Y(),sedep.Z())) {
-	LARCV_DEBUG() << "Skipping sedep from track id " << sedep.TrackID() 
-		      << " E=" << sedep.Energy()
-		      << " pos=(" << sedep.X() << "," << sedep.Y() << "," << sedep.Z() << ")" << std::endl;
-	continue;
-      }
-      LARCV_DEBUG() << "Recording sedep from track id " << sedep.TrackID() 
-		    << " E=" << sedep.Energy() << std::endl;
-      size_t cluster_idx = mcp_v.size();
-      int track_id = std::abs(sedep.TrackID());
-      if(track_id < (int)(part_idx_v.size()) && part_idx_v.at(track_id)>=0)
-	cluster_idx = part_idx_v.at(track_id);
-      assert(cluster_idx == event_de_v.as_vector().size());
-      assert(cluster_idx == event_dq_v->as_vector().size());
-      assert(cluster_idx == event_dp_v->as_vector().size());
-      assert(cluster_idx == event_dx_v->as_vector().size());
-      assert(cluster_idx == event_dt_v->as_vector().size());
-      assert(cluster_idx == event_at_v->as_vector().size());
-      assert(cluster_idx == event_dedx_v->as_vector().size());
-      LARCV_DEBUG() << "Cluster index: " << cluster_idx << " / " << event_de_v.as_vector().size() << std::endl;
-      float de = sedep.Energy();
-      float dx = sedep.StepLength();
-      float dq = sedep.NumElectrons();
-      float dp = sedep.NumPhotons();
-      float at = sedep.T();
-      float dt = sedep.EndT() - sedep.StartT();
-      
-      larcv::Voxel v(vox_id, de);
-      event_de_v.writeable_voxel_set(cluster_idx).add(v);
-
-      if(_store_dq) { v.set(vox_id, dq); event_dq_v->writeable_voxel_set(cluster_idx).add(v); }
-      if(_store_dp) { v.set(vox_id, dp); event_dp_v->writeable_voxel_set(cluster_idx).add(v); }
-      if(_store_dt) { v.set(vox_id, dt); event_dt_v->writeable_voxel_set(cluster_idx).add(v); }
-      if(_store_dx || _store_dedx) { v.set(vox_id, dx); event_dx_v->writeable_voxel_set(cluster_idx).add(v); }
-      if(_store_at) {
-	auto& cluster = event_at_v->writeable_voxel_set(cluster_idx);
-	auto const& vox = cluster.find(vox_id);
-	if(vox.id() == larcv::kINVALID_VOXELID)
-	  cluster.emplace(vox_id, at, true);
-	else if(at < vox.value())
-	  cluster.emplace(vox_id, at, false);
-      }
-    }
+		if (_use_lite) {
+			fill_sedep_v(
+				mcp_v,
+				part_idx_v,
+				meta,
+				event_de_v
+			);
+		} else {
+			fill_sedep_v(
+				mcp_v,
+				part_idx_v,
+				meta,
+				event_de_v,
+				event_dq_v,
+				event_dp_v,
+				event_dx_v,
+				event_dt_v,
+				event_at_v,
+				event_dedx_v
+			);
+		}
 
     if(_store_dedx) {
-      LARCV_INFO() << "Computing dE/dX for clusters: dx " << event_dx_v->as_vector().size() 
+      LARCV_INFO() << "Computing dE/dX for clusters: dx " << event_dx_v->as_vector().size()
 		   << " de " << event_de_v.as_vector().size() << std::endl;
       /*
       for(size_t cluster_idx=0; cluster_idx<cluster_de_v.size(); ++cluster_idx) {
@@ -216,13 +292,13 @@ namespace larcv {
 
     // report
     for(size_t part_idx=0; part_idx<mcp_v.size(); ++part_idx) {
-      LARCV_INFO() << "Track ID " << mcp_v[part_idx].track_id() 
+      LARCV_INFO() << "Track ID " << mcp_v[part_idx].track_id()
 		   << " PDG " << mcp_v[part_idx].pdg_code()
 		   << " Voxel Count " << event_de_v.as_vector().at(part_idx).size() << std::endl;
     }
 
     // assert
-    if( event_de_v.as_vector().size()  != (mcp_v.size() + 1) ) 
+    if( event_de_v.as_vector().size()  != (mcp_v.size() + 1) )
       { LARCV_ERROR() << "event_de_v size mismatch with mcp_v: " << event_de_v.as_vector().size()  << " vs. " << mcp_v.size(); throw std::exception(); }
     if( event_dx_v   && event_dx_v->as_vector().size() != (mcp_v.size() + 1) )
       { LARCV_ERROR() << "event_dx_v size mismatch with mcp_v: " << event_dx_v->as_vector().size() << " vs. " << mcp_v.size(); throw std::exception(); }
@@ -252,10 +328,10 @@ namespace larcv {
     if(_store_dt)   mgr.get_data<larcv::EventClusterVoxel3D>(_output_label + "_dt"  ).set(vsa_dt,meta);
     if(_store_at)   mgr.get_data<larcv::EventClusterVoxel3D>(_output_label + "_at"  ).set(vsa_at,meta);
     if(_store_dedx) mgr.get_data<larcv::EventClusterVoxel3D>(_output_label + "_dedx").set(vsa_dedx,meta);
-    */    
+    */
     return true;
   }
-      
+
   void SuperaSimEnergyDeposit::finalize()
   {}
 
