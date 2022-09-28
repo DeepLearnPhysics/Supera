@@ -53,15 +53,7 @@ physics:
  }
  analyzers:
  {
-	supera: {
-		module_type: "LArSoftSuperaDriver"
-		supera_params: "supera_nue.fcl"
-		out_filename: "larcv.root"
-		unique_filename: false
-		stream: "mc"
-		Verbosity: 2
-		StrictDataLoading: false
-	}
+	supera: @local::icarus_supera_MC_all_cryo
  }
 
  simulate: [ rns, generator, eventActive, largeant, mcreco, daq0, daq1, daq2, daq3,
@@ -69,8 +61,8 @@ physics:
 						@sequence::icarus_stage0_multiTPC_TPC, # decon1droi, roifinder
 						@sequence::icarus_stage0_EastHits_TPC,
 						@sequence::icarus_stage0_WestHits_TPC,
-						cluster3DCryoE]
-						#cluster3DCryoW]
+						cluster3DCryoE,
+						cluster3DCryoW]
  analyze: [supera]
  out_stream: [ out1   ]
 

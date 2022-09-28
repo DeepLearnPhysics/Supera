@@ -1,0 +1,2 @@
+#include "prodcorsika_bnb_nue_genie_protononly_icarus.fcl"
+physics.producers.generator.FluxCopyMethod: "IFDH"

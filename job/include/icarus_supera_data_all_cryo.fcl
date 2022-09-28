@@ -3,8 +3,8 @@ ProcessDriver: {
   Verbosity:    2
   EnableFilter: true
   RandomAccess: false
-  ProcessType:  ["SuperaBBoxInteraction","SuperaSpacePoint","EmptyTensorFilter"]
-  ProcessName:  ["SuperaBBoxInteraction","SuperaSpacePoint","EmptyTensorFilter"]
+  ProcessType:  ["SuperaBBoxInteraction","SuperaSpacePoint","EmptyTensorFilter","SuperaOptical","SuperaCRT"]
+  ProcessName:  ["SuperaBBoxInteraction","SuperaSpacePoint","EmptyTensorFilter","superaOptical","SuperaCRT"]
 
   IOManager: {
     Verbosity:   2
@@ -18,6 +18,16 @@ ProcessDriver: {
   }
 
   ProcessList: {
+    SuperaCRT: {
+      CRTHitProducers: ["crthit"]
+      CRTHitOutputs: ["crthit"]
+    }
+
+		SuperaOptical: {
+		  OpFlashProducers: ["opflashCryoE","opflashCryoW"]
+			OpFlashOutputs: ["cryoE","cryoW"]
+		}
+
     EmptyTensorFilter: {
       Profile: true
       Tensor3DProducerList: ["reco"]
@@ -36,9 +46,6 @@ ProcessDriver: {
       BBoxSize: [1843.2,1843.2,1843.2] # Covers the whole detector with the smallest possible cube
       #BBoxSize: [1789.902,1789.902,1798.902] # based on geometry?
       VoxelSize: [0.3,0.3,0.3]
-      #BBoxBottom: [-365.0,-138.65,-500.]
-      #BBoxBottom: [-460.8,-230.4,-921.6]
-      #BBoxBottom: [-368.49,-181.86,-894.951] # based on geometry?
       #BBoxBottom: [-358.49,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml
 			# 358.49+340*1.6/10 = 412.89
       BBoxBottom: [-412.89,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml taking readout window into account
@@ -50,10 +57,11 @@ ProcessDriver: {
     SuperaSpacePoint: {
       Profile: true
       Verbosity: 0
-      SpacePointProducers: ["cluster3DCryoE"]
+      SpacePointProducers: ["cluster3DCryoW","cluster3DCryoE"]
+      # SpacePointProducers: ["cluster3DCryoE"]
       OutputLabel:        "reco"
-      #DropOutput: ["hit_*"]
-      #StoreWireInfo: true
+      DropOutput: ["hit_amp","hit_time","hit_rms","hit_mult"]
+      StoreWireInfo: true
       RecoChargeRange: [-1000, 50000]
     }
 

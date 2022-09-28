@@ -1,0 +1,2 @@
+#include "stage0_multiTPC_icarus_MC_lite.fcl"
+#outputs.outBNB.outputCommands: ["keep *_*_*_*"]

@@ -3,8 +3,8 @@ ProcessDriver: {
   Verbosity:    2
   EnableFilter: true
   RandomAccess: false
-  ProcessType:  ["SuperaBBoxInteraction","SuperaSpacePoint","EmptyTensorFilter"]
-  ProcessName:  ["SuperaBBoxInteraction","SuperaSpacePoint","EmptyTensorFilter"]
+  ProcessType:  ["SuperaBBoxInteraction","SuperaSpacePoint","EmptyTensorFilter","SuperaOptical","SuperaCRT"]
+  ProcessName:  ["SuperaBBoxInteraction","SuperaSpacePoint","EmptyTensorFilter","SuperaOptical","SuperaCRT"]
 
   IOManager: {
     Verbosity:   2
@@ -18,6 +18,16 @@ ProcessDriver: {
   }
 
   ProcessList: {
+    SuperaCRT: {
+      CRTHitProducers: ["crthit"]
+      CRTHitOutputs: ["crthit"]
+    }
+
+		SuperaOptical: {
+		  OpFlashProducers: ["opflashCryoE"]
+			OpFlashOutputs: ["cryoE"]
+		}
+
     EmptyTensorFilter: {
       Profile: true
       Tensor3DProducerList: ["reco"]
@@ -50,12 +60,11 @@ ProcessDriver: {
     SuperaSpacePoint: {
       Profile: true
       Verbosity: 0
-      SpacePointProducers: ["cluster3DCryoW"]
+      SpacePointProducers: ["cluster3DCryoE"]
       OutputLabel:        "reco"
-      #DropOutput: ["hit_*"]
-      #StoreWireInfo: true
+      DropOutput: ["hit_amp","hit_time","hit_rms","hit_mult"]
+      StoreWireInfo: true
       RecoChargeRange: [-1000, 50000]
-			ShiftX: -419.29
     }
 
   }
