@@ -56,6 +56,8 @@ namespace larcv {
     _check_particle_validity = cfg.get<bool>("CheckParticleValidity",true);
     _merge_shower_delta = cfg.get<bool>("MergeShowerDelta", true);
 
+    _useOrigTrackID = cfg.get<bool>("UseOrigTrackID", false);
+
     auto cryostat_v   = cfg.get<std::vector<unsigned short> >("CryostatList");
     auto tpc_v        = cfg.get<std::vector<unsigned short> >("TPCList"     );
     std::vector<unsigned short> plane_v;
@@ -257,14 +259,15 @@ namespace larcv {
       auto const& sedep = sedep_v.at(sedep_idx);
 
       VoxelID_t vox_id = meta.id(sedep.X(), sedep.Y(), sedep.Z());
+      int track_id = abs(sedep.TrackID());
       if(vox_id == larcv::kINVALID_VOXELID || !_world_bounds.contains(sedep.X(),sedep.Y(),sedep.Z())) {
-        LARCV_DEBUG() << "Skipping sedep from track id " << sedep.TrackID()
+        LARCV_DEBUG() << "Skipping sedep from track id " << track_id
                 << " E=" << sedep.Energy()
                 << " pos=(" << sedep.X() << "," << sedep.Y() << "," << sedep.Z() << ")" << std::endl;
         continue;
       }
       //ctr_a.insert(vox_id);
-      LARCV_DEBUG() << "Recording sedep from track id " << sedep.TrackID()
+      LARCV_DEBUG() << "Recording sedep from track id " << track_id
         << " E=" << sedep.Energy() << std::endl;
 
       supera::EDep pt;
@@ -280,7 +283,6 @@ namespace larcv {
   double dz = sedep.EndZ() - sedep.StartZ();
   pt.dedx = pt.e / sqrt(pow(dx,2)+pow(dy,2)+pow(dz,2));
       }*/
-      int track_id = abs(sedep.TrackID());
       if(track_id >= ((int)(trackid2index.size()))) {
         bad_sedep_counter++;
         missing_trackid.insert(track_id);
@@ -483,7 +485,7 @@ namespace larcv {
             }
           }
           */
-          int track_id = abs(edep.trackID);
+          int track_id = abs(_useOrigTrackID ? edep.origTrackID : edep.trackID);
           if(track_id >= ((int)(trackid2index.size()))) {
             ++ctr_missing_trackid;
             missing_trackid.insert(track_id);

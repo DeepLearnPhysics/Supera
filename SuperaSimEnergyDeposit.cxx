@@ -69,16 +69,16 @@ namespace larcv {
 
 			larcv::Point3D pt;
 			VoxelID_t vox_id = meta.id(sedep.X(), sedep.Y(), sedep.Z());
+			int track_id = std::abs(sedep.TrackID());
 			if(vox_id == larcv::kINVALID_VOXELID || !_world_bounds.contains(sedep.X(),sedep.Y(),sedep.Z())) {
-	LARCV_DEBUG() << "Skipping sedep from track id " << sedep.TrackID()
+	LARCV_DEBUG() << "Skipping sedep from track id " << track_id
 					<< " E=" << sedep.Energy()
 					<< " pos=(" << sedep.X() << "," << sedep.Y() << "," << sedep.Z() << ")" << std::endl;
 	continue;
 			}
-			LARCV_DEBUG() << "Recording sedep from track id " << sedep.TrackID()
+			LARCV_DEBUG() << "Recording sedep from track id " << track_id
 				<< " E=" << sedep.Energy() << std::endl;
 			size_t cluster_idx = mcp_v.size();
-			int track_id = std::abs(sedep.TrackID());
 			if(track_id < (int)(part_idx_v.size()) && part_idx_v.at(track_id)>=0)
 	cluster_idx = part_idx_v.at(track_id);
 			assert(cluster_idx == event_de_v.as_vector().size());
@@ -110,16 +110,16 @@ namespace larcv {
 
 			larcv::Point3D pt;
 			VoxelID_t vox_id = meta.id(sedep.X(), sedep.Y(), sedep.Z());
+			int track_id = std::abs(sedep.TrackID());
 			if(vox_id == larcv::kINVALID_VOXELID || !_world_bounds.contains(sedep.X(),sedep.Y(),sedep.Z())) {
-	LARCV_DEBUG() << "Skipping sedep from track id " << sedep.TrackID()
+	LARCV_DEBUG() << "Skipping sedep from track id " << track_id
 					<< " E=" << sedep.Energy()
 					<< " pos=(" << sedep.X() << "," << sedep.Y() << "," << sedep.Z() << ")" << std::endl;
 	continue;
 			}
-			LARCV_DEBUG() << "Recording sedep from track id " << sedep.TrackID()
+			LARCV_DEBUG() << "Recording sedep from track id " << track_id
 				<< " E=" << sedep.Energy() << std::endl;
 			size_t cluster_idx = mcp_v.size();
-			int track_id = std::abs(sedep.TrackID());
 			if(track_id < (int)(part_idx_v.size()) && part_idx_v.at(track_id)>=0)
 	cluster_idx = part_idx_v.at(track_id);
 			assert(cluster_idx == event_de_v.as_vector().size());

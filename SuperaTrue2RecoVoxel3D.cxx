@@ -173,6 +173,7 @@ namespace larcv {
 		if (_sps_producer_v.size() == 0)
 			LARCV_ERROR() << "No space point producers" << std::endl;
 
+    _useOrigTrackID = cfg.get<bool>("UseOrigTrackID",false);
     _use_true_pos = cfg.get<bool>("UseTruePosition",true);
     _twofold_matching = cfg.get<bool>("TwofoldMatching", false);
     _ref_meta3d_cluster3d = cfg.get<std::string>("Meta3DFromCluster3D","pcluster");
@@ -291,7 +292,7 @@ namespace larcv {
       	  if(vox_id == larcv::kINVALID_VOXELID) continue;
           true_voxel_ids.insert(vox_id);
 
-          hit.track_voxel_ids.emplace_back(vox_id, edep.trackID);
+          hit.track_voxel_ids.emplace_back(vox_id, _useOrigTrackID ? edep.origTrackID : edep.trackID);
           hit.n_electrons.push_back(edep.numElectrons);
         }
 

@@ -64,6 +64,7 @@ namespace larcv {
     bool _debug, _use_true_pos;
     bool _twofold_matching;
     bool _dump_to_csv;
+    bool _useOrigTrackID; ///< Whether to use origTrackID or trackID from SimChannel
 
     bool _post_averaging;
     double _post_averaging_threshold;
