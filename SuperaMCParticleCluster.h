@@ -97,7 +97,7 @@ namespace larcv {
     size_t _eioni_size;
     size_t _delta_size;
     size_t _compton_size;
-    double _compton_energy;
+    //double _compton_energy;
     double _edep_threshold;
     bool _use_true_pos;
     bool _use_sed;
