@@ -1650,7 +1650,7 @@ namespace larcv {
             child.part.group_id(parent.part.group_id());
           }
         }else{
-          assert(grp.part.group_id() == part_grp_v[output2trackid[parent_partid]].group_id());
+          assert(grp.part.group_id() == part_grp_v[output2trackid[parent_partid]].part.group_id());
         }
         grp.part.parent_id(parent_partid);
         part_grp_v[parent_trackid].part.children_id(grp.part.id());
