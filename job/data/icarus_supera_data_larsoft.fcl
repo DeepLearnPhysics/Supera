@@ -3,20 +3,21 @@
 #include "stage0_icarus_defs.fcl"
 #include "stage1_icarus_defs.fcl"
 #include "channelmapping_icarus.fcl"
+#include "supera_modules.fcl"
 
-process_name: SuperaData2
+process_name: SuperaData
 
 services:
 {
-	@table::icarus_detsim_services
-	@table::icarus_gen_services
-	IFDH: {}
-	IICARUSChannelMap: @local::icarus_channelmappinggservice
+  @table::icarus_detsim_services
+  @table::icarus_gen_services
+  IFDH: {}
+  IICARUSChannelMap: @local::icarus_channelmappinggservice
 }
 
 source:
 {
-	module_type: RootInput
+  module_type: RootInput
 }
 
 physics:
@@ -24,46 +25,29 @@ physics:
 
  producers:
  {
-	 rns: { module_type: RandomNumberSaver }
-	 # Reco producers
-	 @table::icarus_stage0_producers
-	 @table::icarus_stage1_producers
+   rns: { module_type: RandomNumberSaver }
+   # Reco producers
+   @table::icarus_stage0_producers
+   @table::icarus_stage1_producers
  }
  analyzers:
  {
-	superaCryoE: {
-		module_type: "LArSoftSuperaDriver"
-		supera_params: "supera_data_cryoE.fcl"
-		out_filename: "larcv_cryoE.root"
-		unique_filename: false
-		stream: "data"
-		Verbosity: 2
-		StrictDataLoading: false
-	}
-	superaCryoW: {
-		module_type: "LArSoftSuperaDriver"
-		supera_params: "supera_data_cryoW.fcl"
-		out_filename: "larcv_cryoW.root"
-		unique_filename: false
-		stream: "data"
-		Verbosity: 2
-		StrictDataLoading: false
-	}
+  supera: @local::icarus_supera_data
  }
 
- simulate: [ rns ]
- 						#daqTPC,
-						#daqTPCROI,
-						#@sequence::icarus_stage0_multiTPC_TPC, # decon1droi, roifinder
-						#@sequence::icarus_stage0_EastHits_TPC,
-						#@sequence::icarus_stage0_WestHits_TPC,
-						#cluster3DCryoE,
-						#cluster3DCryoW]
- analyze: [superaCryoE, superaCryoW]
+ simulate: [ rns,
+            daqTPC,
+            daqTPCROI,
+            @sequence::icarus_stage0_multiTPC_TPC, # decon1droi, roifinder
+            @sequence::icarus_stage0_EastHits_TPC,
+            @sequence::icarus_stage0_WestHits_TPC,
+            cluster3DCryoE,
+            cluster3DCryoW]
+ analyze: [supera]
  out_stream: [ out1   ]
 
  trigger_paths: [simulate]
- end_paths:     [analyze]
+ end_paths:     [analyze,out_stream]
  #end_paths:     [analyze]
  #end_paths: [out_stream]
 }
@@ -81,11 +65,6 @@ physics.producers.cluster3DCryoW.Hit3DBuilderAlg.MinPHFor2HitPoints: 0.
 physics.producers.cluster3DCryoE.Hit3DBuilderAlg.OutputHistograms: false
 physics.producers.cluster3DCryoW.Hit3DBuilderAlg.OutputHistograms: false
 
-#
-# Services
-#
-services.LArPropertiesService.ScintYield: 0
-services.LArPropertiesService.ScintByParticleType: false
 
 outputs:
 {
@@ -101,8 +80,8 @@ outputs:
    #                 "keep recob::Hit*_gaushit_*_*"
    #                ]
 
-	 # Only uncomment if selecting events with nu in active volume
-	 # SelectEvents: [simulate]
+   # Only uncomment if selecting events with nu in active volume
+   # SelectEvents: [simulate]
  }
 }
 

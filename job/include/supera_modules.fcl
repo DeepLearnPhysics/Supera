@@ -7,9 +7,11 @@
 
 # ------------------------------------------------------------
 # Data definitions follow.
+#
+# These include TPC + PMT + CRT info by default.
 # ------------------------------------------------------------
 
-icarus_supera_data_all_cryo: {
+icarus_supera_data: {
   module_type: "LArSoftSuperaDriver"
   supera_params: "icarus_supera_data_all_cryo.fcl"
   out_filename: "larcv.root"
@@ -21,7 +23,7 @@ icarus_supera_data_all_cryo: {
 
 # Data / For cryostat East
 icarus_supera_data_cryoE: {
-  @table::supera_data_all_cryo
+  @table::icarus_supera_data
   supera_params: "icarus_supera_data_cryoE.fcl"
   out_filename: "larcv_cryoE.root"
 }
@@ -29,7 +31,7 @@ icarus_supera_data_cryoE: {
 # Data / For cryostat West (shifts coordinates along X axis
 # back into cryostat East)
 icarus_supera_data_cryoW: {
-  @table::supera_data_all_cryo
+  @table::icarus_supera_data
   supera_params: "icarus_supera_data_cryoW.fcl"
   out_filename: "larcv_cryoW.root"
 }
@@ -59,8 +61,7 @@ icarus_supera_data_cryoW: {
 # Both cryostats or one cryostat only
 # ===================================
 # Preferred way is to process both cryostat separately and create
-# two larcv files (typically named `larcv_cryoE.root` and
-# `larcv_cryoW.root`).
+# two TTrees (typically named `reco_cryoE` and `reco_cryoW`).
 #
 # 1. These assume a `generator` and `cosmgen` modules.
 # ------------------------------------------------------------
@@ -76,36 +77,39 @@ icarus_supera_MC_all_cryo: {
   StrictDataLoading: false
 }
 
+# Just an alias for convenience
+icarus_supera_MC: @local::icarus_supera_MC_all_cryo
+
 # MC / All cryo / PMT+CRT included
-icarus_supera_MC_all_cryo_PMT_CRT: {
-  @table::supera_MC_all_cryo
+icarus_supera_MC_PMT_CRT: {
+  @table::icarus_supera_MC_all_cryo
   supera_params: "supera_icarus_MC_all_cryo_PMT_CRT.fcl"
 }
 
 # MC / CryoE only
 icarus_supera_MC_cryoE: {
-  @table::supera_MC_all_cryo
+  @table::icarus_supera_MC_all_cryo
   supera_params: "supera_icarus_MC_cryoE.fcl"
   out_filename: "larcv_cryoE.root"
 }
 
 # MC / CryoE only / PMT+CRT included
 icarus_supera_MC_cryoE_PMT_CRT: {
-  @table::supera_MC_all_cryo
+  @table::icarus_supera_MC_all_cryo
   supera_params: "supera_icarus_MC_cryoE_PMT_CRT.fcl"
   out_filename: "larcv_cryoE.root"
 }
 
 # MC / CryoW only
 icarus_supera_MC_cryoW: {
-  @table::supera_MC_all_cryo
+  @table::icarus_supera_MC_all_cryo
   supera_params: "supera_icarus_MC_cryoW.fcl"
   out_filename: "larcv_cryoW.root"
 }
 
 # MC / CryoW only / PMT+CRT included
 icarus_supera_MC_cryoW_PMT_CRT: {
-  @table::supera_MC_all_cryo
+  @table::icarus_supera_MC_all_cryo
   supera_params: "supera_icarus_MC_cryoW_PMT_CRT.fcl"
   out_filename: "larcv_cryoW.root"
 }
@@ -114,62 +118,35 @@ icarus_supera_MC_cryoW_PMT_CRT: {
 # 2. These assume only a `generator` module.
 # ------------------------------------------------------------
 
-# Generator only / CryoE only
-icarus_supera_generator_cryoE: {
-  @table::supera_MC_all_cryo
-  supera_params: "supera_icarus_generator_cryoE.fcl"
-  out_filename: "larcv_cryoE.root"
+# Generator only / Both cryostats
+icarus_supera_generator: {
+  @table::icarus_supera_MC_all_cryo
+  supera_params: "supera_icarus_generator_all_cryo.fcl"
+  out_filename: "larcv.root"
 }
 
-# Generator only / CryoE only / PMT+CRT included
-icarus_supera_generator_cryoE_PMT_CRT: {
-  @table::supera_MC_all_cryo
-  supera_params: "supera_icarus_generator_cryoE_PMT_CRT.fcl"
-  out_filename: "larcv_cryoE.root"
-}
-
-# Generator only / CryoW only
-icarus_supera_generator_cryoW: {
-  @table::supera_MC_all_cryo
-  supera_params: "supera_icarus_generator_cryoW.fcl"
-  out_filename: "larcv_cryoW.root"
-}
-
-# Generator only / CryoW only / PMT+CRT included
-icarus_supera_generator_cryoW_PMT_CRT: {
-  @table::supera_MC_all_cryo
-  supera_params: "supera_icarus_generator_cryoW_PMT_CRT.fcl"
-  out_filename: "larcv_cryoW.root"
+# Generator only / Both cryostats / PMT+CRT included
+icarus_supera_generator_PMT_CRT: {
+  @table::icarus_supera_MC_all_cryo
+  supera_params: "supera_icarus_generator_all_cryo_PMT_CRT.fcl"
+  out_filename: "larcv.root"
 }
 
 # ------------------------------------------------------------
 # 3. These assume only a `cosmgen` module.
 # ------------------------------------------------------------
 
-# Cosmgen only / CryoE only
-icarus_supera_cosmgen_cryoE: {
-  @table::supera_MC_all_cryo
-  supera_params: "supera_icarus_cosmgen_cryoE.fcl"
-  out_filename: "larcv_cryoE.root"
+# Cosmgen only / Both cryostats
+icarus_supera_cosmgen: {
+  @table::icarus_supera_MC_all_cryo
+  supera_params: "supera_icarus_cosmgen_all_cryo.fcl"
+  out_filename: "larcv.root"
 }
 
-# Cosmgen only / CryoE only / PMT+CRT included
+# Cosmgen only / Both cryostats / PMT+CRT included
 icarus_supera_cosmgen_cryoE_PMT_CRT: {
-  @table::supera_MC_all_cryo
-  supera_params: "supera_icarus_cosmgen_cryoE_PMT_CRT.fcl"
-  out_filename: "larcv_cryoE.root"
+  @table::icarus_supera_MC_all_cryo
+  supera_params: "supera_icarus_cosmgen_all_cryo_PMT_CRT.fcl"
+  out_filename: "larcv.root"
 }
 
-# Cosmgen only / CryoW only
-icarus_supera_cosmgen_cryoW: {
-  @table::supera_MC_all_cryo
-  supera_params: "supera_icarus_cosmgen_cryoW.fcl"
-  out_filename: "larcv_cryoW.root"
-}
-
-# Cosmgen only / CryoW only / PMT+CRT included
-icarus_supera_cosmgen_cryoW_PMT_CRT: {
-  @table::supera_MC_all_cryo
-  supera_params: "supera_icarus_cosmgen_cryoW_PMT_CRT.fcl"
-  out_filename: "larcv_cryoW.root"
-}

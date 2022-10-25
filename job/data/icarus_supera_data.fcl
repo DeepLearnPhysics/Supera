@@ -9,15 +9,15 @@ process_name: SuperaData
 
 services:
 {
-  @table::icarus_detsim_services
-  @table::icarus_gen_services
-  IFDH: {}
-  IICARUSChannelMap: @local::icarus_channelmappinggservice
+	@table::icarus_detsim_services
+	@table::icarus_gen_services
+	IFDH: {}
+	IICARUSChannelMap: @local::icarus_channelmappinggservice
 }
 
 source:
 {
-  module_type: RootInput
+	module_type: RootInput
 }
 
 physics:
@@ -25,52 +25,25 @@ physics:
 
  producers:
  {
-   rns: { module_type: RandomNumberSaver }
-   # Reco producers
-   @table::icarus_stage0_producers
-   @table::icarus_stage1_producers
+	 rns: { module_type: RandomNumberSaver }
+	 # Reco producers
+	 @table::icarus_stage0_producers
+	 @table::icarus_stage1_producers
  }
  analyzers:
  {
-  superaCryoE: @local::icarus_supera_data_cryoE
-  superaCryoW: @local::icarus_supera_data_cryoW
+   supera: @local::icarus_supera_data
  }
 
- simulate: [ rns,
-            daqTPC,
-            daqTPCROI,
-            @sequence::icarus_stage0_multiTPC_TPC, # decon1droi, roifinder
-            @sequence::icarus_stage0_EastHits_TPC,
-            @sequence::icarus_stage0_WestHits_TPC,
-            cluster3DCryoE,
-            cluster3DCryoW]
- analyze: [superaCryoE, superaCryoW]
+ simulate: [ rns ]
+ analyze: [supera]
  out_stream: [ out1   ]
 
  trigger_paths: [simulate]
- #end_paths:     [analyze,out_stream]
  end_paths:     [analyze]
- #end_paths: [out_stream]
+ #end_paths:     [analyze,out_stream]
 }
 
-
-#
-# Cluster3D
-#
-physics.producers.cluster3DCryoE.Hit3DBuilderAlg.SaveMythicalPoints: true
-physics.producers.cluster3DCryoW.Hit3DBuilderAlg.SaveMythicalPoints: true
-
-physics.producers.cluster3DCryoE.Hit3DBuilderAlg.MinPHFor2HitPoints: 0.
-physics.producers.cluster3DCryoW.Hit3DBuilderAlg.MinPHFor2HitPoints: 0.
-
-physics.producers.cluster3DCryoE.Hit3DBuilderAlg.OutputHistograms: false
-physics.producers.cluster3DCryoW.Hit3DBuilderAlg.OutputHistograms: false
-
-#
-# Services
-#
-services.LArPropertiesService.ScintYield: 0
-services.LArPropertiesService.ScintByParticleType: false
 
 outputs:
 {
@@ -86,8 +59,8 @@ outputs:
    #                 "keep recob::Hit*_gaushit_*_*"
    #                ]
 
-   # Only uncomment if selecting events with nu in active volume
-   # SelectEvents: [simulate]
+	 # Only uncomment if selecting events with nu in active volume
+	 # SelectEvents: [simulate]
  }
 }
 
