@@ -32,6 +32,8 @@ art_make( BASENAME_ONLY
 		lardataobj::MCBase
 		lardataobj::RawData
 		lardataobj::RecoBase
+		lardata::DetectorInfoServices_DetectorClocksServiceStandard_service
+		larevt::SpaceCharge
 		nusimdata::SimulationBase
 		art::Framework_Services_Registry
 		art::Persistency_Common
@@ -48,25 +50,21 @@ art_make( BASENAME_ONLY
 		${LARCV_LIB}
     MODULE_LIBRARIES
 		icarus_LArCVImageMaker
-		#nutools::ParticleNavigation
 		nurandom::RandomUtils_NuRandomService_service
 		larcore::Geometry_Geometry_service
 		larcorealg::Geometry
-		#larsim::Simulation
-		#lardata::Utilities
+		lardata::DetectorInfoServices_DetectorPropertiesServiceStandard_service
+		larevt::SpaceCharge
 		lardataalg::DetectorInfo
 		larcoreobj::SummaryData
 		lardataobj::Simulation
 		lardataobj::MCBase
 		lardataobj::RawData
 		lardataobj::RecoBase
-		#lardata::RecoObjects
 		nusimdata::SimulationBase
 		art::Framework_Core
 		art::Framework_Principal
 		art::Framework_Services_Registry
-		#art::Framework_Services_Optional
-		#art::Framework_Services_Optional_tfileservice_service
 		art::Framework_Services_Optional_RandomNumberGenerator_service
 		art::Persistency_Common
 		art::Persistency_Provenance
