@@ -19,7 +19,7 @@ endif()
 #add_subdirectory(job)
 
 art_make_library(
-    NAME
+    LIBRARY_NAME
         icarus_LArCVImageMaker
             LIBRARIES
 		nurandom::RandomUtils_NuRandomService_service
