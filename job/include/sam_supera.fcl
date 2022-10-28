@@ -17,21 +17,13 @@ services.FileCatalogMetadataSBN:
   FCLName: "test_supera.fcl"
   Experiment: "icarus"
   ProjectName: "supera"
-  ProjectStage: "test"
+  ProjectStage: "larcv"
   ProjectSoftware: "supera_software"
   ProjectVersion: "v0"
   ProductionName: "test"
   ProductionType: "test"
 }
-#services.FileCatalogMetadataSBN.FCLName: "test_supera.fcl"
-#services.FileCatalogMetadataSBN.Experiment: "icarus"
-#services.FileCatalogMetadataSBN.ProjectName:
-#services.FileCatalogMetadataSBN.ProjectStage:
-#services.FileCatalogMetadataSBN.ProjectSoftware:
-#services.FileCatalogMetadataSBN.ProjectVersion:
-#services.FileCatalogMetadataSBN.ProductionName:
-#services.FileCatalogMetadataSBN.ProductionType:
-services.MetadataSBN.JSONFileName: "test.json"
+services.MetadataSBN.JSONFileName: "larcv.json"
 services.MetadataSBN.fileFormat: "root"
 services.MetadataSBN.Experiment: "icarus"
 services.MetadataSBN.dataTier: "larcv"

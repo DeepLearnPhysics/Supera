@@ -1,10 +1,10 @@
 ProcessDriver: {
 
   Verbosity:    2
-  EnableFilter: true
+  EnableFilter: false
   RandomAccess: false
-  ProcessType:  ["SuperaBBoxInteraction","SuperaSpacePoint","EmptyTensorFilter","SuperaOptical","SuperaCRT"]
-  ProcessName:  ["SuperaBBoxInteraction","SuperaSpacePoint","EmptyTensorFilter","SuperaOptical","SuperaCRT"]
+  ProcessType:  ["SuperaBBoxInteraction","SuperaSpacePoint","SuperaOptical","SuperaCRT"]
+  ProcessName:  ["SuperaBBoxInteraction","SuperaSpacePoint","SuperaOptical","SuperaCRT"]
 
   IOManager: {
     Verbosity:   2
@@ -28,20 +28,13 @@ ProcessDriver: {
 			OpFlashOutputs: ["cryoW"]
 		}
 
-    EmptyTensorFilter: {
-      Profile: true
-      Tensor3DProducerList: ["reco"]
-      MinVoxel3DCountList:  [1]
-    }
-
     SuperaBBoxInteraction: {
       Verbosity: 0
-      Profile: true
       #LArMCTruthProducer: "generator"
       #LArSimEnergyDepositProducer: "largeant TPCActive"
       Origin: 0
       Cluster3DLabels: []
-      Tensor3DLabels:  ["reco"]
+      Tensor3DLabels:  ["reco_cryoW"]
       #BBoxSize: [230.4,230.4,230.4]
       BBoxSize: [1843.2,1843.2,1843.2] # Covers the whole detector with the smallest possible cube
       #BBoxSize: [1789.902,1789.902,1798.902] # based on geometry?
@@ -58,14 +51,13 @@ ProcessDriver: {
     }
 
     SuperaSpacePoint: {
-      Profile: true
       Verbosity: 0
       SpacePointProducers: ["cluster3DCryoW"]
-      OutputLabel:        "reco"
+      OutputLabel:        "reco_cryoW"
       DropOutput: ["hit_amp","hit_time","hit_rms","hit_mult"]
       StoreWireInfo: true
       RecoChargeRange: [-1000, 50000]
-			ShiftX: -419.29
+			#ShiftX: -419.29
     }
 
   }

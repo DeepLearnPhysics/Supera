@@ -4,7 +4,7 @@ ProcessDriver: {
   EnableFilter: true
   RandomAccess: false
   ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D","SuperaOptical","SuperaCRT"]
-  ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D","SuperaOptical","SuperaCRT"]
+  ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePointCryoW","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3DCryoW","SuperaOptical","SuperaCRT"]
 
   IOManager: {
     Verbosity:   2
@@ -22,49 +22,45 @@ ProcessDriver: {
       CRTHitProducers: ["crthit"]
       CRTHitOutputs: ["crthit"]
     }
+
 		SuperaOptical: {
 		  OpFlashProducers: ["opflashCryoW"]
 			OpFlashOutputs: ["cryoW"]
 		}
+
     EmptyTensorFilter: {
-      Profile: true
-      Tensor3DProducerList: ["reco"]
+      Tensor3DProducerList: ["pcluster_semantics_ghost"]
       MinVoxel3DCountList:  [1]
     }
-    RescaleChargeTensor3D: {
-      HitKeyProducerList:    ["reco_hit_key0","reco_hit_key1","reco_hit_key2"]
-      HitChargeProducerList: ["reco_hit_charge0","reco_hit_charge1","reco_hit_charge2"]
-      OutputProducer:        "reco_rescaled"
+
+    RescaleChargeTensor3DCryoW: {
+      HitKeyProducerList:    ["reco_cryoW_hit_key0","reco_cryoW_hit_key1","reco_cryoW_hit_key2"]
+      HitChargeProducerList: ["reco_cryoW_hit_charge0","reco_cryoW_hit_charge1","reco_cryoW_hit_charge2"]
+      OutputProducer:        "reco_cryoW_rescaled"
       ReferenceProducer:     "pcluster"
     }
-    ThresholdTensor3D: {
-      Profile: true
-      TargetProducer: "reco"
+
+    ThresholdTensor3D: { # fill with ghost value (5)
+      TargetProducer: "reco_cryoW"
       OutputProducer: "pcluster_semantics_ghost"
-      #MinThreshold: -1000
-      #MaxThreshold: 50000
       PaintValue: 5
     }
+
     CombineTensor3D: {
-      Profile: true
       Tensor3DProducers: ["pcluster_semantics_ghost","pcluster_semantics"]
       OutputProducer:    "pcluster_semantics_ghost"
       PoolType: 0
     }
+
     SuperaMCParticleCluster: {
-      Profile: true
       OutputLabel: "pcluster"
       LArMCParticleProducer: "largeant"
       LArMCShowerProducer: "mcreco"
       LArMCTrackProducer:  "mcreco"
       LArMCMiniPartProducer: "largeant"
-      #MaskedTrueTensor3D: "masked_true"
-      #MaskedTrue2RecoCluster3D: "masked_true2reco"
       DeltaSize: 10
-      #EnergyDepositThreshold: 0.5
       #LArSimEnergyDepositProducer: "largeant TPCActive"
       LArSimEnergyDepositLiteProducer: "sedlite"
-      #LArSimChProducer: ""
       Meta3DFromCluster3D: "mcst"
       Meta2DFromTensor2D:  ""
       Verbosity: 1
@@ -79,9 +75,8 @@ ProcessDriver: {
       SemanticPriority: [1,2,0,3,4] # 0-4 for shower track michel delta LE-scattering
 
       SuperaTrue2RecoVoxel3D: {
-        DebugMode: true
-        Profile: true
-        Verbosity: 0
+        DebugMode: false
+        Verbosity: 1
         Meta3DFromCluster3D: "pcluster"
         LArSimChProducer: "largeant"
         LArSpacePointProducers: ["cluster3DCryoW"]
@@ -97,32 +92,31 @@ ProcessDriver: {
 				VoxelDistanceThreshold: 3.
         UseOrigTrackID: true
       }
-
     }
+
     MultiPartVrtx: {
-      Profile: true
       Verbosity: 0
       LArMCTruthProducer: "generator"
       OutParticleLabel: "mpv"
       Origin: 0
     }
+
     MultiPartRain:   {
-      Profile: true
       Verbosity: 2
       LArMCTruthProducer: "cosmgen"
       OutParticleLabel: "mpr"
       Origin: 0
     }
+
     SuperaBBoxInteraction: {
       Verbosity: 2
-      Profile: true
       LArMCTruthProducer: "generator"
       #LArSimEnergyDepositProducer: "largeant TPCActive"
       LArSimEnergyDepositLiteProducer: "sedlite"
 			UseSEDLite: true
       Origin: 0
       Cluster3DLabels: ["mcst","pcluster","sed","masked_true2reco"]
-      Tensor3DLabels:  ["reco","pcluster_index","masked_true"]
+      Tensor3DLabels:  ["reco_cryoW","pcluster_index","masked_true"]
       #BBoxSize: [230.4,230.4,230.4]
       BBoxSize: [1843.2,1843.2,1843.2] # Covers the whole detector with the smallest possible cube -> yields 6144 = 1024*6 px
       #BBoxBottom: [-460.8,-230.4,-921.6]
@@ -136,9 +130,9 @@ ProcessDriver: {
       CryostatList: [0,0,0,0,1,1,1,1]
       TPCList: [0,1,2,3,0,1,2,3]
     }
+
     SuperaSimEnergyDeposit: {
       Verbosity: 1
-      Profile: true
       #LArSimEnergyDepositProducer: "largeant TPCActive"
       LArSimEnergyDepositLiteProducer: "sedlite"
       LArMCShowerProducer: "mcreco"
@@ -157,10 +151,6 @@ ProcessDriver: {
 
     ParticleCorrector: {
       Verbosity: 2
-      Profile: true
-      #Cluster3DProducer: "mcst_true"
-      #ParticleProducer: "mcst"
-      #Cluster3DProducer: "pcluster_reco"
       Cluster3DProducer: "pcluster_highE"
       ParticleProducer:  "pcluster"
       OutputProducer:    "corrected"
@@ -170,18 +160,16 @@ ProcessDriver: {
 
     Tensor3DFromCluster3D: {
       Verbosity: 2
-      Profile: true
-      Cluster3DProducerList: ["pcluster","sed"]#,"sed_dedx","sed_at"]
-      OutputProducerList:    ["pcluster","sed"]#,"sed_dedx","sed_at"]
-      PITypeList:  [1,1]#,1,1]
-      FixedPIList: [0.,0.]#,0.,0.]
+      Cluster3DProducerList: ["pcluster","sed"]
+      OutputProducerList:    ["pcluster","sed"]
+      PITypeList:  [1,1]
+      FixedPIList: [0.,0.]
     }
 
-    SuperaSpacePoint: {
-      Profile: true
+    SuperaSpacePointCryoW: {
       Verbosity: 2
       SpacePointProducers: ["cluster3DCryoW"]
-      OutputLabel:        "reco"
+      OutputLabel:        "reco_cryoW"
       DropOutput: ["hit_amp","hit_time","hit_rms","hit_mult"]
       StoreWireInfo: true
       RecoChargeRange: [-1000, 50000]

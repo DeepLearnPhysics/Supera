@@ -11,6 +11,7 @@
 #include "FilterNeutrinoActive.fcl"
 #include "FilterNeutrinoInteraction.fcl"
 #include "mcreco.fcl"
+#include "supera_modules.fcl"
 
 process_name: BNBNueCosmicSupera
 
@@ -53,7 +54,10 @@ physics:
  }
  analyzers:
  {
-	supera: @local::icarus_supera_MC_all_cryo
+	supera: {
+    @table::icarus_supera_generator
+    supera_params: "supera_old_simreco.fcl"
+  }
  }
 
  simulate: [ rns, generator, eventActive, largeant, mcreco, daq0, daq1, daq2, daq3,
