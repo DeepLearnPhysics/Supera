@@ -49,7 +49,7 @@ art_make_library(
 		${LARCV_LIB}
 )
 
-cet_build_plugin(LArSoftSuperaDriver art::module
+cet_build_plugin(LArSoftSuperaDriver art::module BASENAME_ONLY
             LIBRARIES
 		icarus_LArCVImageMaker
 		nurandom::RandomUtils_NuRandomService_service
@@ -82,7 +82,7 @@ cet_build_plugin(LArSoftSuperaDriver art::module
 		${LARCV_LIB}
 		)
 
-cet_build_plugin(RSEFilter art::module
+cet_build_plugin(RSEFilter art::module BASENAME_ONLY
             LIBRARIES
 		icarus_LArCVImageMaker
 		nurandom::RandomUtils_NuRandomService_service
