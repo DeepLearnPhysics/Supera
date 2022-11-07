@@ -1,3 +1,5 @@
+BEGIN_PROLOG
+
 # -----------------------------
 # Supera-specific definitions #
 # -----------------------------
@@ -150,3 +152,4 @@ icarus_supera_cosmgen_cryoE_PMT_CRT: {
   out_filename: "larcv.root"
 }
 
+END_PROLOG
