@@ -329,6 +329,7 @@ namespace larcv {
 
     auto store_v2 = [&](auto &my_vset, const std::string& name)
     {
+      if (_drop_output.count(name) == 1) return;
       larcv::VoxelSet vset;
       my_vset.move_to(vset);
       store(vset, name);
