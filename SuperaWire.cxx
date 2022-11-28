@@ -47,7 +47,7 @@ namespace larcv {
     auto geop = lar::providerFrom<geo::Geometry>();
     _scan.resize(geop->Ncryostats());
     for(size_t cryoid=0; cryoid<_scan.size(); ++cryoid) {
-      auto const& cryostat = geop->Cryostat(cryoid);
+      auto const& cryostat = geop->Cryostat(geo::CryostatID(cryoid));
       auto& scan_cryo = _scan[cryoid];
       scan_cryo.resize(cryostat.NTPC());
       for(size_t tpcid=0; tpcid<scan_cryo.size(); ++tpcid) {
@@ -59,7 +59,7 @@ namespace larcv {
 
     _valid_nplanes = 0;
     for(auto const& cryo_id : cryostat_v) {
-      auto const& cryostat = geop->Cryostat(cryo_id);
+      auto const& cryostat = geop->Cryostat(geo::CryostatID(cryo_id));
       if(_scan.size()<=cryo_id)
 	_scan.resize(cryo_id+1);
       for(auto const& tpc_id : tpc_v) {
@@ -232,14 +232,14 @@ namespace larcv {
 	  // get the meta
 	  auto& meta2d = meta2d_v.at(planes.at(plane_id));
 	  // look up yz boundary
-	  auto const& plane_geo = geop->Plane(plane_id,tpc_id,cryo_id);
+          auto const& plane_geo = geop->Plane({cryo_id, tpc_id, plane_id});
 	  geo::Point_t min_pt3d, max_pt3d;
 	  min_pt3d.SetXYZ(meta3d.bottom_left().x,meta3d.bottom_left().y,meta3d.bottom_left().z);
 	  max_pt3d.SetXYZ(meta3d.top_right().x,meta3d.top_right().y,meta3d.top_right().z);
 	  // Find the wire range
 	  auto wrange = this->wire_range(plane_geo,min_pt3d,max_pt3d);
 	  // Next look up x boundary
-	  auto const& tpc_geo = geop->TPC(tpc_id,cryo_id);
+          auto const& tpc_geo = geop->TPC({cryo_id, tpc_id});
 	  auto trange = this->time_range(tpc_geo,min_pt3d.X(),max_pt3d.X());
 	  // Now you have x (wire) and y (time) range to store. Record in meta2d
 	  meta2d = ImageMeta(wrange.first, trange.first, wrange.second+1, trange.second+1,

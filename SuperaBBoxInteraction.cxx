@@ -48,7 +48,7 @@ namespace larcv {
     for(size_t idx=0; idx<cryostat_v.size(); ++idx) {
       auto const& c = cryostat_v[idx];
       auto const& t = tpc_v[idx];
-      auto const& cryostat = geop->Cryostat(c);
+      auto const& cryostat = geop->Cryostat(geo::CryostatID(c));
       if(!cryostat.HasTPC(t)) {
 	LARCV_CRITICAL() << "Invalid TPCList: cryostat " << c
 			 << " does not contain tpc " << t << std::endl;
