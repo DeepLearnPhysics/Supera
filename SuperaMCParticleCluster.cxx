@@ -70,7 +70,7 @@ namespace larcv {
     for(size_t idx=0; idx<cryostat_v.size(); ++idx) {
       auto const& c = cryostat_v[idx];
       auto const& t = tpc_v[idx];
-      auto const& cryostat = geop->Cryostat(c);
+      auto const& cryostat = geop->Cryostat(geo::CryostatID(c));
       if(!cryostat.HasTPC(t)) {
         LARCV_CRITICAL() << "Invalid TPCList: cryostat " << c
                << " does not contain tpc " << t << std::endl;
@@ -91,7 +91,7 @@ namespace larcv {
     _scan.clear();
     _scan.resize(geop->Ncryostats());
     for(size_t c=0; c<_scan.size(); ++c) {
-      auto const& cryostat = geop->Cryostat(c);
+      auto const& cryostat = geop->Cryostat(geo::CryostatID(c));
       auto& scan_cryo = _scan[c];
       scan_cryo.resize(cryostat.NTPC());
       for(size_t tpcid=0; tpcid<scan_cryo.size(); ++tpcid) {
@@ -107,7 +107,7 @@ namespace larcv {
         auto const& c = cryostat_v[idx];
         auto const& t = tpc_v[idx];
         auto const& p = plane_v[idx];
-        auto const& cryostat = geop->Cryostat(c);
+        auto const& cryostat = geop->Cryostat(geo::CryostatID(c));
         if(!cryostat.HasTPC(t)) {
           LARCV_CRITICAL() << "Invalid TPCList: cryostat " << c
                << " does not contain tpc " << t << std::endl;
