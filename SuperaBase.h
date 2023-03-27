@@ -100,7 +100,6 @@ namespace larcv {
     std::vector<supera::LArOpFlash_t>*    _ptr_opflash_v;
     std::vector<supera::LArCRTHit_t>*     _ptr_crthit_v;
     std::string _csv_fname;
-    bool        _combined_mcmp;
 
     // FIXME(kvtsang) Temporary solution to access associations
     const art::Event *_event;

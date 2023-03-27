@@ -145,7 +145,6 @@ namespace larcv {
 
     // FIXME(kvtsang) Temporary solution to access associations
     _event          = nullptr;
-    _combined_mcmp   = false;
   }
 
   // FIXME(kvtsang) Temporary solution to access associations
@@ -212,18 +211,15 @@ namespace larcv {
   template <> void SuperaBase::LArData(const std::vector<supera::LArMCParticle_t>& data_v)
   {
     _ptr_mcp_v = (std::vector<supera::LArMCParticle_t>*)(&data_v);
-    if(_ptr_mcmp_v && !_combined_mcmp) {
-      for (auto const& mcmp : (*_ptr_mcmp_v)) _ptr_mcp_v->push_back(supera::LArMCParticle_t(mcmp));
-      _combined_mcmp = true;
-    }
   }
 
   template <> void SuperaBase::LArData(const std::vector<supera::LArMCMiniPart_t>& data_v)
   {
     _ptr_mcmp_v = (std::vector<supera::LArMCMiniPart_t>*)(&data_v);
-    if(_ptr_mcp_v && !_combined_mcmp) {
+    // This assumes that we only load LArMCMiniPart once.
+    // Note that these pointers are not reset at each event as of now.
+    if(_ptr_mcp_v) {
       for (auto const& mcmp : (*_ptr_mcmp_v)) _ptr_mcp_v->push_back(supera::LArMCParticle_t(mcmp));
-      _combined_mcmp = true;
     }
   }
 
