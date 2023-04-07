@@ -3,8 +3,8 @@ ProcessDriver: {
   Verbosity:    2
   EnableFilter: true
   RandomAccess: false
-  ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaSpacePoint","Tensor3DFromCluster3D","CombineTensor3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D","RescaleChargeTensor3D"]
-  ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePointCryoE","SuperaSpacePointCryoW","Tensor3DFromCluster3D","CombineTensor3DGhost","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3DCryoE","RescaleChargeTensor3DCryoW"]
+  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaSpacePoint","Tensor3DFromCluster3D","CombineTensor3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D","RescaleChargeTensor3D"]
+  ProcessName:  ["MultiPartVrtx","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePointCryoE","SuperaSpacePointCryoW","Tensor3DFromCluster3D","CombineTensor3DGhost","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3DCryoE","RescaleChargeTensor3DCryoW"]
 
   IOManager: {
     Verbosity:   2
@@ -99,15 +99,9 @@ ProcessDriver: {
 
     MultiPartVrtx: {
       Verbosity: 0
-      LArMCTruthProducer: "generator"
+      #LArMCTruthProducer: "generator"
+      MCTruthProducers: ["generator","cosmgen"]
       OutParticleLabel: "mpv"
-      Origin: 0
-    }
-
-    MultiPartRain:   {
-      Verbosity: 2
-      LArMCTruthProducer: "cosmgen"
-      OutParticleLabel: "mpr"
       Origin: 0
     }
 

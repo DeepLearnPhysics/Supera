@@ -47,6 +47,7 @@ namespace larcv {
 
     unsigned short _pass_origin;
     std::string _output_label;
+    std::vector<std::string> _producer_labels;
   };
 
   /**

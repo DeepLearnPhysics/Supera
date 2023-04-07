@@ -18,6 +18,16 @@ namespace larcv {
     SuperaBase::configure(cfg);
     _output_label = cfg.get<std::string>("OutParticleLabel");
     _pass_origin = cfg.get<unsigned short>("Origin");
+    _producer_labels = cfg.get<std::vector<std::string>>("MCTruthProducers", {});
+
+    // Backward compatibility
+    if (_producer_labels.empty()) {
+      auto prod = cfg.get<std::string>("LArMCTruthProducer");
+      _producer_labels.push_back(prod);
+    }
+
+    for (auto const& label : _producer_labels)
+        Request(supera::LArDataType_t::kLArMCTruth_t, label);
   }
 
   void SuperaMCTruth::initialize()
@@ -32,8 +42,21 @@ namespace larcv {
     auto& ev_part = mgr.get_data<larcv::EventParticle>(_output_label);
 		auto& ev_nu   = mgr.get_data<larcv::EventNeutrino>(_output_label);
 
-    auto const& mct_v = LArData<supera::LArMCTruth_t>();
-    for(size_t mct_index=0; mct_index<mct_v.size(); ++mct_index) {
+    auto const *ev = GetEvent();
+    size_t label_idx = 0;
+    for (auto const& label : _producer_labels) {
+      //std::cout << "looping for " << label << std::endl;
+      auto handle = ev->getHandle<std::vector<simb::MCTruth>>(label);
+
+      if (! handle.isValid()) {
+        std::cerr << "Failed to get MCTruth from " << label << std::endl;
+          //return false;
+          continue;
+      }
+      //auto const& mct_v = LArData<supera::LArMCTruth_t>();
+      auto mct_v = *handle;
+      for(size_t mct_index=0; mct_index<mct_v.size(); ++mct_index) {
+      std::cout << "mct_index is " << label << " " << label_idx << std::endl;
 
       auto const& mct = mct_v[mct_index];
 
@@ -45,7 +68,8 @@ namespace larcv {
 	auto const& mcnuint = mct.GetNeutrino();
 
 	larcv::Particle nu;
-	nu.mct_index(mct_index);
+	//nu.mct_index(mct_index); // this is always 0 ? when would there be several MCTruth for same generator?
+	nu.mct_index(label_idx); // for now store which generator this came from
 	nu.track_id(mcnu.TrackId());
 	nu.pdg_code(mcnu.PdgCode());
 	nu.momentum(mcnu.Momentum(0).X()*1.e3,
@@ -74,7 +98,8 @@ namespace larcv {
 	ev_part.emplace_back(std::move(nu));
 
 	larcv::Neutrino neutrino;
-	neutrino.mct_index(mct_index);
+  //neutrino.mct_index(mct_index);
+	neutrino.mct_index(label_idx);
 	neutrino.nu_track_id(mcnu.TrackId());
 	neutrino.lepton_track_id(mcnuint.Lepton().TrackId());
 	neutrino.current_type(mcnuint.CCNC());
@@ -113,7 +138,8 @@ namespace larcv {
 	auto const& mom = mcp.Momentum(0);
 
 	larcv::Particle p;
-	p.mct_index(mct_index);
+  //p.mct_index(mct_index);
+	p.mct_index(label_idx);
 	p.track_id(mcp.TrackId());
 	p.shape((mcp.PdgCode() == 11 || mcp.PdgCode() == 22 ? larcv::kShapeShower : larcv::kShapeTrack) );
 	p.pdg_code(mcp.PdgCode());
@@ -129,8 +155,10 @@ namespace larcv {
 	LARCV_INFO() << p.dump() << std::endl;
 
 	ev_part.emplace_back(std::move(p));
-      }
-    }
+      } // end of particle loop
+    } // end of mct loop
+    label_idx++;
+    } // end of producer loop
     return true;
   }
 
