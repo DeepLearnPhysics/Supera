@@ -84,7 +84,7 @@ ProcessDriver: {
         OutputCluster3D: "masked_true2reco"
         TwofoldMatching: true
         UseTruePosition: true
-        HitThresholdNe: 0
+        HitThresholdNe: 100
         HitWindowTicks: 10 #15
         HitPeakFinding: false
         PostAveraging: true
@@ -117,16 +117,10 @@ ProcessDriver: {
       Origin: 0
       Cluster3DLabels: ["mcst","pcluster","sed","masked_true2reco"]
       Tensor3DLabels:  ["reco_cryoW","pcluster_index","masked_true"]
-      #BBoxSize: [230.4,230.4,230.4]
-      BBoxSize: [518.4,518.4,518.4] # Covers the whole detector with the smallest possible cube -> yields 6144 = 1024*6 px
-      #BBoxBottom: [-460.8,-230.4,-921.6]
-      #BBoxSize: [1789.902,1789.902,1789.902]
-      #BBoxBottom: [-358.49,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml
-      #BBoxBottom: [-412.788,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml taking readout window into account
-			# 358.49+340*1.6/10 = 412.89
-      BBoxBottom: [-132.65,0,0] # geometry from sbnd.gdml taking readout window into account
-      UseFixedBBox: true
+      BBoxSize: [614.4, 614.4, 614.4] # 2048 pixels of 0.3 mm
+      BBoxBottom: [-307.2, -307.2, -57.4] # centered on the detector center with some padding
       VoxelSize: [0.3,0.3,0.3]
+      UseFixedBBox: true
       CryostatList: [0,0]
       TPCList: [0,1]
     }

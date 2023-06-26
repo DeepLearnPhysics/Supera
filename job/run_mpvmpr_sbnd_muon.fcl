@@ -121,9 +121,8 @@ physics:
  #end_paths:     [analyze]
  end_paths: [out_stream]
 }
-
 #
-# Multi-Particle Vertex generator (MPV)
+# Multi-Particle Vertex generator (MPV) - turn off for muon config
 #
 physics.producers.generator.DebugMode    : 1
 # Based on BNB spill = 1.6us
@@ -132,14 +131,13 @@ physics.producers.generator.G4TimeJitter : 1.6 # [us]
 physics.producers.generator.XRange       : [30,30]
 physics.producers.generator.YRange       : [30,30]
 physics.producers.generator.ZRange       : [30,30]
-#physics.producers.generator.TPCRange     : [[0,0],[0,1],[0,2],[0,3],[1,0],[1,1],[1,2],[1,3]]
 physics.producers.generator.TPCRange     : [[0,0],[0,1]]
 physics.producers.generator.MultiMax     : 6
 physics.producers.generator.MultiMin     : 2
 physics.producers.generator.ParticleParameter.PDGCode      : [[-13,13],     [111],  [211,-211],      [2212]]
-physics.producers.generator.ParticleParameter.MinMulti     : [              1,          0,          0,           0]
-physics.producers.generator.ParticleParameter.MaxMulti     : [              4,          0,          0,           0]
-physics.producers.generator.ParticleParameter.ProbWeight   : [              1,          0,          0,           0]
+physics.producers.generator.ParticleParameter.MinMulti     : [              0,          0,          0,           0]
+physics.producers.generator.ParticleParameter.MaxMulti     : [              0,          0,          0,           0]
+physics.producers.generator.ParticleParameter.ProbWeight   : [              0,          0,          0,           0]
 physics.producers.generator.ParticleParameter.KERange      : [     [0.05,0.4], [0.05,0.4], [0.05,0.4],  [0.05,0.4]]
 physics.producers.generator.ParticleParameter.MomRange     : []
 
@@ -161,15 +159,17 @@ physics.producers.rain.MultiMin     : 8
 physics.producers.rain.CosmicDistribution : false
 physics.producers.rain.ParticleParameter.PDGCode      : [   [-13,13],     [11,22],     [2212]]
 physics.producers.rain.ParticleParameter.MinMulti     : [          0,           0,          0]
-physics.producers.rain.ParticleParameter.MaxMulti     : [         15,           5,         15]
-physics.producers.rain.ParticleParameter.ProbWeight   : [          5,           0,          0]
-physics.producers.rain.ParticleParameter.KERange      : [ [0.05,0.4],   [0.05,0.1], [0.05,0.4]]
+physics.producers.rain.ParticleParameter.MaxMulti     : [         15,           0,          0]
+physics.producers.rain.ParticleParameter.ProbWeight   : [          1,           0,          0]
+physics.producers.rain.ParticleParameter.KERange      : [ [0.05,1],   [0.05,0.1], [0.05,0.4]]
 physics.producers.rain.ParticleParameter.MomRange     : []
 
 #
 # LARG4
 #
 physics.producers.largeant.KeepParticlesInVolumes: [ "volCryostat" ] # keep particles in union of all volumes with that name
+services.LArG4Parameters.KeepEMShowerDaughters: true #This doesn't do anything
+services.ParticleListAction.keepEMShowerDaughters: true #This does since we are using legacy/refactored g4
 
 #
 # MCRECO configuration - what MC information do we record?
@@ -189,7 +189,6 @@ physics.producers.mcreco.UseSimEnergyDeposit: false
 physics.producers.mcreco.SimChannelLabel: "sedlite"
 
 #Quic config
-services.LArG4Parameters.KeepEMShowerDaughters: true
 #physics.producers.mcreco.IncludeDroppedParticles: true
 #physics.producers.mcreco.MCParticleLiteLabel: "largeant"
 
@@ -239,7 +238,6 @@ physics.producers.cluster3DCryoW.Hit3DBuilderAlg.OutputHistograms: false
 # Services
 #
 services.LArG4Parameters.FillSimEnergyDeposits: true
-services.LArG4Parameters.KeepEMShowerDaughters: true
 #services.LArG4Parameters.NoElectronPropagation: true
 services.LArG4Parameters.NoPhotonPropagation: true
 services.LArG4Parameters.ParticleKineticEnergyCut: 0.0005
