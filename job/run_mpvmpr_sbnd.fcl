@@ -1,0 +1,295 @@
+#B. Carlson
+#bcarlson1@ufl.edu
+
+#Full chain reco
+#include "simulationservices_sbnd.fcl"
+#include "multipartvertex_sbnd.fcl"
+#include "larg4_sbnd.fcl"
+#include "ionandscint_sbnd.fcl"
+#include "PDFastSim_sbnd.fcl"
+#include "simdrift_sbnd.fcl"
+#include "mcreco_sbnd.fcl"
+#include "rootoutput_sbnd.fcl"
+#include "config_genericCRT.fcl"
+#include "g4inforeducer.fcl"
+
+#Cluster
+#include "cluster_sbnd.fcl"
+#include "services_sbnd.fcl"
+
+#Supera
+
+process_name: MPVMPRSupera
+
+services:
+{
+  @table::sbnd_g4_services
+	@table::sbnd_detsim_services
+	#@table::sbnd_gen_services
+	@table::sbnd_simulation_services
+
+	TFileService: { fileName: @local::sbnd_tfileoutput.fileName }
+  FileCatalogMetadata: @local::sbnd_file_catalog_mc
+	IFDH: {}
+}
+
+source:
+{
+	module_type: EmptyEvent
+	timestampPlugin: { plugin_type: "GeneratedEventTimestamp" }
+	maxEvents: 10
+	firstRun: 1
+	firstEvent: 1
+}
+
+#source:
+#{
+#  module_type: RootInput
+#}
+
+physics:
+{
+
+ producers:
+ {
+	rns: { module_type: RandomNumberSaver }
+  generator: @local::MultiPartVertex
+  rain:      @local::MultiPartRain
+	#largeant: @local::sbnd_largeant
+	largeant: @local::sbnd_larg4
+
+	# A dummy module that forces the G4 physics list to be loaded
+	loader: { module_type: "PhysListLoader" }
+
+	# Creation of ionization electrons and scintillation photons, inside the active volume
+	ionandscint: @local::sbnd_ionandscint
+
+	ionandscout: @local::sbnd_ionandscint
+
+	# Light propogation inside the active volume
+	pdfastsim: @local::sbnd_pdfastsim_par
+
+	pdfastsimout: @local::sbnd_pdfastsim_par
+
+	# Electron propogation
+	simdrift: @local::sbnd_simdrift
+
+
+	# Saving MC information
+  mcreco:   @local::sbnd_mcreco
+
+	#Generic CRT
+	genericcrt: @local::sbnd_genericCRT
+
+	#SEDLite
+	sedlite: @local::sbn_largeant_info_reducer
+ }
+ analyzers:
+ {
+	supera: {
+            module_type:     "LArSoftSuperaDriver"
+            supera_params:   "supera_sbnd_test.fcl"
+            out_filename:    "larcv.root"
+            unique_filename: false
+            stream:          "mc"
+            Verbosity: 2
+            StrictDataLoading: false
+            }
+ }
+
+ simulate: [ rns, generator, rain
+					,loader
+					,largeant 
+ 					,ionandscint
+					,ionandscout
+          , pdfastsim
+					,pdfastsimout
+          , simdrift
+					,sedlite
+					,mcreco
+					#,genericcrt
+					#, daq,
+						#MCDecodeTPCROI,
+					#	cluster3d
+					]
+ analyze: []
+ out_stream: [ out1   ]
+
+ trigger_paths: [simulate]
+ #end_paths:     [analyze,out_stream]
+ #end_paths:     [analyze]
+ end_paths: [out_stream]
+}
+#Set seeds
+#services.NuRandomService.policy: "perEvent"
+#physics.producers.generator.SEED         : 42
+#physics.producers.rain.SEED         : 42
+
+#
+# Multi-Particle Vertex generator (MPV)
+#
+
+physics.producers.generator.DebugMode    : 1
+# Based on BNB spill = 1.6us
+physics.producers.generator.G4Time       : 340.8 # [us]
+physics.producers.generator.G4TimeJitter : 1.6 # [us]
+physics.producers.generator.XRange       : [30,30]
+physics.producers.generator.YRange       : [30,30]
+physics.producers.generator.ZRange       : [30,30]
+physics.producers.generator.TPCRange     : [[0,0],[0,1]]
+physics.producers.generator.MultiMax     : 6
+physics.producers.generator.MultiMin     : 2
+physics.producers.generator.ParticleParameter.PDGCode      : [[-11,11,-13,13],     [111],  [211,-211],      [2212]]
+physics.producers.generator.ParticleParameter.MinMulti     : [              1,          0,          0,           0]
+physics.producers.generator.ParticleParameter.MaxMulti     : [              1,          2,          2,           4]
+physics.producers.generator.ParticleParameter.ProbWeight   : [              1,          1,          1,           3]
+physics.producers.generator.ParticleParameter.KERange      : [     [0.05,0.8], [0.05,0.4], [0.05,0.4],  [0.05,0.4]]
+physics.producers.generator.ParticleParameter.MomRange     : []
+
+#
+# Multi-Particle Rain generator (MPR)
+#
+
+physics.producers.rain.DebugMode    : 1
+# Based on TPC readout window starting at -340us and readout window size is 1638.4us
+physics.producers.rain.G4Time       : 819.2 # [us]
+physics.producers.rain.G4TimeJitter : 1638.4 # [us]
+physics.producers.rain.XRange       : [20,20]
+physics.producers.rain.YRange       : [20,20]
+physics.producers.rain.ZRange       : [20,20]
+physics.producers.rain.DirectInward : true
+physics.producers.rain.TPCRange     : [[0,0],[0,1]]
+physics.producers.rain.MultiMax     : 15
+physics.producers.rain.MultiMin     : 8
+physics.producers.rain.CosmicDistribution : false
+physics.producers.rain.ParticleParameter.PDGCode      : [   [-13,13],     [11,22],     [2212]]
+physics.producers.rain.ParticleParameter.MinMulti     : [          0,           0,          0]
+physics.producers.rain.ParticleParameter.MaxMulti     : [         15,           5,         15]
+physics.producers.rain.ParticleParameter.ProbWeight   : [          5,           1,          1]
+physics.producers.rain.ParticleParameter.KERange      : [ [0.05,1.0],   [0.05,0.1], [0.05,0.4]]
+physics.producers.rain.ParticleParameter.MomRange     : []
+
+#
+# LARG4
+#
+physics.producers.largeant.KeepParticlesInVolumes: [ "volCryostat" ] # keep particles in union of all volumes with that name
+services.LArG4Parameters.KeepEMShowerDaughters: true #This doesn't do anything
+services.ParticleListAction.keepEMShowerDaughters: true #This does since we are using legacy/refactored g4
+
+#
+# MCRECO configuration - what MC information do we record?
+#
+
+physics.producers.sedlite.SimEnergyDepositLabel: "largeant:LArG4DetectorServicevolTPCActive"
+
+#physics.producers.mcreco.SimEnergyDepositLabel: "largeant:LArG4DetectorServicevolTPCActive" # This parameter does not exist
+#physics.producers.mcreco.SimChannelLabel: "largeant"
+physics.producers.mcreco.SimChannelLabel: "sedlite"
+#physics.producers.mcreco.SimChannelLabel: "simdrift"
+physics.producers.mcreco.MCParticleLabel: "largeant"
+physics.producers.mcreco.UseSimEnergyDepositLite: true
+physics.producers.mcreco.UseSimEnergyDeposit: false
+
+physics.producers.mcreco.MCRecoPart.SavePathPDGList: [13,-13,211,-211,111,311,310,130,321,-321,2212,2112,2224,2214,2114,1114,3122,1000010020,1000010030,1000020030,1000020040]
+
+physics.producers.largeant.StoreDroppedMCParticles: true
+
+
+#Quic config
+#services.LArG4Parameters.KeepEMShowerDaughters: true
+#physics.producers.mcreco.IncludeDroppedParticles: true
+#physics.producers.mcreco.MCParticleLiteLabel: "largeant"
+
+#
+# DAQ
+#
+# we are suppressing channels with no signal in the TPC
+# Note: according to Tracy this should not be done anymore in recent icaruscode.
+# In practice: it will cause a segfault in roifinder (unclear what happens if limited channels in this module).
+#physics.producers.daq0.SuppressNoSignal: true
+#physics.producers.daq1.SuppressNoSignal: true
+#physics.producers.daq2.SuppressNoSignal: true
+#physics.producers.daq3.SuppressNoSignal: true
+
+#
+# DAQ continued - point each of the SimWire instances to a different TPC set
+#
+# physics.producers.daq0.OutputInstanceLabel: "PHYSCRATEDATATPCEE"
+# physics.producers.daq0.TPCVec:              [ [0, 0], [0, 1] ]
+# physics.producers.daq1.OutputInstanceLabel: "PHYSCRATEDATATPCEW"
+# physics.producers.daq1.TPCVec:              [ [0, 2], [0, 3] ]
+# physics.producers.daq2.OutputInstanceLabel: "PHYSCRATEDATATPCWE"
+# physics.producers.daq2.TPCVec:              [ [1, 0], [1, 1] ]
+# physics.producers.daq3.OutputInstanceLabel: "PHYSCRATEDATATPCWW"
+# physics.producers.daq3.TPCVec:              [ [1, 2], [1, 3] ]
+
+#
+# MCDecodeTPCROI > decon1droi > roifinder
+#
+
+#physics.producers.decon1droi.RawDigitLabelVec: ["MCDecodeTPCROI:PHYSCRATEDATATPCWW","MCDecodeTPCROI:PHYSCRATEDATATPCWE","MCDecodeTPCROI:PHYSCRATEDATATPCEW","MCDecodeTPCROI:PHYSCRATEDATATPCEE"]
+#physics.producers.MCDecodeTPCROI.FragmentsLabelVec: ["daq3:PHYSCRATEDATATPCWW","daq2:PHYSCRATEDATATPCWE","daq1:PHYSCRATEDATATPCEW","daq0:PHYSCRATEDATATPCEE"]
+#physics.producers.MCDecodeTPCROI.OutInstanceLabelVec: ["PHYSCRATEDATATPCWW","PHYSCRATEDATATPCWE","PHYSCRATEDATATPCEW","PHYSCRATEDATATPCEE"]
+#physics.producers.roifinder.WireModuleLabelVec: ["decon1droi:PHYSCRATEDATATPCWW","decon1droi:PHYSCRATEDATATPCWE","decon1droi:PHYSCRATEDATATPCEW","decon1droi:PHYSCRATEDATATPCEE"]
+#
+# Cluster3D
+#physics.producers.cluster3DCryoE.Hit3DBuilderAlg.SaveMythicalPoints: true
+physics.producers.cluster3DCryoW.Hit3DBuilderAlg.SaveMythicalPoints: true
+
+#physics.producers.cluster3DCryoE.Hit3DBuilderAlg.MinPHFor2HitPoints: 0.
+physics.producers.cluster3DCryoW.Hit3DBuilderAlg.MinPHFor2HitPoints: 0.
+
+#physics.producers.cluster3DCryoE.Hit3DBuilderAlg.OutputHistograms: false
+physics.producers.cluster3DCryoW.Hit3DBuilderAlg.OutputHistograms: false
+#
+#
+# Services
+#
+services.LArG4Parameters.FillSimEnergyDeposits: true
+#services.LArG4Parameters.NoElectronPropagation: true
+services.LArG4Parameters.NoPhotonPropagation: true
+services.LArG4Parameters.ParticleKineticEnergyCut: 0.0005
+services.LArPropertiesService.ScintYield: 0
+services.LArPropertiesService.ScintByParticleType: false
+
+
+
+outputs:
+{
+ out1:
+ {
+	 @table::sbnd_rootoutput
+	 dataTier: "reco"
+   module_type: RootOutput
+   fileName:    "larsoft.root"
+   dataTier:    "reco"
+   compressionLevel: 1
+	    outputCommands: [ "keep *_*_*_*"
+                    # Drop the SimEnergyDeposits made by LArG4
+                    , "drop sim::SimEnergyDeposits_largeant_*_*"
+                    # Drop the IonAndScint w/ SCE offsets applied
+                    , "drop *_ionandscint_*_*"
+                    # Drop LArG4 AuxDetHits, now replaced by AuxDetSimChannels
+                    , "drop sim::AuxDetHits_*_*_*"
+                    ]
+ }
+}
+
+services.TFileService.fileName: "ana.root"
+
+services.message.destinations :
+{
+  STDCOUT:
+  {
+     type:      "cout"      #tells the message service to output this destination to cout
+     threshold: "INFO"      #tells the message service that this destination applies to WARNING and higher level messages
+     categories:
+     {
+       default:
+       {
+         limit:       1000  #don't print anything at the infomsg level except the explicitly named categories
+         reportEvery: 1
+       }
+     }
+  }
+}
