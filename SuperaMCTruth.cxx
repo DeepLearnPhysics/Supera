@@ -151,6 +151,9 @@ namespace larcv {
 	p.parent_pdg_code(mcp.PdgCode());
 	p.ancestor_track_id(mcp.TrackId());
 	p.ancestor_pdg_code(mcp.PdgCode());
+	LARCV_DEBUG() << "*******------ track id " << mcp.TrackId() << std::endl;
+	LARCV_DEBUG() << "*******------ ancestor pdg " << mcp.PdgCode() << std::endl;
+	LARCV_DEBUG() << "*******------ ancestor id " << mcp.TrackId() << std::endl;
 
 	LARCV_INFO() << p.dump() << std::endl;
 

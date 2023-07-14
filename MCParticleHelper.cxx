@@ -36,6 +36,7 @@ namespace supera {
     xyz[0] = mct.Start().X();
     xyz[1] = mct.Start().Y();
     xyz[2] = mct.Start().Z();
+
     if (_apply_sce) ApplySCE(xyz);
     res.position(xyz[0], xyz[1], xyz[2], mct.Start().T());
 
@@ -54,6 +55,7 @@ namespace supera {
 	xyz[0] = first_step.X();
 	xyz[1] = first_step.Y();
 	xyz[2] = first_step.Z();
+  LARCV_DEBUG() <<"***--- TrackID" << mct.TrackID() << "*********------- first_step track"<<first_step.X()<<","<<first_step.Y()<<","<<first_step.Z()<<std::endl;
 	if (_apply_sce) ApplySCE(xyz);
 	res.first_step(xyz[0], xyz[1], xyz[2], first_step.T());
       }
@@ -159,6 +161,7 @@ namespace supera {
     xyz[0] = first_step.X();
     xyz[1] = first_step.Y();
     xyz[2] = first_step.Z();
+    LARCV_DEBUG() <<"***--- TrackID" << mcs.TrackID() << "*********------- first_step shower"<<first_step.X()<<","<<first_step.Y()<<","<<first_step.Z()<<std::endl;
     if (_apply_sce) ApplySCE(xyz);
     res.first_step(xyz[0], xyz[1], xyz[2], first_step.T());
 
