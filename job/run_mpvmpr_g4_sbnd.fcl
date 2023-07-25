@@ -1,12 +1,20 @@
 #B. Carlson
 #bcarlson1@ufl.edu
 
-#Generator and g4
+#Full chain reco
 #include "simulationservices_sbnd.fcl"
 #include "multipartvertex_sbnd.fcl"
-#include "standard_g4_sbnd.fcl"
-##include "g4inforeducer.fcl"
+#include "larg4_sbnd.fcl"
+#include "ionandscint_sbnd.fcl"
+#include "PDFastSim_sbnd.fcl"
+#include "simdrift_sbnd.fcl"
+#include "mcreco_sbnd.fcl"
+#include "rootoutput_sbnd.fcl"
+#include "config_genericCRT.fcl"
+#include "g4inforeducer.fcl"
 
+#Cluster
+#include "cluster_sbnd.fcl"
 #include "services_sbnd.fcl"
 
 #Supera
@@ -16,6 +24,8 @@ process_name: MPVMPRSupera
 services:
 {
   @table::sbnd_g4_services
+	@table::sbnd_detsim_services
+	#@table::sbnd_gen_services
 	@table::sbnd_simulation_services
 
 	TFileService: { fileName: @local::sbnd_tfileoutput.fileName }
@@ -32,6 +42,11 @@ source:
 	firstEvent: 1
 }
 
+#source:
+#{
+#  module_type: RootInput
+#}
+
 physics:
 {
 
@@ -40,32 +55,69 @@ physics:
 	rns: { module_type: RandomNumberSaver }
   generator: @local::MultiPartVertex
   rain:      @local::MultiPartRain
-	
+	#largeant: @local::sbnd_largeant
+	largeant: @local::sbnd_larg4
+
+	# A dummy module that forces the G4 physics list to be loaded
+	loader: { module_type: "PhysListLoader" }
+
+	# Creation of ionization electrons and scintillation photons, inside the active volume
+	ionandscint: @local::sbnd_ionandscint
+
+	ionandscout: @local::sbnd_ionandscint
+
+	# Light propogation inside the active volume
+	pdfastsim: @local::sbnd_pdfastsim_par
+
+	pdfastsimout: @local::sbnd_pdfastsim_par
+
+	# Electron propogation
+	simdrift: @local::sbnd_simdrift
+
+
+	# Saving MC information
+  mcreco:   @local::sbnd_mcreco
+
+	#Generic CRT
+	genericcrt: @local::sbnd_genericCRT
 
 	#SEDLite
 	sedlite: @local::sbn_largeant_info_reducer
  }
  analyzers:
  {
-
+	supera: {
+            module_type:     "LArSoftSuperaDriver"
+            supera_params:   "supera_sbnd_test.fcl"
+            out_filename:    "larcv.root"
+            unique_filename: false
+            stream:          "mc"
+            Verbosity: 2
+            StrictDataLoading: false
+            }
  }
 
  simulate: [ rns, generator, rain
-					, loader
-					, largeant
-					, ionandscint
-					, ionandscintout
-					, pdfastsim
-					, pdfastsimout
-					, simdrift
-					, mcreco
-					, sedlite
-					, genericcrt
+					,loader
+					,largeant 
+ 					,ionandscint
+					,ionandscout
+          , pdfastsim
+					,pdfastsimout
+          , simdrift
+					,sedlite
+					,mcreco
+					#,genericcrt
+					#, daq,
+						#MCDecodeTPCROI,
+					#	cluster3d
 					]
  analyze: []
  out_stream: [ out1   ]
 
  trigger_paths: [simulate]
+ #end_paths:     [analyze,out_stream]
+ #end_paths:     [analyze]
  end_paths: [out_stream]
 }
 #Set seeds
@@ -130,15 +182,18 @@ services.ParticleListAction.keepEMShowerDaughters: true #This does since we are 
 
 physics.producers.sedlite.SimEnergyDepositLabel: "largeant:LArG4DetectorServicevolTPCActive"
 
-physics.producers.mcreco.SimEnergyDepositLabel: "largeant:LArG4DetectorServicevolTPCActive"
-physics.producers.mcreco.SimChannelLabel: "largeant"
+#physics.producers.mcreco.SimEnergyDepositLabel: "largeant:LArG4DetectorServicevolTPCActive" # This parameter does not exist
+#physics.producers.mcreco.SimChannelLabel: "largeant"
+physics.producers.mcreco.SimChannelLabel: "sedlite"
+#physics.producers.mcreco.SimChannelLabel: "simdrift"
 physics.producers.mcreco.MCParticleLabel: "largeant"
+physics.producers.mcreco.UseSimEnergyDepositLite: true
+physics.producers.mcreco.UseSimEnergyDeposit: false
+
 physics.producers.mcreco.MCRecoPart.SavePathPDGList: [13,-13,211,-211,111,311,310,130,321,-321,2212,2112,2224,2214,2114,1114,3122,1000010020,1000010030,1000020030,1000020040]
 
 physics.producers.largeant.StoreDroppedMCParticles: true
-physics.producers.mcreco.UseSimEnergyDepositLite: true
-physics.producers.mcreco.UseSimEnergyDeposit: false
-physics.producers.mcreco.SimChannelLabel: "sedlite"
+
 
 #Quic config
 #services.LArG4Parameters.KeepEMShowerDaughters: true
