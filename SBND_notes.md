@@ -38,6 +38,10 @@ Create Particle Groups makes particles if the pdg is not a nucleus, particle fir
 
 SBND missing sed_lite time from `AnalyzeSimChannel` function. But it's not being set in there .. 
 
+Trying to figure out if `AnalyzeFirstLastStep` fills them
+
+
+
 
 
 
