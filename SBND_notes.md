@@ -22,5 +22,15 @@ Set TPC to [0,1] and Cryo to [0,0] when relevant (see fcls)
 
 Sedlite and sed set to true in fcl
 
+## SuperaMCParticleCluster
+
+Module sets ancestor and parent info for particles
+
+Currently sets track ancestor info to dumby values (default values)
+
+Sets photon start point to dumby (default) values
+
+Orig track ID is -999 for all particles
+
 
 
