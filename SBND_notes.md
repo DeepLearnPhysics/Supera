@@ -32,5 +32,13 @@ Sets photon start point to dumby (default) values
 
 Orig track ID is -999 for all particles
 
+After creating particle groups, all of the first_pt values are set to dumby values
+
+Create Particle Groups makes particles if the pdg is not a nucleus, particle first step is set but not particle group in create particles function
+
+SBND missing sed_lite time
+
+
+
 
 
