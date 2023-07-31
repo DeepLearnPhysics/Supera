@@ -41,7 +41,7 @@ Trying to figure out if `AnalyzeFirstLastStep` fills them for ICARUS
 
 SBND missing origTrackID - set to -999 for all parts
 
-`sed.TrackID()` is always 1 for SBND
+`sed.TrackID()` is always 0 for SBND - perhaps not filled correctly at G4 stage
 
 
 
