@@ -24,7 +24,6 @@ Sedlite and sed set to true in fcl
 
 ## SuperaMCParticleCluster
 
-Module sets ancestor and parent info for particles
 
 Currently sets track ancestor info to dumby values (default values)
 
@@ -38,7 +37,9 @@ Create Particle Groups makes particles if the pdg is not a nucleus, particle fir
 
 SBND missing sed_lite time from `AnalyzeSimChannel` function. But it's not being set in there .. 
 
-Trying to figure out if `AnalyzeFirstLastStep` fills them
+Trying to figure out if `AnalyzeFirstLastStep` fills them for ICARUS
+
+SBND missing origTrackID - set to -999 for all parts
 
 
 
