@@ -47,6 +47,8 @@ SBND missing origTrackID - set to -999 for all parts
 
 Francois mentioned they use a different module for the `G4inforeducer` and there's an additional module in there. perhpas I'll try that if setting to the normal track ID doesn't work.
 
+**Changing `G4inforreducer` to use trackID instead of origTrackID worked for fixing SBND's track and ancestor issue!**
+
 
 
 
