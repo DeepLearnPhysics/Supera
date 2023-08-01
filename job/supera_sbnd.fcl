@@ -56,26 +56,25 @@ ProcessDriver: {
       LArMCParticleProducer: "largeant"
       LArMCShowerProducer: "mcreco"
       LArMCTrackProducer:  "mcreco"
-      #LArMCMiniPartProducer: "largeant"
       DeltaSize: 10
-      #LArSimEnergyDepositProducer: "largeant TPCActive"
+      LArSimEnergyDepositProducer: "ionandscintout"
       LArSimEnergyDepositLiteProducer: "sedlite"
       Meta3DFromCluster3D: "mcst"
       Meta2DFromTensor2D:  ""
-      Verbosity: 0
+      Verbosity: 2
       UseSimEnergyDeposit: false
       UseSimEnergyDepositLite: true
       UseSimEnergyDepositPoints: true
-      #UseOrigTrackID: false
+      UseOrigTrackID: false
       CryostatList: [0,0]
       TPCList: [0,1]
       PlaneList: []
-      #SemanticPriority: [2,1,0,3,4] # 0-4 for shower track michel delta LE-scattering
       SemanticPriority: [1,2,0,3,4] # 0-4 for shower track michel delta LE-scattering
       SuperaTrue2RecoVoxel3D: {
+        UseOrigTrackID: false
         DebugMode: true
         Profile: true
-        Verbosity: 0
+        Verbosity: 2
         Meta3DFromCluster3D: "pcluster"
         LArSimChProducer: "simdrift"
         LArSpacePointProducers: ["cluster3d"]

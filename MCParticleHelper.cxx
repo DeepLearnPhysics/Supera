@@ -164,6 +164,7 @@ namespace supera {
     LARCV_DEBUG() <<"***--- TrackID" << mcs.TrackID() << "*********------- first_step shower"<<first_step.X()<<","<<first_step.Y()<<","<<first_step.Z()<<std::endl;
     if (_apply_sce) ApplySCE(xyz);
     res.first_step(xyz[0], xyz[1], xyz[2], first_step.T());
+    
 
     res.momentum(mcs.Start().Px(), mcs.Start().Py(), mcs.Start().Pz());
     res.pdg_code(mcs.PdgCode());
@@ -176,6 +177,9 @@ namespace supera {
     xyz[2] = mcs.MotherStart().Z();
     if (_apply_sce) ApplySCE(xyz);
     res.parent_position(xyz[0], xyz[1], xyz[2], mcs.MotherStart().T());
+
+    //std::cout<<"**-- MCPartHelper start x,y,z ancestor x,y,z : " << res.x() << " , " << res.y() << " , " << res.z() << " , " << res.ancestor_x() << " , " << res.ancestor_y() << " , " << res.ancestor_z() << std::endl;
+
     /*
     res.parent_momentum(mcs.MotherStart().Px(),
                         mcs.MotherStart().Py(),

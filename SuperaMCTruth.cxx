@@ -56,7 +56,7 @@ namespace larcv {
       //auto const& mct_v = LArData<supera::LArMCTruth_t>();
       auto mct_v = *handle;
       for(size_t mct_index=0; mct_index<mct_v.size(); ++mct_index) {
-      std::cout << "mct_index is " << label << " " << label_idx << std::endl;
+      //std::cout << "mct_index is " << label << " " << label_idx << std::endl;
 
       auto const& mct = mct_v[mct_index];
 
