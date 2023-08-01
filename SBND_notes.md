@@ -43,6 +43,12 @@ SBND missing origTrackID - set to -999 for all parts
 
 `sed.TrackID()` is always 0 for SBND - perhaps not filled correctly at G4 stage
 
+`.../sbncode/LArG4` contains the `G4inforeducer` which returns 0 for all orig track IDs but is nonzero for the normal track ids.
+
+Francois mentioned they use a different module for the `G4inforeducer` and there's an additional module in there. perhpas I'll try that if setting to the normal track ID doesn't work.
+
+
+
 
 
 
