@@ -22,6 +22,8 @@ Set TPC to [0,1] and Cryo to [0,0] when relevant (see fcls)
 
 Sedlite and sed set to true in fcl
 
+**Changing `G4inforreducer` to use trackID instead of origTrackID worked for fixing SBND's track and ancestor issue!**
+
 ## SuperaMCParticleCluster
 
 
@@ -46,8 +48,6 @@ SBND missing origTrackID - set to -999 for all parts
 `.../sbncode/LArG4` contains the `G4inforeducer` which returns 0 for all orig track IDs but is nonzero for the normal track ids.
 
 Francois mentioned they use a different module for the `G4inforeducer` and there's an additional module in there. perhpas I'll try that if setting to the normal track ID doesn't work.
-
-**Changing `G4inforreducer` to use trackID instead of origTrackID worked for fixing SBND's track and ancestor issue!**
 
 
 
