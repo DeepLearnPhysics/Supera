@@ -263,8 +263,7 @@ namespace larcv {
       auto const& idx = _scan.at(wid.Cryostat).at(wid.TPC).at(wid.Plane);
       if(idx < 0) continue;
       if(idx >= (int)(meta2d_v.size())) {
-	std::cout<<std::endl;
-	std::cout<<idx << "Unexpected: " << meta2d_v.size() << " " << vs_v.size() << std::endl;
+	LARCV_WARNING()<<idx << "Unexpected: " << meta2d_v.size() << " " << vs_v.size() << std::endl;
 	throw larbys();
       }
       auto const& meta2d = meta2d_v.at(idx);
@@ -297,8 +296,7 @@ namespace larcv {
 	  auto const& idx = planes.at(plane_id);
 	  if(idx < 0) continue;
 	  if(idx >= (int)(meta2d_v.size())) {
-	    std::cout<<std::endl;
-	    std::cout<<idx << "Unexpected: " << meta2d_v.size() << " " << vs_v.size() << std::endl;
+	    LARCV_WARNING()<<idx << "Unexpected: " << meta2d_v.size() << " " << vs_v.size() << std::endl;
 	    throw larbys();
 	  }
 	  std::string output_name = _output_producer;

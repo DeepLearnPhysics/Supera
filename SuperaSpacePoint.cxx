@@ -203,8 +203,8 @@ namespace larcv {
           VoxelID_t vox_id = meta.id(xyz[0] + _shift_x, xyz[1], xyz[2]);
           if(vox_id == larcv::kINVALID_VOXELID) {
               //if (n_dropped < _max_debug_dropping)
-              //    LARCV_DEBUG() << "Dropping space point ("
-                  std::cout << "Dropping space point ("
+                  LARCV_DEBUG() << "Dropping space point ("
+                  // std::cout << "Dropping space point ("
                       << xyz[0] << ","
                       << xyz[1] << ","
                       << xyz[2] << ")"
@@ -242,8 +242,8 @@ namespace larcv {
 
           if (_store_wire_info) {
             if (hits.size() > _n_planes) {
-                //LARCV_WARNING()
-                std::cout
+                LARCV_WARNING()
+                //std::cout
                     << "Dropping space point - "
                     << "Wrong number of hits: "
                     << hits.size()

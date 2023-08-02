@@ -1148,7 +1148,7 @@ namespace larcv {
 
     // Build MCParticle List
     auto const& larmcp_v = LArData<supera::LArMCParticle_t>();
-    std::cout << "larmcp_v size = " << larmcp_v.size() << std::endl;
+    LARCV_DEBUG() << "larmcp_v size = " << larmcp_v.size() << std::endl;
     for (auto const& mcp : larmcp_v){
       LARCV_DEBUG() << "*****----- particle : "
       " track " << mcp.TrackId() << " , " <<
@@ -1254,7 +1254,7 @@ namespace larcv {
       grp.part.energy_deposit((grp.vs.size() ? grp.vs.sum() : 0.));
       size_t output_counter = output2trackid.size();
       if(mcs_trackid_s.find(trackid) != mcs_trackid_s.end()){
-        std::cout << "adding " << trackid << std::endl;
+        LARCV_DEBUG() << "adding " << trackid << std::endl;
         grp.valid=true;
         grp.part.group_id(output_counter);
       }
@@ -1275,7 +1275,7 @@ namespace larcv {
         trackid2output[child] = output_counter;
       output2trackid.push_back(grp.part.track_id());
       ++output_counter;
-      std::cout << "Added to output2trackid " << grp.part.track_id() << std::endl;
+      LARCV_DEBUG() << "Added to output2trackid " << grp.part.track_id() << std::endl;
     }
 
 
@@ -1360,7 +1360,7 @@ namespace larcv {
       std::endl;
         if(grp.first_pt.t == larcv::kINVALID_DOUBLE)
           grp.part.first_step(mcs.DetProfile().X(),mcs.DetProfile().Y(),mcs.DetProfile().Z(),mcs.DetProfile().T());
-        std::cout<<mcs.DetProfile().T()<<std::endl;
+        LARCV_DEBUG()<<mcs.DetProfile().T()<<std::endl;
         grp.part.parent_position(mcs.MotherStart().X(),
                mcs.MotherStart().Y(),
                mcs.MotherStart().Z(),
@@ -2072,7 +2072,7 @@ namespace larcv {
              << semantic << " pixel count " << grp.vs.size()
              << " (not kShapeLEScatter) at line " << __LINE__
              << std::endl;
-        std::cout<<grp.part.dump()<<std::endl;
+        LARCV_DEBUG()<<grp.part.dump()<<std::endl;
         throw std::exception();
       }
       int trackid = grp.part.parent_track_id();

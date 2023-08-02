@@ -69,7 +69,7 @@ namespace larcv {
       if( abs(p.PdgCode()) != 11) continue;
       if( p.Process() != "muIoni" ) continue;
       if( track_ids[p.Mother()] != 13 ) continue;
-      std::cout<<"LOGME "<<p.E()*1000.<<std::endl;
+      LARCV_DEBUG() <<"LOGME "<<p.E()*1000.<<std::endl;
     }
     
     return true;
