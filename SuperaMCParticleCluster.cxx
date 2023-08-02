@@ -48,7 +48,7 @@ namespace larcv {
     // If we want to use SED, we have the option
     // to use SEDLite.
     _use_sed = cfg.get<bool>("UseSimEnergyDeposit", true);
-    _use_sed_lite = cfg.get<bool>("UseSimEnergyDepositLite", true);
+    _use_sed_lite = cfg.get<bool>("UseSimEnergyDepositLite", false);
 
     _use_sed_points = cfg.get<bool>("UseSimEnergyDepositPoints");
     _store_dedx = cfg.get<bool>("StoreDEDX",false);
@@ -56,7 +56,7 @@ namespace larcv {
     _check_particle_validity = cfg.get<bool>("CheckParticleValidity",true);
     _merge_shower_delta = cfg.get<bool>("MergeShowerDelta", true);
 
-    _useOrigTrackID = cfg.get<bool>("UseOrigTrackID", true);
+    _useOrigTrackID = cfg.get<bool>("UseOrigTrackID", false);
 
     auto cryostat_v   = cfg.get<std::vector<unsigned short> >("CryostatList");
     auto tpc_v        = cfg.get<std::vector<unsigned short> >("TPCList"     );
@@ -267,7 +267,7 @@ namespace larcv {
       auto const& sedep = sedep_v.at(sedep_idx);
 
       VoxelID_t vox_id = meta.id(sedep.X(), sedep.Y(), sedep.Z());
-      int track_id = abs(sedep.TrackID()); // do we need the option to use origTrackID??
+      int track_id = abs(sedep.TrackID());
       if(vox_id == larcv::kINVALID_VOXELID || !_world_bounds.contains(sedep.X(),sedep.Y(),sedep.Z())) {
         LARCV_DEBUG() << "Skipping sedep from track id " << track_id
                 << " E=" << sedep.Energy()
@@ -1312,7 +1312,7 @@ namespace larcv {
     
     // Assign output IDs
     // For particles in MCShower/MCTrack collection, make sure to keep them
-    std::set<unsigned int> mcs_trackid_s; //Why don't we do this for tracks???
+    std::set<unsigned int> mcs_trackid_s;
     auto const& mcs_v = LArData<supera::LArMCShower_t>();
     for(auto const& mcs : mcs_v) {mcs_trackid_s.insert(mcs.TrackID());}
     for(auto const& mcs : mcs_v) {LARCV_DEBUG() << "MCShower " << mcs.TrackID() << std::endl;}
@@ -1392,7 +1392,7 @@ namespace larcv {
     // loop over MCShower to assign parent/ancestor information
     LARCV_INFO() << "Processing MCShower array: " << mcs_v.size() << std::endl;
     for(auto const& mcs : mcs_v) {
-      int track_id = mcs.TrackID();        
+      int track_id = mcs.TrackID();
       if(track_id >= ((int)(trackid2output.size()))) {
         LARCV_INFO() << "MCShower " << track_id << " PDG " << mcs.PdgCode()
                << " not found in output group..." << std::endl;
@@ -1416,7 +1416,7 @@ namespace larcv {
       // std::endl;
       //int group_id  = -1;
       int group_id  = output_id;
-      if(output_id >= 0) { // >= 0
+      if(output_id >= 0) {
         auto& grp = part_grp_v[track_id];
         assert(grp.part.group_id() == larcv::kINVALID_INSTANCEID);
         grp.part.group_id(group_id);
