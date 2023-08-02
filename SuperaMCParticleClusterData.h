@@ -87,17 +87,6 @@ namespace supera {
     { valid=false; add_to_parent=false; type=kInvalidProcess; last_pt.t = -1.e9; vs2d_v.resize(num_planes); }//start.pts.resize(10); }
     void AddEDep(const EDep& pt)
     { 
-      // std::cout << "In Particle cluster add E Dep : "
-      // << pt.x << " , "
-      // << pt.y << " , "
-      // << pt.z << " , "
-      // << pt.t << " , " 
-      // << first_pt.t << " , "
-      // << last_pt.t << " , "
-      // << std::endl;
-      /*
-      SBND last_pt.t being set to invalid double
-      */
       if(pt.x == larcv::kINVALID_DOUBLE) return; 
       //start.AddEDep(pt); 
       if(pt.t < first_pt.t) first_pt = pt; 
@@ -132,15 +121,6 @@ namespace supera {
       for(auto const& pt : child.start.pts)
 	this->AddEDep(pt);
       */
-      // std::cout<<"child.first_pt x,y,z,t last_pt x,y,z,t : "
-      // << child.first_pt.x << ", "
-      // << child.first_pt.y << ", "
-      // << child.first_pt.z << ", "
-      // << child.first_pt.t << ", "
-      // << child.last_pt.x << ", "
-      // << child.last_pt.y << ", "
-      // << child.last_pt.z << ", "
-      // << child.last_pt.t << ", "<<std::endl;
       this->AddEDep(child.last_pt);
       this->AddEDep(child.first_pt);
       this->trackid_v.push_back(child.part.track_id());
