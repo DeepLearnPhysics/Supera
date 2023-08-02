@@ -57,7 +57,7 @@ ProcessDriver: {
       LArMCShowerProducer: "mcreco"
       LArMCTrackProducer:  "mcreco"
       DeltaSize: 10
-      LArSimEnergyDepositProducer: "ionandscintout"
+      #LArSimEnergyDepositProducer: "ionandscintout"
       LArSimEnergyDepositLiteProducer: "sedlite"
       Meta3DFromCluster3D: "mcst"
       Meta2DFromTensor2D:  ""
