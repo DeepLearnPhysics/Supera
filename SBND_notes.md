@@ -22,6 +22,8 @@ Set TPC to [0,1] and Cryo to [0,0] when relevant (see fcls)
 
 Sedlite and sed set to true in fcl
 
+**Changing `G4inforreducer` to use trackID instead of origTrackID worked for fixing SBND's track and ancestor issue!**
+
 ## SuperaMCParticleCluster
 
 
