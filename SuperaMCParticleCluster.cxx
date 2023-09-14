@@ -164,7 +164,7 @@ namespace larcv {
     return _scan[cryo_id][tpc_id][plane_id];
   }
 
-  std::map<int, supera::ParticleGroup> 
+  std::map<int, supera::ParticleGroup>
   SuperaMCParticleCluster::CreateParticleGroups()
   {
     LARCV_DEBUG() << "****---- CreateParticleGroups" << std::endl;
@@ -233,7 +233,7 @@ namespace larcv {
       LARCV_DEBUG() << "***--- first_step in for loop " << grp.part.first_step().x() <<
       "Track ID " << grp.part.track_id() << " PDG " << grp.part.pdg_code() << " " << grp.part.creation_process()
          <<" ... parent Track ID " << grp.part.parent_track_id() << " PDG " << grp.part.parent_pdg_code() << std::endl;
-      
+
     }
 
     // fill parentage information
@@ -1268,7 +1268,7 @@ namespace larcv {
       }
       else{ // Fix this by setting UseOrigTrackID: false in superaMCParticleCluster fcl
         //LARCV_DEBUG() << "***--- Laura debug " << grp.part.track_id() << " " << grp.valid << " " << grp.size_all() << " " << grp.shape() << " " << larcv::kShapeLEScatter << trackid << std::endl;
-        
+
         if(!grp.valid) continue;
         if(grp.size_all()<1) continue;
         if(grp.shape() == larcv::kShapeLEScatter) continue;
@@ -1354,7 +1354,7 @@ namespace larcv {
         }
         */
         // see if first step is not set yet
-        LARCV_DEBUG() << "*****----- shower ancestor before output id: "<< output_id << " -- " << "track id " << track_id << 
+        LARCV_DEBUG() << "*****----- shower ancestor before output id: "<< output_id << " -- " << "track id " << track_id <<
       " mother information " << mcs.MotherStart().X() <<" , "<<
                mcs.MotherStart().Y() << " , " <<
                mcs.MotherStart().Z() << " , " <<
@@ -1426,7 +1426,7 @@ namespace larcv {
 
       //int group_id  = -1;
       int group_id  = output_id;
-      LARCV_DEBUG() << "*****----- track ancestor before output id: "<< output_id << " -- " << "track id " << track_id << 
+      LARCV_DEBUG() << "*****----- track ancestor before output id: "<< output_id << " -- " << "track id " << track_id <<
       " mother information " << mct.MotherStart().X() <<" , "<<
                mct.MotherStart().Y() << " , " <<
                mct.MotherStart().Z() << " , " <<
