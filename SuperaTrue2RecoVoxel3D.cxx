@@ -278,7 +278,7 @@ namespace larcv {
       auto ch = sch.Channel();
 
       // Loop over hits and store
-      for (auto const tick_ides : sch.TDCIDEMap()) {
+      for (auto const& tick_ides : sch.TDCIDEMap()) {
         double x_pos = (supera::TPCTDC2Tick(tick_ides.first) * supera::TPCTickPeriod() - supera::TriggerOffsetTPC()) * supera::DriftVelocity();
         TrueHit_t hit;
         hit.time = supera::TPCTDC2Tick(tick_ides.first);

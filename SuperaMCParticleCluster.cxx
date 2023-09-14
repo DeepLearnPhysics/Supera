@@ -445,7 +445,7 @@ namespace larcv {
 
       if(!analyze2d && !analyze3d) continue;
 
-      for (auto const tick_ides : sch.TDCIDEMap()) {
+      for (auto const& tick_ides : sch.TDCIDEMap()) {
 
         //x_pos = (supera::TPCTDC2Tick(tick_ides.first) + time_offset) * supera::TPCTickPeriod()  * supera::DriftVelocity();
         double x_pos = supera::TPCTDC2Tick(tick_ides.first) * supera::TPCTickPeriod()  * supera::DriftVelocity();

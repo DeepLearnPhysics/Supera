@@ -129,7 +129,7 @@ namespace larcv {
      */
     auto const *ev = GetEvent();
 
-    size_t n_pts = 0;
+    size_t n_pts [[maybe_unused]] = 0;
     std::map<std::string, size_t> offsets;
     for (auto const& label : _producer_labels) {
       auto handle = ev->getValidHandle<std::vector<recob::SpacePoint>>(label);
