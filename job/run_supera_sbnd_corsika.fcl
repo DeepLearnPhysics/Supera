@@ -3,7 +3,6 @@
 
 #include "cluster_sbnd.fcl"
 #include "services_sbnd.fcl"
-##include "reco_sbnd.fcl"
 #include "simulationservices_sbnd.fcl"
 
 
@@ -31,11 +30,11 @@ physics:
  analyzers:
  { supera: {
             module_type:     "LArSoftSuperaDriver"
-            supera_params:   "supera_sbnd.fcl"
+            supera_params:   "supera_sbnd_corsika.fcl"
             out_filename:    "larcv.root"
             unique_filename: false
             stream:          "mc"
-            Verbosity: 2
+            Verbosity: 0
             StrictDataLoading: false
             }
  }
