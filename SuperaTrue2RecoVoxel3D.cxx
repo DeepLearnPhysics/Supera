@@ -197,14 +197,14 @@ namespace larcv {
 
     // dump channel map
     if (_dump_to_csv) {
-      art::ServiceHandle<geo::Geometry const> geom;
+      auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
 
       std::ofstream out("channel_map.csv");
       out << "ch,cryo,tpc,plane,wire\n";
 
-      for (size_t ch = 0; ch < geom->Nchannels(); ++ch) {
+      for (size_t ch = 0; ch < wireReadout.Nchannels(); ++ch) {
 
-        auto const& ids = geom->ChannelToWire(ch);
+        auto const& ids = wireReadout.ChannelToWire(ch);
         for (auto const& id : ids) {
           out << ch << ','
             << id.Cryostat << ','
@@ -264,12 +264,12 @@ namespace larcv {
     //
     LARCV_INFO() << "Looping over SimChannel" << std::endl;
     // Get geometry info handler
-    auto geop = lar::providerFrom<geo::Geometry>();
+    auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
 
     // Create a hit list container
     // true_hit_vv[ch][i_hit]
     std::vector<std::vector<TrueHit_t> > true_hit_vv;
-    true_hit_vv.resize(geop->Nchannels());
+    true_hit_vv.resize(wireReadout.Nchannels());
 
     // Fill a hit list container
                 //meta3d.update(meta3d.num_voxel_x()/_voxel_size_factor, meta3d.num_voxel_y()/_voxel_size_factor, meta3d.num_voxel_z()/_voxel_size_factor);

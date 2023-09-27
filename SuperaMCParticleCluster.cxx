@@ -90,14 +90,13 @@ namespace larcv {
 
     _scan.clear();
     _scan.resize(geop->Ncryostats());
-    for(size_t c=0; c<_scan.size(); ++c) {
-      auto const& cryostat = geop->Cryostat(geo::CryostatID(c));
-      auto& scan_cryo = _scan[c];
+    auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
+    for(geo::CryostatGeo const& cryostat : geop->Iterate<geo::CryostatGeo>()) {
+      auto& scan_cryo = _scan[cryostat.ID().Cryostat];
       scan_cryo.resize(cryostat.NTPC());
-      for(size_t tpcid=0; tpcid<scan_cryo.size(); ++tpcid) {
-        auto const& tpc = cryostat.TPC(tpcid);
-        auto& scan_tpc = scan_cryo[tpcid];
-        scan_tpc.resize(tpc.Nplanes(),-1);
+      for(geo::TPCID const& tpcid : geop->Iterate<geo::TPCID>(cryostat.ID())) {
+        auto& scan_tpc = scan_cryo[tpcid.TPC];
+        scan_tpc.resize(wireReadout.Nplanes(tpcid),-1);
       }
     }
     //for(size_t cryo_id=0; cryo_id<_scan.size(); ++cryo_id){
@@ -114,7 +113,7 @@ namespace larcv {
           throw larbys();
         }
         auto const& tpc = cryostat.TPC(t);
-        if(!tpc.HasPlane(p)) {
+        if(!wireReadout.HasPlane({tpc.ID(), p})) {
           LARCV_CRITICAL() << "Invalid TPCList: cryostat " << c << " TPC " << t
                << " does not contain plane " << p << std::endl;
           throw larbys();
@@ -403,7 +402,7 @@ namespace larcv {
   {
     //std::set<size_t> ctr_a, ctr_b;
 
-    auto geop = lar::providerFrom<geo::Geometry>();
+    auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
     auto const& sch_v = LArData<supera::LArSimCh_t>();
     LARCV_INFO() << "Processing SimChannel array: " << sch_v.size() << std::endl;
 
@@ -440,7 +439,7 @@ namespace larcv {
       // Check if should use this channel (3d)
       analyze3d = (_projection_id < 0 || _projection_id == (int)(::supera::ChannelToProjectionID(ch)));
       // Check if should use this channel (2d)
-      auto wid_v = geop->ChannelToWire(ch);
+      auto wid_v = wireReadout.ChannelToWire(ch);
       assert(wid_v.size() == 1);
       auto const& wid = wid_v[0];
       auto vs2d_idx = this->plane_index(wid.Cryostat,wid.TPC,wid.Plane);

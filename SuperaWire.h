@@ -44,7 +44,7 @@ namespace larcv {
     void finalize();
   private:
     int plane_index(unsigned int cryo_id, unsigned int tpc_id, unsigned int plane_id) ;
-    std::pair<size_t,size_t> time_range(const geo::TPCGeo& tpc_geo,
+    std::pair<size_t,size_t> time_range(const geo::TPCID& tpc_id,
 					const double x_min,
 					const double x_max);
     std::pair<size_t,size_t> wire_range(const geo::PlaneGeo& plane_geo, 
@@ -79,4 +79,3 @@ namespace larcv {
 //#endif
 //#endif
 /** @} */ // end of doxygen group 
-
