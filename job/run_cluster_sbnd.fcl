@@ -1,7 +1,7 @@
 #B. Carlson
 #bcarlson1@ufl.edu
 
-#include "cluster_sbnd.fcl"
+#include "cluster_sbn.fcl"
 #include "services_sbnd.fcl"
 ##include "reco_sbnd.fcl"
 #include "simulationservices_sbnd.fcl"
