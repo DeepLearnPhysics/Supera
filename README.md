@@ -1,6 +1,16 @@
 # Supera
 Supera is designed to slice up the data products output from larsoft and package them to be consumed by the mlreco workflow. The bulk of the work is done by `SuperaMCParticleCluster` which consumes inputs from `simenergydeposit(lite)`, cluster3D, and MC truth products such as `MCTrack`, `MCShower`, and `MCParticle`.
 
+## Verbosity
+Verbosity can be set for any module used in supera by setting `Verbosity : n`
+
+* `n = 0` shows `LARCV_DEBUG` and above messages
+* `n = 1` shows `LARCV_INFO` and above messages
+* `n = 2` shows `LARCV_NORMAL` and above messages
+* `n = 3` shows `LARCV_WARNING` and above messages
+* `n = 4` shows `LARCV_ERROR` and above messages
+* `n = 5` only shows `LARCV_CRITICAL` and messages
+
 ## SuperaMCParticleCluster
 This class is responsible for managing Monte Carlo (MC) particle clusters within the LArCV framework. The class is authored by drinkkazu.
 
