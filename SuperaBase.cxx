@@ -26,6 +26,8 @@ namespace larcv {
   {
     _time_offset  = cfg.get<int>("TimeOffset",2400);
 
+    set_verbosity((::larcv::msg::Level_t)(cfg.get<unsigned short>("Verbosity", logger().level())));
+
     auto producer_wire     = cfg.get<std::string>("LArWireProducer",       "");
     auto producer_hit      = cfg.get<std::string>("LArHitProducer",        "");
     auto producer_opdigit  = cfg.get<std::string>("LArOpDigitProducer",    "");

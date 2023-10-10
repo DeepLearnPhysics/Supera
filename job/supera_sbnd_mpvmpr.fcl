@@ -3,14 +3,14 @@
 
 ProcessDriver: {
 
-  Verbosity:    0
+  Verbosity:    2
   EnableFilter: true
   RandomAccess: false
   ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","CombineTensor3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D"]
   ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","CombineTensor3DGhost","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D"]
 
   IOManager: {
-    Verbosity:   0
+    Verbosity:   2
     Name:        "IOManager"
     IOMode:      1
     OutFileName: "out_test.root"
@@ -94,20 +94,20 @@ ProcessDriver: {
     }
 
     MultiPartVrtx: {
-      Verbosity: 0
+      Verbosity: 2
       LArMCTruthProducer: "generator"
       OutParticleLabel: "mpv"
       Origin: 0
     }
     MultiPartRain: {
-      Verbosity: 0
+      Verbosity: 2
       LArMCTruthProducer: "rain"
       OutParticleLabel: "mpr"
       Origin: 0
     }
 
     SuperaBBoxInteraction: {
-      Verbosity: 0
+      Verbosity: 2
       LArMCTruthProducer: "generator"
       #LArSimEnergyDepositProducer: "largeant TPCActive"
       LArSimEnergyDepositLiteProducer: "sedlite"
@@ -124,7 +124,7 @@ ProcessDriver: {
     }
 
     SuperaSimEnergyDeposit: {
-      Verbosity: 0
+      Verbosity: 2
       #LArSimEnergyDepositProducer: "largeant TPCActive"
       LArSimEnergyDepositLiteProducer: "sedlite"
       LArMCShowerProducer: "mcreco"
@@ -142,7 +142,7 @@ ProcessDriver: {
     }
 
     ParticleCorrector: {
-      Verbosity: 0
+      Verbosity: 2
       Cluster3DProducer: "pcluster_highE"
       ParticleProducer:  "pcluster"
       OutputProducer:    "corrected"
@@ -151,7 +151,7 @@ ProcessDriver: {
 
 
     Tensor3DFromCluster3D: {
-      Verbosity: 0
+      Verbosity: 2
       Cluster3DProducerList: ["pcluster","sed"]
       OutputProducerList:    ["pcluster","sed"]
       PITypeList:  [1,1]
@@ -159,7 +159,7 @@ ProcessDriver: {
     }
 
     SuperaSpacePoint: {
-      Verbosity: 0
+      Verbosity: 2
       SpacePointProducers: ["cluster3d"]
       OutputLabel:        "reco"
       DropOutput: ["hit_amp","hit_rms","hit_mult"]
