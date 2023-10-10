@@ -1,7 +1,7 @@
 #B. Carlson
 #bcarlson1@ufl.edu
 
-#include "cluster_sbnd.fcl"
+#include "cluster_sbn.fcl"
 #include "services_sbnd.fcl"
 #include "simulationservices_sbnd.fcl"
 
@@ -25,7 +25,7 @@ physics:
  producers:
  {
    rns:      { module_type: "RandomNumberSaver" }
-   cluster3d: @local::standard_cluster3d
+   cluster3d: @local::sbn_cluster3d
  }
  analyzers:
  { supera: {
@@ -44,6 +44,11 @@ physics:
  trigger_paths: [ simulate ]
  end_paths:     [analyze, stream] # get both larcv and larsoft output
 }
+
+#Triplets
+# physics.producers.cluster3d.ClusterAlg.MinPairPts: 3
+# physics.producers.cluster3d.ClusterPathAlg.ClusterAlg.MinPairPts: 3
+#physics.producers.cluster3d.Hit3DBuilderAlg.SaveMythicalPoints: false
 
 outputs:
 {

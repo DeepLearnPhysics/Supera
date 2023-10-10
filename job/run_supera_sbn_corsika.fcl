@@ -1,7 +1,7 @@
 #B. Carlson
 #bcarlson1@ufl.edu
 
-#include "cluster_sbnd.fcl"
+#include "cluster_sbn.fcl"
 #include "services_sbnd.fcl"
 #include "simulationservices_sbnd.fcl"
 
@@ -25,12 +25,12 @@ physics:
  producers:
  {
    rns:      { module_type: "RandomNumberSaver" }
-   cluster3d: @local::standard_cluster3d
+   cluster3d: @local::sbn_cluster3d
  }
  analyzers:
  { supera: {
             module_type:     "LArSoftSuperaDriver"
-            supera_params:   "supera_sbnd_mpvmpr.fcl"
+            supera_params:   "supera_sbnd_corsika.fcl"
             out_filename:    "larcv.root"
             unique_filename: false
             stream:          "mc"
@@ -44,6 +44,9 @@ physics:
  trigger_paths: [ simulate ]
  end_paths:     [analyze, stream] # get both larcv and larsoft output
 }
+
+#Triplets
+physics.producers.cluster3d.Hit3DBuilderAlg.SaveMythicalPoints: false
 
 outputs:
 {

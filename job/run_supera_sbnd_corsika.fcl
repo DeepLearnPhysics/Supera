@@ -1,7 +1,8 @@
 #B. Carlson
 #bcarlson1@ufl.edu
+#Run sbnd cluster3D
 
-#include "cluster_sbn.fcl"
+#include "cluster_sbnd.fcl"
 #include "services_sbnd.fcl"
 #include "simulationservices_sbnd.fcl"
 
@@ -25,7 +26,7 @@ physics:
  producers:
  {
    rns:      { module_type: "RandomNumberSaver" }
-   cluster3d: @local::sbn_cluster3d
+   cluster3d: @local::standard_cluster3d
  }
  analyzers:
  { supera: {
@@ -34,7 +35,6 @@ physics:
             out_filename:    "larcv.root"
             unique_filename: false
             stream:          "mc"
-            Verbosity: 0
             StrictDataLoading: false
             }
  }
