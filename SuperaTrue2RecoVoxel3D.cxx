@@ -17,7 +17,7 @@ inline void dump_sim_channels(T const& sim_chnls, M const& meta, std::string fna
   for (auto const& sim_ch: sim_chnls) {
     auto ch = sim_ch.Channel();
 
-    for (auto const tick_ides : sim_ch.TDCIDEMap()) {
+    for (auto const &tick_ides : sim_ch.TDCIDEMap()) {
       double time = supera::TPCTDC2Tick(tick_ides.first);
 	    for (auto const& edep : tick_ides.second) {
         out << ch << ','
@@ -278,7 +278,7 @@ namespace larcv {
       auto ch = sch.Channel();
 
       // Loop over hits and store
-      for (auto const tick_ides : sch.TDCIDEMap()) {
+      for (auto const &tick_ides : sch.TDCIDEMap()) {
         double x_pos = (supera::TPCTDC2Tick(tick_ides.first) * supera::TPCTickPeriod() - supera::TriggerOffsetTPC()) * supera::DriftVelocity();
         TrueHit_t hit;
         hit.time = supera::TPCTDC2Tick(tick_ides.first);
