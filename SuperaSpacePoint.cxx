@@ -129,7 +129,7 @@ namespace larcv {
      */
     auto const *ev = GetEvent();
 
-    size_t n_pts = 0;
+    //size_t n_pts = 0;
     std::map<std::string, size_t> offsets;
     for (auto const& label : _producer_labels) {
       auto handle = ev->getValidHandle<std::vector<recob::SpacePoint>>(label);
@@ -139,7 +139,7 @@ namespace larcv {
           return false;
       }
 
-      n_pts += handle->size();
+      //n_pts += handle->size();
 
       // Increment offsets of other collections by the number of HITS
       size_t n_hits = ev->getValidHandle<std::vector<recob::Hit>>(label)->size();
