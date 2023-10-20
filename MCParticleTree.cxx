@@ -233,9 +233,10 @@ namespace supera {
         node.source_index = track_idx;
         size_t primary_idx = larcv::kINVALID_SIZE;
         primary_idx = FindPrimary(mct.MotherTrackID(), mct.AncestorTrackID());
-        if (primary_idx == larcv::kINVALID_SIZE)
+        if (primary_idx == larcv::kINVALID_SIZE){
           LARCV_DEBUG() << "******------ kINVALID_SIZE " << mct.AncestorTrackID() << std::endl;
           continue;
+        }
         LARCV_INFO() << "Associating MCTrack (index " << track_idx
                      << " PDG " << mct.PdgCode() << " Origin " << mct.Origin()
                      << ") with primary (index " << primary_idx
@@ -259,9 +260,10 @@ namespace supera {
         node.source_index = shower_idx;
         size_t primary_idx = larcv::kINVALID_SIZE;
         primary_idx = FindPrimary(mcs.MotherTrackID(), mcs.AncestorTrackID());
-        if (primary_idx == larcv::kINVALID_SIZE)
+        if (primary_idx == larcv::kINVALID_SIZE){
           LARCV_DEBUG() << "******------ kINVALID_SIZE " << mcs.AncestorTrackID() << std::endl;
           continue;
+        }
         LARCV_INFO() << "Associating MCShower (index " << shower_idx
                      << " PDG " << mcs.PdgCode() << " Origin " << mcs.Origin()
                      << ") with primary (index " << primary_idx

@@ -841,6 +841,7 @@ namespace larcv {
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
         LARCV_DEBUG() << "Time taken for for-loop " << for_loop_ctr << " : " << duration.count() << " microseconds" << std::endl;
+        LARCV_DEBUG() << "Group size : " << grp.size_all() << std::endl; 
         for_loop_ctr++;
       }
       auto end_merge = std::chrono::high_resolution_clock::now();

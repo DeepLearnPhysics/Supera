@@ -61,7 +61,7 @@ ProcessDriver: {
       LArSimEnergyDepositLiteProducer: "sedlite"
       Meta3DFromCluster3D: "mcst"
       Meta2DFromTensor2D:  ""
-      Verbosity: 1
+      Verbosity: 0
       UseSimEnergyDeposit: false
       UseSimEnergyDepositLite: true
       UseSimEnergyDepositPoints: true
@@ -74,7 +74,7 @@ ProcessDriver: {
         UseOrigTrackID: false
         DebugMode: true
         Profile: true
-        Verbosity: 1
+        Verbosity: 0
         Meta3DFromCluster3D: "pcluster"
         LArSimChProducer: "simdrift"
         LArSpacePointProducers: ["cluster3d"]
