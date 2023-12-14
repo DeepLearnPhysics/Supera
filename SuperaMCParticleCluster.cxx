@@ -463,7 +463,7 @@ namespace larcv {
           pt.x = x_pos;
           pt.y = edep.y;
           pt.z = edep.z;
-          pt.e = edep.energy;
+          pt.e = edep.energy/3.; // accounting for up to x3 overestimation due to looping over 3 planes
 
           if(_use_true_pos)
             pt.x = edep.x;
