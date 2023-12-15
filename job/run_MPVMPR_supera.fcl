@@ -23,7 +23,7 @@ physics:
     supera:
     {
       module_type: "LArSoftSuperaDriver"
-      supera_params: "supera_icarus_MC_cryoE_PMT_CRT.fcl"
+      supera_params: "supera_icarus_MC_MPVMPR_cryoE_PMT_CRT.fcl"
       out_filename: "larcv.root"
       unique_filename: false
       stream: "mc"
