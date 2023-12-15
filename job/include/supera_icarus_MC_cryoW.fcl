@@ -54,9 +54,9 @@ ProcessDriver: {
       Meta3DFromCluster3D: "mcst"
       Meta2DFromTensor2D:  ""
       Verbosity: 1
-      UseSimEnergyDeposit: true
-      UseSimEnergyDepositLite: true
-      UseSimEnergyDepositPoints: true
+      UseSimEnergyDeposit: false #true
+      UseSimEnergyDepositLite: false #true
+      UseSimEnergyDepositPoints: false #true
       UseOrigTrackID: true
       CryostatList: [0,0,0,0,1,1,1,1]
       TPCList: [0,1,2,3,0,1,2,3]
@@ -68,7 +68,8 @@ ProcessDriver: {
         DebugMode: false
         Verbosity: 1
         Meta3DFromCluster3D: "pcluster"
-        LArSimChProducer: "largeant"
+        #LArSimChProducer: "largeant"
+	LArSimChProducer: "daq simpleSC"
         LArSpacePointProducers: ["cluster3DCryoW"]
         TwofoldMatching: true
         UseTruePosition: true
@@ -154,7 +155,7 @@ ProcessDriver: {
       Verbosity: 2
       SpacePointProducers: ["cluster3DCryoW"]
       OutputLabel:        "reco_cryoW"
-      DropOutput: ["hit_amp","hit_time","hit_rms","hit_mult","tpc","cryo","nhits","occupancy"]
+      DropOutput: ["hit_amp","hit_time","hit_rms","hit_mult","nhits","occupancy"]
       StoreWireInfo: true
       RecoChargeRange: [-1000, 50000]
     }
