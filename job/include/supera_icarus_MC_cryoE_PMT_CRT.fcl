@@ -98,7 +98,7 @@ ProcessDriver: {
     MultiPartVrtx: {
       Verbosity: 0
       #LArMCTruthProducer: "generator"
-      MCTruthProducers: ["generator","rain","rain2"]
+      MCTruthProducers: ["generator","cosmgen"]
       OutParticleLabel: "mpv"
       Origin: 0
     }
