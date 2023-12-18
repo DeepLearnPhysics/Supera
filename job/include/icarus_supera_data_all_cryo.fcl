@@ -51,7 +51,7 @@ ProcessDriver: {
       Verbosity: 0
       SpacePointProducers: ["cluster3DCryoE"]
       OutputLabel:        "reco_cryoE"
-      DropOutput: ["hit_amp","hit_time","hit_rms","hit_mult","tpc","cryo","nhits","occupancy"]
+      DropOutput: ["hit_amp","hit_time","hit_rms","hit_mult","nhits","occupancy"]
       StoreWireInfo: true
       RecoChargeRange: [-1000, 50000]
     }
@@ -60,7 +60,7 @@ ProcessDriver: {
       Verbosity: 0
       SpacePointProducers: ["cluster3DCryoW"]
       OutputLabel:        "reco_cryoW"
-      DropOutput: ["hit_amp","hit_time","hit_rms","hit_mult","tpc","cryo","nhits","occupancy"]
+      DropOutput: ["hit_amp","hit_time","hit_rms","hit_mult","nhits","occupancy"]
       StoreWireInfo: true
       RecoChargeRange: [-1000, 50000]
     }

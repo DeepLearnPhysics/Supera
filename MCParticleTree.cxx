@@ -53,19 +53,20 @@ namespace supera {
     auto const& primary_v = PrimaryArray();
     for (size_t idx = 0; idx < primary_v.size(); ++idx) {
       auto const& primary = primary_v[idx];
-      std::cout << "Primary " << idx << std::endl
+      LARCV_DEBUG()  << "Primary " << idx << std::endl
                 //<< primary.part.dump() << std::endl
                 << " as MCNode: " << ((MCNode)primary).dump().c_str() << std::endl;
-      std::cout << "Dumping secondaries..." << std::endl;
+      LARCV_DEBUG()  << "Dumping secondaries..." << std::endl;
       for (auto const& secondary : primary.daughter_v)
-        std::cout << "    " << secondary.dump();
+        LARCV_DEBUG()  << "    " << secondary.dump();
     }
-    std::cout << "... all dumped" << std::endl;
+    LARCV_DEBUG()  << "... all dumped" << std::endl;
   }
 
   size_t MCParticleTree::FindPrimary(const size_t parent_id,
                                      const size_t ancestor_id) const
   {
+    LARCV_DEBUG()  << "******------***** ancestor id "<<ancestor_id<<std::endl;
     if (parent_id != larcv::kINVALID_SIZE) {
       for (size_t primary_idx = 0; primary_idx < _primary_v.size(); ++primary_idx) {
         auto const& primary = _primary_v[primary_idx];
@@ -84,12 +85,14 @@ namespace supera {
         }
       }
     }
+    LARCV_DEBUG() << "******** -------- No primary found " << ancestor_id <<std::endl;
     return larcv::kINVALID_SIZE;
   }
 
   void MCParticleTree::Register(const std::vector<supera::LArMCTrack_t>&  mctrack_v,
                                 const std::vector<supera::LArMCShower_t>& mcshower_v)
   {
+    LARCV_DEBUG() << "****---- Register"<<std::endl;
     size_t old_size = _primary_v.size();
     _primary_v.clear();
     _primary_v.reserve(old_size);
@@ -144,6 +147,7 @@ namespace supera {
   void MCParticleTree::DefinePrimary(const std::vector<supera::LArMCTrack_t>& mctrack_v,
                                      const std::vector<supera::LArMCShower_t>& mcshower_v)
   {
+    LARCV_DEBUG() << "****---- Define primary"<<std::endl;
     for (size_t track_idx = 0; track_idx < mctrack_v.size(); ++track_idx) {
       auto const& mctrack = mctrack_v[track_idx];
       if (_origin_filter && mctrack.Origin() != _origin_filter) continue;
@@ -207,6 +211,9 @@ namespace supera {
     size_t last_used_count_mctrack  = larcv::kINVALID_SIZE;
     size_t last_used_count_mcshower = larcv::kINVALID_SIZE;
 
+    LARCV_DEBUG() << "*****---- shower counters "<<used_count_mcshower <<","<<last_used_count_mcshower<<std::endl;
+    LARCV_DEBUG() << "*****---- track counters "<<used_count_mctrack <<","<<last_used_count_mctrack<<std::endl;
+
     while (used_count_mcshower != last_used_count_mcshower ||
            used_count_mctrack  != last_used_count_mctrack) {
 
@@ -216,15 +223,20 @@ namespace supera {
 
       // Scan tracks for exact parentage connection
       for (size_t track_idx = 0; track_idx < mctrack_v.size(); ++track_idx) {
+        LARCV_DEBUG() <<"****---- scan tracks"<<std::endl;
         if (_used_mctrack_v[track_idx]) continue;
+        LARCV_DEBUG() <<"****---- pass _used_mctrack_v[track_idx]"<<std::endl;
         auto const& mct = mctrack_v[track_idx];
         if (_origin_filter && mct.Origin() != _origin_filter) continue;
+        LARCV_DEBUG() <<"****---- pass track _origin_filter && mct.Origin() != _origin_filter"<<std::endl;
         auto node = FillNode(mct);
         node.source_index = track_idx;
         size_t primary_idx = larcv::kINVALID_SIZE;
         primary_idx = FindPrimary(mct.MotherTrackID(), mct.AncestorTrackID());
-        if (primary_idx == larcv::kINVALID_SIZE)
+        if (primary_idx == larcv::kINVALID_SIZE) {
+          LARCV_DEBUG() << "******------ kINVALID_SIZE " << mct.AncestorTrackID() << std::endl;
           continue;
+        }
         LARCV_INFO() << "Associating MCTrack (index " << track_idx
                      << " PDG " << mct.PdgCode() << " Origin " << mct.Origin()
                      << ") with primary (index " << primary_idx
@@ -238,15 +250,20 @@ namespace supera {
 
       // Scan showers for exact parentage connection
       for (size_t shower_idx = 0; shower_idx < mcshower_v.size(); ++shower_idx) {
+        LARCV_DEBUG() <<"****---- scan showers"<<std::endl;
         if (_used_mcshower_v[shower_idx]) continue;
+        LARCV_DEBUG() <<"****---- pass _used_mcshower_v[shower_idx]"<<std::endl;
         auto const& mcs = mcshower_v[shower_idx];
         if (_origin_filter && mcs.Origin() != _origin_filter) continue;
+        LARCV_DEBUG() <<"****---- pass shower _origin_filter && mct.Origin() != _origin_filter"<<std::endl;
         auto node = FillNode(mcs);
         node.source_index = shower_idx;
         size_t primary_idx = larcv::kINVALID_SIZE;
         primary_idx = FindPrimary(mcs.MotherTrackID(), mcs.AncestorTrackID());
-        if (primary_idx == larcv::kINVALID_SIZE)
+        if (primary_idx == larcv::kINVALID_SIZE) {
+          LARCV_DEBUG() << "******------ kINVALID_SIZE " << mcs.AncestorTrackID() << std::endl;
           continue;
+        }
         LARCV_INFO() << "Associating MCShower (index " << shower_idx
                      << " PDG " << mcs.PdgCode() << " Origin " << mcs.Origin()
                      << ") with primary (index " << primary_idx

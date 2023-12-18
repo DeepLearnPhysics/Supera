@@ -437,7 +437,7 @@ namespace larcv {
         insert_one_to_many(_true2reco, true_pt, reco_voxel3d);
 			}
     } // end looping reco pts
-		std::cout
+		LARCV_DEBUG()
       << "Dropping " << n_dropped
       << " out of " << space_pts->size()
       << " reco pts from " << _sps_producer << std::endl;

@@ -1,0 +1,111 @@
+#B. Carlson
+#bcarlson1@ufl.edu
+
+#Generator and g4
+#include "simulationservices_sbnd.fcl"
+#include "multipartvertex_sbnd.fcl"
+#include "services_sbnd.fcl"
+
+process_name: MPVMPR
+
+services:
+{
+	#@table::sbnd_simulation_services
+	TFileService: { fileName: "hists_prodmpvmpr_sbnd_%p-%tc.root" }
+  #FileCatalogMetadata: @local::sbnd_file_catalog_mc
+	IFDH: {}
+  @table::sbnd_simulation_services # load simulation services in bulk
+}
+
+services.message: @local::sbnd_message_services_interactive #from messages_sbnd.fcl
+
+source:
+{
+	module_type: EmptyEvent
+	timestampPlugin: { plugin_type: "GeneratedEventTimestamp" }
+	maxEvents: 10
+	firstRun: 1
+	firstEvent: 1
+}
+
+physics:
+{
+
+ producers:
+ {
+	rns:       { module_type: "RandomNumberSaver" }
+  generator: @local::MultiPartVertex
+  rain:      @local::MultiPartRain
+ }
+
+ simulate: [ rns
+            , generator
+            , rain
+            ]
+ out_stream: [ out1   ]
+
+ trigger_paths: [simulate]
+ end_paths: [out_stream]
+}
+#Set seeds
+#services.NuRandomService.policy: "perEvent"
+#physics.producers.generator.SEED         : 42
+#physics.producers.rain.SEED         : 42
+
+#
+# Multi-Particle Vertex generator (MPV)
+#
+
+physics.producers.generator.DebugMode    : 1
+# Based on BNB spill = 1.6us
+physics.producers.generator.G4Time       : 340.8 # [us]
+physics.producers.generator.G4TimeJitter : 1.6 # [us]
+physics.producers.generator.XRange       : [30,30]
+physics.producers.generator.YRange       : [30,30]
+physics.producers.generator.ZRange       : [30,30]
+physics.producers.generator.TPCRange     : [[0,0],[0,1]]
+physics.producers.generator.MultiMax     : 6
+physics.producers.generator.MultiMin     : 2
+physics.producers.generator.ParticleParameter.PDGCode      : [[-11,11,-13,13],     [111],  [211,-211],      [2212]]
+physics.producers.generator.ParticleParameter.MinMulti     : [              1,          0,          0,           0]
+physics.producers.generator.ParticleParameter.MaxMulti     : [              1,          2,          2,           4]
+physics.producers.generator.ParticleParameter.ProbWeight   : [              1,          1,          1,           3]
+physics.producers.generator.ParticleParameter.KERange      : [     [0.05,0.8], [0.05,0.4], [0.05,0.4],  [0.05,0.4]]
+physics.producers.generator.ParticleParameter.MomRange     : []
+
+#
+# Multi-Particle Rain generator (MPR)
+#
+
+physics.producers.rain.DebugMode    : 1
+# Based on TPC readout window starting at -340us and readout window size is 1638.4us
+physics.producers.rain.G4Time       : 819.2 # [us]
+physics.producers.rain.G4TimeJitter : 1638.4 # [us]
+physics.producers.rain.XRange       : [20,20]
+physics.producers.rain.YRange       : [20,20]
+physics.producers.rain.ZRange       : [20,20]
+physics.producers.rain.DirectInward : true
+physics.producers.rain.TPCRange     : [[0,0],[0,1]]
+physics.producers.rain.MultiMax     : 15
+physics.producers.rain.MultiMin     : 8
+physics.producers.rain.CosmicDistribution : false
+physics.producers.rain.ParticleParameter.PDGCode      : [   [-13,13],     [11,22],     [2212]]
+physics.producers.rain.ParticleParameter.MinMulti     : [          0,           0,          0]
+physics.producers.rain.ParticleParameter.MaxMulti     : [         15,           5,         15]
+physics.producers.rain.ParticleParameter.ProbWeight   : [          5,           1,          1]
+physics.producers.rain.ParticleParameter.KERange      : [ [0.05,1.0],   [0.05,0.1], [0.05,0.4]]
+physics.producers.rain.ParticleParameter.MomRange     : []
+
+# block to define where the output goes.  if you defined a filter in the physics
+# block and put it in the trigger_paths then you need to put a SelectEvents: {SelectEvents: [XXX]}
+# entry in the output stream you want those to go to, where XXX is the label of the filter module(s)
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName:    "prodmpvmpr_sbnd_%p-%tc.root" # default file name, can override from command line with -o or --output
+    dataTier:    "generated"
+    saveMemoryObjectThreshold: 0
+  }
+}
