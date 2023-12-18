@@ -63,7 +63,8 @@ private:
 
 LArSoftSuperaDriver::LArSoftSuperaDriver(fhicl::ParameterSet const & p)
   : EDAnalyzer(p)
-  , fFlatEngine(art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "Supera"))
+  , fFlatEngine(art::ServiceHandle<rndm::NuRandomService>()->registerAndSeedEngine(
+                  createEngine(0, "HepJamesRandom", "Supera"), "HepJamesRandom", "Supera"))
  // More initializers here.
 {
   //fEfficiencyEngine(art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "Efficiencies"))
