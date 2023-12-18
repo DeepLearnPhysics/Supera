@@ -1,3 +1,8 @@
+# Supera
+Supera is designed to slice up the data products output from larsoft and package them to be consumed by the mlreco workflow. The bulk of the work is done by `SuperaMCParticleCluster` which consumes inputs from `simenergydeposit(lite)`, cluster3D, and MC truth products such as `MCTrack`, `MCShower`, and `MCParticle`.
+
+
+
 # Building Supera for ProtoDUNE
 
 In general, **Supear** works fine with latest larsoft release on _cvmfs_ (linux only, sorry for mac users).
