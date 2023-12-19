@@ -170,6 +170,7 @@ namespace larcv {
     LARCV_DEBUG() << "****---- CreateParticleGroups" << std::endl;
     const larcv::Particle invalid_part;
     auto const& larmcp_v = LArData<supera::LArMCParticle_t>();
+    LARCV_DEBUG() << "larmcp_v size " << larmcp_v.size() << std::endl;
     auto const& parent_pdg_v = _mcpl.ParentPdgCode();
     auto const& trackid2index = _mcpl.TrackIdToIndex();
     std::vector<supera::ParticleGroup> result(trackid2index.size());
@@ -186,7 +187,7 @@ namespace larcv {
       if(pdg_code > 1000000) continue;
 
       supera::ParticleGroup grp(_valid_nplanes);
-      LARCV_DEBUG() << "grp.part make particle" << std::endl;
+      //LARCV_DEBUG() << "grp.part make particle" << std::endl;
       grp.part = this->MakeParticle(mcpart);
 
       if(mother_index >= 0)
@@ -611,11 +612,11 @@ namespace larcv {
             }
           }
 
-          LARCV_DEBUG() << "IDE ... TrackID " << edep.trackID << " E " << edep.energy << " Q " << edep.numElectrons << std::endl;
+          //LARCV_DEBUG() << "IDE ... TrackID " << edep.trackID << " E " << edep.energy << " Q " << edep.numElectrons << std::endl;
 
           if(skipped2d || skipped3d) {
 
-            LARCV_INFO() << "Skipped 2d/3d " << (skipped2d ? "1" : "0") << "/" << (skipped3d ? "1" : "0") << " TrackID " << edep.trackID
+            LARCV_DEBUG() << "Skipped 2d/3d " << (skipped2d ? "1" : "0") << "/" << (skipped3d ? "1" : "0") << " TrackID " << edep.trackID
              << " pos (" << pt.x << "," << pt.y << "," << pt.z << ")"
              << " ... TDC " << tick_ides.first << " => Tick " << time_pos
              << "... Wire " << wid.Wire
@@ -1259,7 +1260,7 @@ namespace larcv {
         grp.part.group_id(output_counter);
       }
       else{ // Fix this by setting UseOrigTrackID: false in superaMCParticleCluster fcl
-        LARCV_DEBUG() << "***--- Laura debug " << grp.part.track_id() << " " << grp.valid << " " << grp.size_all() << " " << grp.shape() << " " << larcv::kShapeLEScatter << trackid << std::endl;
+        //LARCV_DEBUG() << "***--- Laura debug " << grp.part.track_id() << " " << grp.valid << " " << grp.size_all() << " " << grp.shape() << " " << larcv::kShapeLEScatter << trackid << std::endl;
         
         if(!grp.valid) continue;
         if(grp.size_all()<1) continue;
@@ -1267,7 +1268,7 @@ namespace larcv {
       }
 
       //std::cout << grp.shape() << " " << grp.size_all() << std::endl;
-      LARCV_DEBUG() << "***--- track id in particle group : " << grp.part.track_id() << " "<< larcv::kINVALID_UINT << std::endl;
+      //LARCV_DEBUG() << "***--- track id in particle group : " << grp.part.track_id() << " "<< larcv::kINVALID_UINT << std::endl;
       if (grp.part.track_id() == larcv::kINVALID_UINT) continue;
       grp.part.id(output_counter);
       trackid2output[grp.part.track_id()] = output_counter;
@@ -2072,7 +2073,7 @@ namespace larcv {
              << semantic << " pixel count " << grp.vs.size()
              << " (not kShapeLEScatter) at line " << __LINE__
              << std::endl;
-        LARCV_DEBUG()<<grp.part.dump()<<std::endl;
+        //LARCV_DEBUG()<<grp.part.dump()<<std::endl;
         throw std::exception();
       }
       int trackid = grp.part.parent_track_id();
