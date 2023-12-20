@@ -60,7 +60,7 @@ ProcessDriver: {
       LArSimEnergyDepositLiteProducer: "sedlite"
       Meta3DFromCluster3D: "mcst"
       Meta2DFromTensor2D:  ""
-      Verbosity: 2
+      Verbosity: 0
       UseSimEnergyDeposit: false #AnalyzeSimEnergyDeposit if true, else AnalyzeFirstLastStep - default false
       UseSimEnergyDepositLite: true 
       UseSimEnergyDepositPoints: true
@@ -69,11 +69,12 @@ ProcessDriver: {
       TPCList: [0,1]
       PlaneList: []
       SemanticPriority: [1,2,0,3,4] # 0-4 for shower track michel delta LE-scattering
+      TrackIDOffsets: [10000000,20000000]
       SuperaTrue2RecoVoxel3D: {
         UseOrigTrackID: true
         DebugMode: true
         Profile: true
-        Verbosity: 2
+        Verbosity: 0
         Meta3DFromCluster3D: "pcluster"
         LArSimChProducer: "simdrift"
         LArSpacePointProducers: ["cluster3d"]

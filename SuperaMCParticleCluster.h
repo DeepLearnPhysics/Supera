@@ -111,6 +111,7 @@ namespace larcv {
     size_t _valid_nplanes;
     std::vector<larcv::ImageMeta> _meta2d_v;
     bool _useOrigTrackID; ///< Whether to use origTrackID or trackID from SimChannel/SimEnergyDeposit
+    std::vector<unsigned int> _trackid_offsets;
   };
 
   /**
