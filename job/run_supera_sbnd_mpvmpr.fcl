@@ -31,7 +31,7 @@ physics:
  analyzers:
  { supera: {
             module_type:     "LArSoftSuperaDriver"
-            supera_params:   "supera_sbnd_mpvmpr_local.fcl"
+            supera_params:   "supera_sbnd_mpvmpr.fcl"
             out_filename:    "larcv.root"
             unique_filename: false
             stream:          "mc"
