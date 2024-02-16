@@ -86,7 +86,7 @@ ProcessDriver: {
         HitPeakFinding: false
         PostAveraging: true
         PostAveragingThreshold_cm: 0.425
-        DumpToCSV: true
+        DumpToCSV: false
         RecoChargeRange: [-1000,50000]
 				VoxelDistanceThreshold: 1. #3
       }
