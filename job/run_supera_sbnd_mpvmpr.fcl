@@ -4,6 +4,7 @@
 #include "cluster_sbnd.fcl"
 #include "services_sbnd.fcl"
 #include "simulationservices_sbnd.fcl"
+#include "rootoutput_sbnd.fcl"
 #include "simplemerge.fcl" 
 
 process_name: supera
@@ -31,7 +32,7 @@ physics:
  analyzers:
  { supera: {
             module_type:     "LArSoftSuperaDriver"
-            supera_params:   "supera_sbnd_mpvmpr_local.fcl"
+            supera_params:   "supera_sbnd_mpvmpr.fcl"
             out_filename:    "larcv.root"
             unique_filename: false
             stream:          "mc"
@@ -50,11 +51,8 @@ outputs:
 {
  out1:
  {
-   module_type: RootOutput
-   fileName:    "larsoft.root"
+   @table::sbnd_rootoutput
    dataTier:    "supera"
-   saveMemoryObjectThreshold: 0
-   compressionLevel: 1
    fastCloning: false
  }
 }

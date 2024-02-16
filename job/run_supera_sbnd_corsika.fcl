@@ -4,6 +4,7 @@
 #include "cluster_sbnd.fcl"
 #include "services_sbnd.fcl"
 #include "simulationservices_sbnd.fcl"
+#include "rootoutput_sbnd.fcl"
 #include "simplemerge.fcl" 
 
 
@@ -12,6 +13,7 @@ process_name: supera
 
 services:
 {
+  TFileService: { fileName: "larcv.root" }
   @table::sbnd_services
   @table::sbnd_random_services
   @table::sbnd_simulation_services # load simulation services in bulk
@@ -34,7 +36,7 @@ physics:
  analyzers:
  { supera: {
             module_type:     "LArSoftSuperaDriver"
-            supera_params:   "supera_sbnd_corsika_local.fcl"
+            supera_params:   "supera_sbnd_corsika.fcl"
             out_filename:    "larcv.root"
             unique_filename: false
             stream:          "mc"
@@ -53,11 +55,8 @@ outputs:
 {
  out1:
  {
-   module_type: RootOutput
-   fileName:    "larsoft.root"
+   @table::sbnd_rootoutput
    dataTier:    "supera"
-   saveMemoryObjectThreshold: 0
-   compressionLevel: 1
    fastCloning: false
  }
 }
