@@ -76,7 +76,7 @@ ProcessDriver: {
       LArSimEnergyDepositLiteProducer: "sedlite"
       Meta3DFromCluster3D: "mcst"
       Meta2DFromTensor2D:  ""
-      Verbosity: 1
+      Verbosity: 2
       UseSimEnergyDeposit: false #true
       UseSimEnergyDepositLite: false #true
       UseSimEnergyDepositPoints: false #true
@@ -89,7 +89,7 @@ ProcessDriver: {
 
       SuperaTrue2RecoVoxel3D: {
         DebugMode: false
-        Verbosity: 1
+        Verbosity: 2
         Meta3DFromCluster3D: "pcluster"
         #LArSimChProducer: "largeant"
 	LArSimChProducer: "daq simpleSC"
@@ -109,7 +109,7 @@ ProcessDriver: {
     }
 
     MultiPartVrtx: {
-      Verbosity: 0
+      Verbosity: 2
       #LArMCTruthProducer: "generator"
       MCTruthProducers: ["generator","cosmgen"]
       OutParticleLabel: "mpv"
@@ -140,7 +140,7 @@ ProcessDriver: {
     }
 
     SuperaSimEnergyDeposit: {
-      Verbosity: 1
+      Verbosity: 2
       #LArSimEnergyDepositProducer: "largeant TPCActive"
       LArSimEnergyDepositLiteProducer: "sedlite"
       LArMCShowerProducer: "mcreco"
