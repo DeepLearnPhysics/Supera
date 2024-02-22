@@ -101,7 +101,7 @@ ProcessDriver: {
     }
     MultiPartRain: {
       Verbosity: 2
-      LArMCTruthProducer: "corsika"
+      LArMCTruthProducer: "rain"
       OutParticleLabel: "mpr"
       Origin: 0
     }
