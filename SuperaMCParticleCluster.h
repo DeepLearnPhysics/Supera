@@ -53,32 +53,33 @@ namespace larcv {
     bool IsTouching(const Voxel3DMeta& meta, const VoxelSet& vs1, const VoxelSet& vs2) const;
     bool IsTouching2D(const ImageMeta& meta, const VoxelSet& vs1, const VoxelSet& vs2) const;
 
-    std::vector<supera::ParticleGroup> CreateParticleGroups();
+    //std::unordered_map<int, supera::ParticleGroup> CreateParticleGroups();
+    std::unordered_map<int, supera::ParticleGroup> CreateParticleGroups();
 
     template<typename sed_type> void AnalyzeSimEnergyDeposit(const larcv::Voxel3DMeta& meta,
-				 std::vector<supera::ParticleGroup>& part_grp_v,
+				 std::unordered_map<int, supera::ParticleGroup>& part_grp_v,
          larcv::IOManager& mgr);
     void AnalyzeSimChannel(const larcv::Voxel3DMeta& meta,
-			   std::vector<supera::ParticleGroup>& part_grp_v,
+			   std::unordered_map<int, supera::ParticleGroup>& part_grp_v,
 			   larcv::IOManager& mgr);
     template<typename sed_type> void AnalyzeFirstLastStep(const larcv::Voxel3DMeta& meta,
-			      std::vector<supera::ParticleGroup>& part_grp_v);
+			      std::unordered_map<int, supera::ParticleGroup>& part_grp_v);
     void MergeShowerTouchingLEScatter(const larcv::Voxel3DMeta& meta,
-				      std::vector<supera::ParticleGroup>& part_grp_v);
-    void MergeShowerIonizations(std::vector<supera::ParticleGroup>& part_grp_v);
-    void ApplyEnergyThreshold(std::vector<supera::ParticleGroup>& part_grp_v);
-    void MergeShowerConversion(std::vector<supera::ParticleGroup>& part_grp_v);
+				      std::unordered_map<int, supera::ParticleGroup>& part_grp_v);
+    void MergeShowerIonizations(std::unordered_map<int, supera::ParticleGroup>& part_grp_v);
+    void ApplyEnergyThreshold(std::unordered_map<int, supera::ParticleGroup>& part_grp_v);
+    void MergeShowerConversion(std::unordered_map<int, supera::ParticleGroup>& part_grp_v);
     void MergeShowerFamilyTouching(const larcv::Voxel3DMeta& meta,
-				   std::vector<supera::ParticleGroup>& part_grp_v);
+				   std::unordered_map<int, supera::ParticleGroup>& part_grp_v);
     void MergeShowerTouching(const larcv::Voxel3DMeta& meta,
-			     std::vector<supera::ParticleGroup>& part_grp_v);
-    void MergeShowerTouching2D(std::vector<supera::ParticleGroup>& part_grp_v);
-    void MergeShowerDeltas(std::vector<supera::ParticleGroup>& part_grp_v);
+			     std::unordered_map<int, supera::ParticleGroup>& part_grp_v);
+    void MergeShowerTouching2D(std::unordered_map<int, supera::ParticleGroup>& part_grp_v);
+    void MergeShowerDeltas(std::unordered_map<int, supera::ParticleGroup>& part_grp_v);
     void DumpHierarchy(size_t trackid,
-		       const std::vector<supera::ParticleGroup>& part_grp_v) const;
+		       const std::unordered_map<int, supera::ParticleGroup>& part_grp_v) const;
     std::vector<unsigned int> ParentTrackIDs(size_t trackid) const;
     std::vector<unsigned int> ParentShowerTrackIDs(size_t trackid,
-						   const std::vector<supera::ParticleGroup>& part_grp_v,
+						   const std::unordered_map<int, supera::ParticleGroup>& part_grp_v,
 						   bool include_lescatter=false) const;
   private:
     int plane_index(unsigned int cryo_id, unsigned int tpc_id, unsigned int plane_id);
