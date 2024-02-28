@@ -3,14 +3,14 @@
 
 ProcessDriver: {
 
-  Verbosity:    0
+  Verbosity:    2
   EnableFilter: true
   RandomAccess: false
   ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","CombineTensor3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D"]
   ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","CombineTensor3DGhost","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D"]
 
   IOManager: {
-    Verbosity:   0
+    Verbosity:   2
     Name:        "IOManager"
     IOMode:      1
     OutFileName: "out_test.root"
@@ -53,25 +53,24 @@ ProcessDriver: {
 
     SuperaMCParticleCluster: {
       OutputLabel: "pcluster"
-      LArMCParticleProducer: "largeant"
+      LArMCParticleProducer: "mcparticles" # produced when merging from previous stage
       LArMCShowerProducer: "mcreco"
       LArMCTrackProducer:  "mcreco"
       DeltaSize: 10
-      #LArSimEnergyDepositProducer: "ionandscintout"
       LArSimEnergyDepositLiteProducer: "sedlite"
       Meta3DFromCluster3D: "mcst"
       Meta2DFromTensor2D:  ""
       Verbosity: 2
-      UseSimEnergyDeposit: false
-      UseSimEnergyDepositLite: true
+      UseSimEnergyDeposit: false #AnalyzeSimEnergyDeposit if true, else AnalyzeFirstLastStep - default false
+      UseSimEnergyDepositLite: true 
       UseSimEnergyDepositPoints: true
-      UseOrigTrackID: false
+      UseOrigTrackID: true
       CryostatList: [0,0]
       TPCList: [0,1]
       PlaneList: []
       SemanticPriority: [1,2,0,3,4] # 0-4 for shower track michel delta LE-scattering
       SuperaTrue2RecoVoxel3D: {
-        UseOrigTrackID: false
+        UseOrigTrackID: true
         DebugMode: true
         Profile: true
         Verbosity: 2
@@ -94,20 +93,20 @@ ProcessDriver: {
     }
 
     MultiPartVrtx: {
-      Verbosity: 0
+      Verbosity: 2
       LArMCTruthProducer: "generator"
       OutParticleLabel: "mpv"
       Origin: 0
     }
     MultiPartRain: {
-      Verbosity: 0
-      LArMCTruthProducer: "rain"
+      Verbosity: 2
+      LArMCTruthProducer: "corsika"
       OutParticleLabel: "mpr"
       Origin: 0
     }
 
     SuperaBBoxInteraction: {
-      Verbosity: 0
+      Verbosity: 2
       LArMCTruthProducer: "generator"
       #LArSimEnergyDepositProducer: "largeant TPCActive"
       LArSimEnergyDepositLiteProducer: "sedlite"
@@ -124,7 +123,7 @@ ProcessDriver: {
     }
 
     SuperaSimEnergyDeposit: {
-      Verbosity: 0
+      Verbosity: 2
       #LArSimEnergyDepositProducer: "largeant TPCActive"
       LArSimEnergyDepositLiteProducer: "sedlite"
       LArMCShowerProducer: "mcreco"
@@ -142,7 +141,7 @@ ProcessDriver: {
     }
 
     ParticleCorrector: {
-      Verbosity: 0
+      Verbosity: 2
       Cluster3DProducer: "pcluster_highE"
       ParticleProducer:  "pcluster"
       OutputProducer:    "corrected"
@@ -151,7 +150,7 @@ ProcessDriver: {
 
 
     Tensor3DFromCluster3D: {
-      Verbosity: 0
+      Verbosity: 2
       Cluster3DProducerList: ["pcluster","sed"]
       OutputProducerList:    ["pcluster","sed"]
       PITypeList:  [1,1]
@@ -159,7 +158,7 @@ ProcessDriver: {
     }
 
     SuperaSpacePoint: {
-      Verbosity: 0
+      Verbosity: 2
       SpacePointProducers: ["cluster3d"]
       OutputLabel:        "reco"
       DropOutput: ["hit_amp","hit_rms","hit_mult"]
