@@ -27,7 +27,7 @@ physics:
  {
    rns:      { module_type: "RandomNumberSaver" }
    cluster3d: @local::standard_cluster3d
-   mcparticles: @local::simplemerge
+   simplemerge: @local::simplemerge
  }
  analyzers:
  { supera: {
@@ -40,7 +40,7 @@ physics:
             }
  }
 
- simulate: [ rns, mcparticles, cluster3d] # you DO want to run cluster3d            
+ simulate: [ rns, simplemerge, cluster3d] # you DO want to run cluster3d            
  analyze:  [ supera ] # that's ok
  stream:  [ out1 ]
  trigger_paths: [ simulate ]
@@ -63,7 +63,7 @@ services.TFileService.fileName: "ana.root"
 # MCParticle Merger
 #
 
-physics.producers.mcparticles.InputSourcesLabels: ["largeant","largeant:droppedMCParticles"]
+physics.producers.simplemerge.InputSourcesLabels: ["largeant","largeant:droppedMCParticles"]
 
 services.message.destinations :
 {

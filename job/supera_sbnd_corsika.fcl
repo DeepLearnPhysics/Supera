@@ -53,7 +53,7 @@ ProcessDriver: {
 
     SuperaMCParticleCluster: {
       OutputLabel: "pcluster"
-      LArMCParticleProducer: "mcparticles" # produced when merging from previous stage
+      LArMCParticleProducer: "simplemerge" # produced when merging from previous stage
       LArMCShowerProducer: "mcreco"
       LArMCTrackProducer:  "mcreco"
       DeltaSize: 10
@@ -75,7 +75,7 @@ ProcessDriver: {
         Profile: true
         Verbosity: 2
         Meta3DFromCluster3D: "pcluster"
-        LArSimChProducer: "simdrift"
+        LArSimChProducer: "simtpc2d simpleSC"
         LArSpacePointProducers: ["cluster3d"]
         OutputTensor3D:  "masked_true"
         OutputCluster3D: "masked_true2reco"
