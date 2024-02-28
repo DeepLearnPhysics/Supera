@@ -129,7 +129,7 @@ namespace larcv {
      */
     auto const *ev = GetEvent();
 
-    size_t n_pts = 0;
+    //size_t n_pts = 0;
     std::map<std::string, size_t> offsets;
     for (auto const& label : _producer_labels) {
       auto handle = ev->getValidHandle<std::vector<recob::SpacePoint>>(label);
@@ -139,7 +139,7 @@ namespace larcv {
           return false;
       }
 
-      n_pts += handle->size();
+      //n_pts += handle->size();
 
       // Increment offsets of other collections by the number of HITS
       size_t n_hits = ev->getValidHandle<std::vector<recob::Hit>>(label)->size();
@@ -203,8 +203,8 @@ namespace larcv {
           VoxelID_t vox_id = meta.id(xyz[0] + _shift_x, xyz[1], xyz[2]);
           if(vox_id == larcv::kINVALID_VOXELID) {
               //if (n_dropped < _max_debug_dropping)
-              //    LARCV_DEBUG() << "Dropping space point ("
-                  std::cout << "Dropping space point ("
+                  LARCV_DEBUG() << "Dropping space point ("
+                  // std::cout << "Dropping space point ("
                       << xyz[0] << ","
                       << xyz[1] << ","
                       << xyz[2] << ")"
@@ -242,8 +242,8 @@ namespace larcv {
 
           if (_store_wire_info) {
             if (hits.size() > _n_planes) {
-                //LARCV_WARNING()
-                std::cout
+                LARCV_WARNING()
+                //std::cout
                     << "Dropping space point - "
                     << "Wrong number of hits: "
                     << hits.size()

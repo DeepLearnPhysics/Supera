@@ -1,3 +1,38 @@
+# Supera
+Supera is designed to slice up the data products output from larsoft and package them to be consumed by the mlreco workflow. The bulk of the work is done by `SuperaMCParticleCluster` which consumes inputs from `simenergydeposit(lite)`, cluster3D, and MC truth products such as `MCTrack`, `MCShower`, and `MCParticle`.
+
+## Verbosity
+Verbosity can be set for any module used in supera by setting `Verbosity : n`
+
+* `n = 0` shows `LARCV_DEBUG` and above messages
+* `n = 1` shows `LARCV_INFO` and above messages
+* `n = 2` shows `LARCV_NORMAL` and above messages
+* `n = 3` shows `LARCV_WARNING` and above messages
+* `n = 4` shows `LARCV_ERROR` and above messages
+* `n = 5` only shows `LARCV_CRITICAL` and messages
+
+## SuperaMCParticleCluster
+This class is responsible for managing Monte Carlo (MC) particle clusters within the LArCV framework. The class is authored by drinkkazu.
+
+### Features
+* It provides functions to configure, initialize, process, and finalize instances of the class.
+* It allows creation of particles and particle groups.
+* It includes methods for analyzing simulated energy deposits and channels.
+* It has functions for merging shower touchings, conversions, ionizations, and deltas.
+* It includes functions for merging shower family touchings.
+* The class also contains private variables and methods to work with particle clusters.
+### Dependencies
+The class depends on several other modules and classes in the LArCV framework, including:
+
+* `SuperaBase`
+* `SuperaTrue2RecoVoxel3D`
+* `FMWKInterface`
+* `MCParticleList`
+* Various data formats from `larcv/core/DataFormat`
+* `SuperaMCParticleClusterData`
+
+The class is built upon a factory pattern, with the corresponding `SuperaMCParticleClusterProcessFactory` class provided for creating instances of `SuperaMCParticleCluster`.
+
 # Building Supera for ProtoDUNE
 
 In general, **Supear** works fine with latest larsoft release on _cvmfs_ (linux only, sorry for mac users).

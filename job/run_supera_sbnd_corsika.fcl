@@ -32,6 +32,7 @@ physics:
    rns:      { module_type: "RandomNumberSaver" }
    cluster3d: @local::standard_cluster3d
    simplemerge: @local::simplemerge
+
  }
  analyzers:
  { supera: {
@@ -43,6 +44,7 @@ physics:
             StrictDataLoading: false
             }
  }
+
 
  simulate: [ rns, simplemerge, cluster3d] #merge the dropped particles with the normal particles and run cluster3d           
  analyze:  [ supera ] # that's ok
