@@ -164,7 +164,7 @@ namespace larcv {
     return _scan[cryo_id][tpc_id][plane_id];
   }
 
-  std::unordered_map<int, supera::ParticleGroup> 
+  std::map<int, supera::ParticleGroup> 
   SuperaMCParticleCluster::CreateParticleGroups()
   {
     LARCV_DEBUG() << "****---- CreateParticleGroups" << std::endl;
@@ -172,7 +172,8 @@ namespace larcv {
     auto const& larmcp_v = LArData<supera::LArMCParticle_t>();
     auto const& parent_pdg_v = _mcpl.ParentPdgCode();
     auto const& trackid2index = _mcpl.TrackIdToIndex();
-    std::unordered_map<int, supera::ParticleGroup> result;
+    std::map<int, supera::ParticleGroup> result;
+    //result.reserve(larmcp_v.size());
     for(size_t index=0; index<larmcp_v.size(); ++index) {
 
       auto const& mcpart = larmcp_v[index];
@@ -246,7 +247,7 @@ namespace larcv {
   }
 
   template<typename sed_type> void SuperaMCParticleCluster::AnalyzeSimEnergyDeposit(const larcv::Voxel3DMeta& meta,
-              std::unordered_map<int, supera::ParticleGroup>& part_grp_v,
+              std::map<int, supera::ParticleGroup>& part_grp_v,
               larcv::IOManager& mgr)
   {
     //std::set<size_t> ctr_a, ctr_b;
@@ -363,7 +364,7 @@ namespace larcv {
   }
 
   template<typename sed_type> void SuperaMCParticleCluster::AnalyzeFirstLastStep(const larcv::Voxel3DMeta& meta,
-                 std::unordered_map<int, supera::ParticleGroup>& part_grp_v)
+                 std::map<int, supera::ParticleGroup>& part_grp_v)
   {
     auto const& sedep_v = LArData<sed_type>();
     auto const& trackid2index = _mcpl.TrackIdToIndex();
@@ -402,7 +403,7 @@ namespace larcv {
 
 
   void SuperaMCParticleCluster::AnalyzeSimChannel(const larcv::Voxel3DMeta& meta3d,
-              std::unordered_map<int, supera::ParticleGroup>& part_grp_v,
+              std::map<int, supera::ParticleGroup>& part_grp_v,
               larcv::IOManager& mgr)
   {
     //std::set<size_t> ctr_a, ctr_b;
@@ -651,7 +652,7 @@ namespace larcv {
   }
 
 
-  void SuperaMCParticleCluster::MergeShowerIonizations(std::unordered_map<int, supera::ParticleGroup>& part_grp_v)
+  void SuperaMCParticleCluster::MergeShowerIonizations(std::map<int, supera::ParticleGroup>& part_grp_v)
   {
     // Loop over particles of a type kIonization (=touching to its parent physically by definition)
     // If a parent is found, merge to the parent
@@ -707,7 +708,7 @@ namespace larcv {
     }while(merge_ctr>0);
   }
 
-  void SuperaMCParticleCluster::ApplyEnergyThreshold(std::unordered_map<int, supera::ParticleGroup>& part_grp_v)
+  void SuperaMCParticleCluster::ApplyEnergyThreshold(std::map<int, supera::ParticleGroup>& part_grp_v)
   {
     // Loop again and eliminate voxels that has energy below threshold
     for(auto& grp : part_grp_v) {
@@ -741,7 +742,7 @@ namespace larcv {
   }
 
 
-  void SuperaMCParticleCluster::MergeShowerConversion(std::unordered_map<int, supera::ParticleGroup>& part_grp_v)
+  void SuperaMCParticleCluster::MergeShowerConversion(std::map<int, supera::ParticleGroup>& part_grp_v)
   {
     int merge_ctr = 0;
     int invalid_ctr = 0;
@@ -798,7 +799,7 @@ namespace larcv {
 
 
   void SuperaMCParticleCluster::MergeShowerFamilyTouching(const larcv::Voxel3DMeta& meta,
-                std::unordered_map<int, supera::ParticleGroup>& part_grp_v)
+                std::map<int, supera::ParticleGroup>& part_grp_v)
   {
     // Merge touching shower fragments
     // Direct parentage between kShapeShower => kShapeShower/kShapeDelta/kShapeMichel
@@ -815,7 +816,9 @@ namespace larcv {
         if(part_grp_v[grp.second.part.parent_track_id()].valid)
           parent_trackid = grp.second.part.parent_track_id();
         else {
-          for(size_t shower_trackid = 0; shower_trackid<part_grp_v.size(); ++shower_trackid) {
+          //for(size_t shower_trackid = 0; shower_trackid<part_grp_v.size(); ++shower_trackid) {
+          for(auto it=part_grp_v.begin(); it!=part_grp_v.end(); ++it) {
+            size_t shower_trackid = it->first;
             auto const& candidate_grp = part_grp_v[shower_trackid];
             if(shower_trackid == grp.second.part.parent_track_id() || !candidate_grp.valid) continue;
             for(auto const& trackid : candidate_grp.trackid_v) {
@@ -843,7 +846,7 @@ namespace larcv {
 
 
   void SuperaMCParticleCluster::MergeShowerTouching(const larcv::Voxel3DMeta& meta,
-                std::unordered_map<int, supera::ParticleGroup>& part_grp_v)
+                std::map<int, supera::ParticleGroup>& part_grp_v)
   {
     // Go over all pair-wise combination of two shower instances
     // For each shower, find all consecutive parents of shower/michel/delta type (break if track found)
@@ -851,13 +854,18 @@ namespace larcv {
     int merge_ctr = 0;
     do {
       merge_ctr = 0;
-      for(size_t i=0; i<part_grp_v.size(); ++i) {
-        auto& grp_a = part_grp_v[i];
+      //for(size_t i=0; i<part_grp_v.size(); ++i) {
+      for (auto it=part_grp_v.begin(); it!=part_grp_v.end(); ++it) {
+        auto i = it->first;
+        auto& grp_a = it->second;
+        //auto& grp_a = part_grp_v[i];
         if(!grp_a.valid) continue;
         if(grp_a.shape() != larcv::kShapeShower) continue;
-        for(size_t j=i; j<part_grp_v.size(); ++j) {
+        //for(size_t j=i; j<part_grp_v.size(); ++j) {
+        for (auto it2=it; it2!=part_grp_v.end(); ++it2) {
+          auto j = it2->first;
           if(i==j) continue;
-          auto& grp_b = part_grp_v[j];
+          auto& grp_b = it2->second;
           if(!grp_b.valid) continue;
           if(grp_b.shape() != larcv::kShapeShower) continue;
 
@@ -935,12 +943,12 @@ namespace larcv {
           }
         }
       }
-      LARCV_INFO() << "Merge counter: " << merge_ctr << std::endl;
+      //LARCV_DEBUG() << "Merge counter: " << merge_ctr << std::endl;
     }while(merge_ctr>0);
   }
 
 
-  void SuperaMCParticleCluster::MergeShowerTouching2D(std::unordered_map<int, supera::ParticleGroup>& part_grp_v)
+  void SuperaMCParticleCluster::MergeShowerTouching2D(std::map<int, supera::ParticleGroup>& part_grp_v)
   {
     std::vector<std::vector<size_t> > children_v(part_grp_v.size());
     std::vector<bool> valid_v(part_grp_v.size());
@@ -948,7 +956,9 @@ namespace larcv {
       // first copy the merge history and validity from 3D
       auto const& meta = _meta2d_v[plane];
       size_t vox2d_ctr=0;
-      for(size_t i=0; i<part_grp_v.size(); ++i) {
+      //for(size_t i=0; i<part_grp_v.size(); ++i) {
+      for (auto it=part_grp_v.begin(); it!=part_grp_v.end(); ++it) {
+        auto i = it->first;
         children_v[i] = part_grp_v[i].trackid_v;
         valid_v[i]    = part_grp_v[i].valid;
         if(part_grp_v[i].vs2d_v.size() > plane)
@@ -960,7 +970,9 @@ namespace larcv {
             int invalid_ctr = 0;
             do {
         merge_ctr = 0;
-        for(size_t part_idx=0; part_idx<part_grp_v.size(); ++part_idx) {
+        //for(size_t part_idx=0; part_idx<part_grp_v.size(); ++part_idx) {
+        for (auto it=part_grp_v.begin(); it!=part_grp_v.end(); ++it) {
+          auto part_idx = it->first;
           auto& grp = part_grp_v[part_idx];
           if(valid_v[part_idx]) continue;
           if(plane >= grp.vs2d_v.size()) continue;
@@ -973,7 +985,9 @@ namespace larcv {
           if(valid_v[grp.part.parent_track_id()])
             parent_trackid = grp.part.parent_track_id();
           else {
-            for(size_t shower_trackid = 0; shower_trackid<part_grp_v.size(); ++shower_trackid) {
+            //for(size_t shower_trackid = 0; shower_trackid<part_grp_v.size(); ++shower_trackid) {
+            for (auto it2=part_grp_v.begin(); it2!=part_grp_v.end(); ++it2) {
+              size_t shower_trackid = it2->first;
               if(shower_trackid == grp.part.parent_track_id() || !valid_v[shower_trackid]) continue;
               for(auto const& trackid : children_v[shower_trackid]) {
           if(trackid != grp.part.parent_track_id()) continue;
@@ -1013,7 +1027,7 @@ namespace larcv {
   }
 
 
-  void SuperaMCParticleCluster::MergeShowerDeltas(std::unordered_map<int, supera::ParticleGroup>& part_grp_v)
+  void SuperaMCParticleCluster::MergeShowerDeltas(std::map<int, supera::ParticleGroup>& part_grp_v)
   {
     for(auto& grp : part_grp_v) {
       //if(grp.second.type != supera::kDelta) continue;
@@ -1079,7 +1093,7 @@ namespace larcv {
   }
 
   void SuperaMCParticleCluster::MergeShowerTouchingLEScatter(const larcv::Voxel3DMeta& meta,
-                   std::unordered_map<int, supera::ParticleGroup>& part_grp_v)
+                   std::map<int, supera::ParticleGroup>& part_grp_v)
   {
     size_t merge_ctr=1;
     while(merge_ctr) {
@@ -1164,9 +1178,18 @@ namespace larcv {
 
     auto const& trackid2index = _mcpl.TrackIdToIndex();
     // Create ParticleGroup
-    LARCV_INFO() << "Creating ParticleGroups" << std::endl;
+    LARCV_DEBUG() << "Creating ParticleGroups" << std::endl;
     auto part_grp_v = this->CreateParticleGroups();
-
+    //print size of part_grp_v
+    LARCV_DEBUG() << "part_grp_v size = " << part_grp_v.size() << std::endl;
+    //Print sizes of first group elements
+    LARCV_DEBUG() << "First group elements: " << std::endl;
+    for(auto const& grp : part_grp_v) {
+        LARCV_DEBUG() << "Track ID " << grp.second.part.track_id() << " PDG " << grp.second.part.pdg_code()
+          << " " << grp.second.part.creation_process() << " " << grp.second.vs.size() << " voxels"
+          <<" ... parent Track ID " << grp.second.part.parent_track_id() << " PDG " << grp.second.part.parent_pdg_code() << std::endl;
+        break;
+    }
     // Fill Voxel Information
     LARCV_INFO() << "Analyzing SimChannel/SimEnergyDeposit" << std::endl;
     if(_use_sed) {
@@ -1178,6 +1201,7 @@ namespace larcv {
     } else {
       this->AnalyzeSimChannel(meta3d, part_grp_v, mgr);
     }
+    LARCV_DEBUG() << "part_grp_v size = " << part_grp_v.size() << std::endl;
     // Define particle first/last points based on SED
     LARCV_INFO() << "Analyzing First Step" << std::endl;
     if(_use_sed_points && !_use_sed) {
@@ -1187,6 +1211,7 @@ namespace larcv {
         this->AnalyzeFirstLastStep<supera::LArSimEnergyDeposit_t>(meta3d, part_grp_v);
       }
     }
+    LARCV_DEBUG() << "part_grp_v size = " << part_grp_v.size() << std::endl;
     /*
     std::cout<< "Listing non-zero voxel particles..." << std::endl;
     for(auto const& grp : part_grp_v) {
@@ -1200,18 +1225,22 @@ namespace larcv {
     // Merge fragments of showers
     LARCV_INFO() << "Merging: shower ionization" << std::endl;
     this->MergeShowerIonizations(part_grp_v);
+    LARCV_DEBUG() << "part_grp_v size = " << part_grp_v.size() << std::endl;
 
     // Merge touching LEScatter showers
     LARCV_INFO() << "Merging: touching LEScatters" << std::endl;
     this->MergeShowerTouchingLEScatter(meta3d,part_grp_v);
+    LARCV_DEBUG() << "part_grp_v size = " << part_grp_v.size() << std::endl;
 
     // Apply energy threshold
     LARCV_INFO() << "Applying energy threshold" << std::endl;
     this->ApplyEnergyThreshold(part_grp_v);
+    LARCV_DEBUG() << "part_grp_v size = " << part_grp_v.size() << std::endl;
 
     // Merge fragments of showers
     LARCV_INFO() << "Merging: shower conversions" << std::endl;
     this->MergeShowerConversion(part_grp_v);
+    LARCV_DEBUG() << "part_grp_v size = " << part_grp_v.size() << std::endl;
 
     // Merge touching shower fragments
     // Direct parentage between kShapeShower => kShapeShower/kShapeDelta/kShapeMichel
@@ -1225,7 +1254,7 @@ namespace larcv {
     // Merge touching showers in 2D
     LARCV_INFO() << "Merging: shower touching (2d)" << std::endl;
     this->MergeShowerTouching2D(part_grp_v);
-
+    LARCV_DEBUG() << "part_grp_v size = " << part_grp_v.size() << std::endl;
     // merge too small deltas into tracks
     if (_merge_shower_delta) {
       LARCV_INFO() << "Merging: delta rays" << std::endl;
@@ -1254,7 +1283,11 @@ namespace larcv {
     std::vector<int> output2trackid;
     output2trackid.reserve(trackid2index.size());
     LARCV_DEBUG() << "Filling output2trackid - part_grp_v size = " << part_grp_v.size() << std::endl;
-    for(size_t trackid=0; trackid<part_grp_v.size(); trackid++) {
+    //for(size_t trackid=0; trackid<part_grp_v.size(); trackid++) {
+    //for (size_t trackid = 0; trackid < trackid2index.size(); trackid++){
+    for(auto it = part_grp_v.begin(); it != part_grp_v.end(); ++it){
+      size_t trackid = it->first;
+      //LARCV_DEBUG() << "trackid = " << trackid << std::endl;
       auto& grp = part_grp_v[trackid];
       grp.part.energy_deposit((grp.vs.size() ? grp.vs.sum() : 0.));
       size_t output_counter = output2trackid.size();
@@ -1264,7 +1297,7 @@ namespace larcv {
         grp.part.group_id(output_counter);
       }
       else{ // Fix this by setting UseOrigTrackID: false in superaMCParticleCluster fcl
-        LARCV_DEBUG() << "***--- Laura debug " << grp.part.track_id() << " " << grp.valid << " " << grp.size_all() << " " << grp.shape() << " " << larcv::kShapeLEScatter << trackid << std::endl;
+        //LARCV_DEBUG() << "***--- Laura debug " << grp.part.track_id() << " " << grp.valid << " " << grp.size_all() << " " << grp.shape() << " " << larcv::kShapeLEScatter << trackid << std::endl;
         
         if(!grp.valid) continue;
         if(grp.size_all()<1) continue;
@@ -1282,6 +1315,8 @@ namespace larcv {
       ++output_counter;
       LARCV_DEBUG() << "Added to output2trackid " << grp.part.track_id() << std::endl;
     }
+
+    LARCV_DEBUG() << "part_grp_v size = " << part_grp_v.size() << std::endl;
 
 
     // Assign relationships
@@ -1306,6 +1341,7 @@ namespace larcv {
 
     // At this point, count total number of voxels (will be used for x-check later)
     size_t total_vs_size = 0;
+    LARCV_DEBUG() << "part_grp_v size = " << part_grp_v.size() << std::endl;
     for(auto& grp : part_grp_v) {
       if(!grp.second.valid) continue;
       if(grp.second.size_all()<1) continue;
@@ -1324,6 +1360,7 @@ namespace larcv {
 
     // loop over MCShower to assign parent/ancestor information
     LARCV_INFO() << "Processing MCShower array: " << mcs_v.size() << std::endl;
+    LARCV_DEBUG() << "part_grp_v size = " << part_grp_v.size() << std::endl;
     for(auto const& mcs : mcs_v) {
       int track_id = mcs.TrackID();
       if(track_id >= ((int)(trackid2output.size()))) {
@@ -1502,6 +1539,7 @@ namespace larcv {
 
 
     // Make sure the primary particle's parent and group id are set (they are themselves)
+    LARCV_DEBUG() << "part_grp_v size = " << part_grp_v.size() << std::endl;
     for(auto& grp : part_grp_v) {
       auto& part = grp.second.part;
       if(part.track_id() != part.parent_track_id()) continue;
@@ -1513,6 +1551,7 @@ namespace larcv {
     // For shower orphans, we need to register the most base shower particle in the output (for group)
     LARCV_INFO() << "Searching the root (group) for kShapeShower particles w/ invalid group id... ("
      << output2trackid.size() << " particles total)" << std::endl;
+    LARCV_DEBUG() << "part_grp_v size = " << part_grp_v.size() << std::endl;
     for(size_t out_index=0; out_index<output2trackid.size(); ++out_index) {
 
       int trackid = output2trackid[out_index];
@@ -1659,7 +1698,7 @@ namespace larcv {
       trackid2output[trackid] = group_id;
     }
 
-
+    LARCV_DEBUG() << "part_grp_v size = " << part_grp_v.size() << std::endl;
     // for shower particles with invalid parent ID, attempt a search
     LARCV_INFO() << "Searching parents for shower particles w/ invalid parent id... ("
      << output2trackid.size() << " particles total)" << std::endl;
@@ -1864,7 +1903,7 @@ namespace larcv {
         grp.part.group_id( part_grp_v[output2trackid[parent_partid]].part.group_id() );
       }
     }
-
+    LARCV_DEBUG() << "part_grp_v.size()=" << part_grp_v.size() << std::endl;
     // Next loop over to find any particle for which first_step is not defined
     LARCV_INFO() <<  "Check any particle's first step ... ("
      << output2trackid.size() << " particles total)" << std::endl;
@@ -1886,7 +1925,7 @@ namespace larcv {
       else grp.part.first_step(min_pt.x, min_pt.y, min_pt.z, grp.part.position().t());
 
     }
-
+    LARCV_DEBUG() << "part_grp_v.size()=" << part_grp_v.size() << std::endl;
     // Next define interaction id
     larcv::Vertex invalid_vtx;
     std::vector<larcv::Vertex> int2vtx;
@@ -1990,6 +2029,7 @@ namespace larcv {
       event_dedx_he->resize(output2trackid.size());
       event_dedx_le->resize(output2trackid.size());
     }
+    LARCV_DEBUG() << "part_grp_v.size()=" << part_grp_v.size() << std::endl;
     for(size_t index=0; index<output2trackid.size(); ++index) {
       int trackid = output2trackid[index];
       auto& grp   = part_grp_v[trackid];
@@ -2067,8 +2107,11 @@ namespace larcv {
 
     // Loop to store output cluster/semantic: low energy depositions
     //for(auto& grp : part_grp_v) {
-    for(size_t grp_idx=0; grp_idx<part_grp_v.size(); ++grp_idx) {
-      auto& grp = part_grp_v[grp_idx];
+    LARCV_DEBUG() << "part_grp_v.size()=" << part_grp_v.size() << std::endl;
+    //for(size_t grp_idx=0; grp_idx<part_grp_v.size(); ++grp_idx) {
+    for (auto it = part_grp_v.begin(); it != part_grp_v.end(); ++it) {
+      //auto& grp = part_grp_v[grp_idx];
+      auto& grp = it->second;
       if(!grp.valid) continue;
       if(grp.size_all()<1) continue;
       auto semantic = grp.shape();
@@ -2398,7 +2441,34 @@ namespace larcv {
     // Store output
     auto event_mcp = (EventParticle*)(mgr.get_data("particle",_output_label));
     event_mcp->emplace(std::move(part_v));
-
+    //Print out part_grp_v sizes
+    size_t print_cnter = 0;
+    size_t max_size_all = 0;
+    size_t max_size_vox = 0;
+    size_t max_size_dedx = 0;
+    size_t max_size_trackid = 0;
+    for (auto const& grp : part_grp_v) {
+      if (grp.second.size_all() < 1) continue;
+      if (grp.second.size_all() > max_size_all) max_size_all = grp.second.size_all();
+      if (grp.second.vs.size() > max_size_vox) max_size_vox = grp.second.vs.size();
+      if (grp.second.dedx.size() > max_size_dedx) max_size_dedx = grp.second.dedx.size();
+      if (grp.second.trackid_v.size() > max_size_trackid) max_size_trackid = grp.second.trackid_v.size();
+      if (print_cnter < 100){
+        LARCV_DEBUG() << "************************************" << std::endl;
+        LARCV_DEBUG() << "grp first: " << grp.first << std::endl;
+        LARCV_DEBUG() << "grp first element voxel size: " << grp.second.size_all() << std::endl;
+        LARCV_DEBUG() << "grp first element dedx size: " << grp.second.dedx.size() << std::endl;
+        LARCV_DEBUG() << "grp first element trackid size: " << grp.second.trackid_v.size() << std::endl;
+        //LARCV_DEBUG() << "grp part dump: " << grp.second.part << std::endl;
+      }
+      print_cnter++;
+    }
+    LARCV_DEBUG() << "total elements with size_all > 0: " << print_cnter << std::endl;
+    LARCV_DEBUG() << "max size_all: " << max_size_all << std::endl;
+    LARCV_DEBUG() << "max size_vox: " << max_size_vox << std::endl;
+    LARCV_DEBUG() << "max size_dedx: " << max_size_dedx << std::endl;
+    LARCV_DEBUG() << "max size_trackid: " << max_size_trackid << std::endl;
+    LARCV_DEBUG() << "part_grp_v size: " << part_grp_v.size() << std::endl;
     return true;
   }
 
@@ -2441,7 +2511,7 @@ namespace larcv {
 
   std::vector<unsigned int>
   SuperaMCParticleCluster::ParentShowerTrackIDs(size_t trackid,
-            const std::unordered_map<int, supera::ParticleGroup>& part_grp_v,
+            const std::map<int, supera::ParticleGroup>& part_grp_v,
             bool include_lescatter) const
   {
     auto parents = this->ParentTrackIDs(trackid);
@@ -2469,7 +2539,7 @@ namespace larcv {
   }
 
   void SuperaMCParticleCluster::DumpHierarchy(size_t trackid,
-                const std::unordered_map<int, supera::ParticleGroup>& part_grp_v) const
+                const std::map<int, supera::ParticleGroup>& part_grp_v) const
   {
     assert(trackid < part_grp_v.size());
 
