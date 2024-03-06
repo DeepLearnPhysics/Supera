@@ -1,10 +1,13 @@
+#B. Carlson
+#bcarlson1@ufl.edu
+
 ProcessDriver: {
 
   Verbosity:    2
   EnableFilter: true
   RandomAccess: false
-  ProcessType:  ["SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D"]
-  ProcessName:  ["MultiPartVrtx","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePointCryoW","Tensor3DFromCluster3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3DCryoW"]
+  ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","CombineTensor3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D"]
+  ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","Tensor3DFromCluster3D","CombineTensor3DGhost","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D"]
 
   IOManager: {
     Verbosity:   2
@@ -23,17 +26,23 @@ ProcessDriver: {
       MinVoxel3DCountList:  [1]
     }
 
-    RescaleChargeTensor3DCryoW: {
-      HitKeyProducerList:    ["reco_cryoW_hit_key0","reco_cryoW_hit_key1","reco_cryoW_hit_key2"]
-      HitChargeProducerList: ["reco_cryoW_hit_charge0","reco_cryoW_hit_charge1","reco_cryoW_hit_charge2"]
-      OutputProducer:        "reco_cryoW_rescaled"
+    RescaleChargeTensor3D: {
+      HitKeyProducerList:    ["reco_hit_key0","reco_hit_key1","reco_hit_key2"]
+      HitChargeProducerList: ["reco_hit_charge0","reco_hit_charge1","reco_hit_charge2"]
+      OutputProducer:        "reco_rescaled"
       ReferenceProducer:     "pcluster"
     }
 
     ThresholdTensor3D: { # fill with ghost value (5)
-      TargetProducer: "reco_cryoW"
+      TargetProducer: "pcluster_semantics_ghost"
       OutputProducer: "pcluster_semantics_ghost"
       PaintValue: 5
+    }
+
+    CombineTensor3DGhost: { # Combine voxels
+      OutputProducer: "pcluster_semantics_ghost"
+      Tensor3DProducers: ["reco"]
+      PoolType: 0
     }
 
     CombineTensor3D: {
@@ -44,52 +53,56 @@ ProcessDriver: {
 
     SuperaMCParticleCluster: {
       OutputLabel: "pcluster"
-      LArMCParticleProducer: "largeant"
+      LArMCParticleProducer: "simplemerge"
       LArMCShowerProducer: "mcreco"
       LArMCTrackProducer:  "mcreco"
-      LArMCMiniPartProducer: "largeant"
       DeltaSize: 10
-      #LArSimEnergyDepositProducer: "largeant TPCActive"
+      #LArSimEnergyDepositProducer: "ionandscintout"
       LArSimEnergyDepositLiteProducer: "sedlite"
       Meta3DFromCluster3D: "mcst"
       Meta2DFromTensor2D:  ""
-      Verbosity: 1
-      UseSimEnergyDeposit: false #true
-      UseSimEnergyDepositLite: false #true
-      UseSimEnergyDepositPoints: false #true
+      Verbosity: 2
+      UseSimEnergyDeposit: false
+      UseSimEnergyDepositLite: true
+      UseSimEnergyDepositPoints: true
       UseOrigTrackID: true
-      CryostatList: [0,0,0,0,1,1,1,1]
-      TPCList: [0,1,2,3,0,1,2,3]
+      CryostatList: [0,0]
+      TPCList: [0,1]
       PlaneList: []
-      #SemanticPriority: [2,1,0,3,4] # 0-4 for shower track michel delta LE-scattering
       SemanticPriority: [1,2,0,3,4] # 0-4 for shower track michel delta LE-scattering
-
       SuperaTrue2RecoVoxel3D: {
-        DebugMode: false
-        Verbosity: 1
+        UseOrigTrackID: true
+        DebugMode: true
+        Profile: true
+        Verbosity: 2
         Meta3DFromCluster3D: "pcluster"
-        #LArSimChProducer: "largeant"
-	LArSimChProducer: "daq simpleSC"
-        LArSpacePointProducers: ["cluster3DCryoW"]
+        LArSimChProducer: "simtpc2d simpleSC"
+        LArSpacePointProducers: ["cluster3d"]
+        OutputTensor3D:  "masked_true"
+        OutputCluster3D: "masked_true2reco"
         TwofoldMatching: true
         UseTruePosition: true
-        HitThresholdNe: 100
-        HitWindowTicks: 15 #5
+        HitThresholdNe: 175
+        HitWindowTicks: 5 #15
         HitPeakFinding: false
         PostAveraging: true
         PostAveragingThreshold_cm: 0.425
         DumpToCSV: false
         RecoChargeRange: [-1000,50000]
-				VoxelDistanceThreshold: 3.
-        UseOrigTrackID: true
+				VoxelDistanceThreshold: 1. #3
       }
     }
 
     MultiPartVrtx: {
-      Verbosity: 0
-      #LArMCTruthProducer: "generator"
-      MCTruthProducers: ["generator","cosmgen"]
+      Verbosity: 2
+      LArMCTruthProducer: "generator"
       OutParticleLabel: "mpv"
+      Origin: 0
+    }
+    MultiPartRain: {
+      Verbosity: 2
+      LArMCTruthProducer: "rain"
+      OutParticleLabel: "mpr"
       Origin: 0
     }
 
@@ -101,23 +114,17 @@ ProcessDriver: {
 			UseSEDLite: true
       Origin: 0
       Cluster3DLabels: ["mcst","pcluster","sed","masked_true2reco"]
-      Tensor3DLabels:  ["reco_cryoW","pcluster_index","masked_true"]
-      #BBoxSize: [230.4,230.4,230.4]
-      BBoxSize: [1843.2,1843.2,1843.2] # Covers the whole detector with the smallest possible cube -> yields 6144 = 1024*6 px
-      #BBoxBottom: [-460.8,-230.4,-921.6]
-      #BBoxSize: [1789.902,1789.902,1789.902]
-      #BBoxBottom: [-358.49,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml
-      #BBoxBottom: [-412.788,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml taking readout window into account
-			# 358.49+340*1.6/10 = 412.89
-      BBoxBottom: [-412.89,-181.86,-894.951] # geometry from icarus_complete_20210527_no_overburden.gdml taking readout window into account
-      UseFixedBBox: true
+      Tensor3DLabels:  ["reco","pcluster_index","masked_true"]
+      BBoxSize: [614.4, 614.4, 614.4] # 2048 pixels of 0.3 mm
+      BBoxBottom: [-307.2, -307.2, -57.4] # centered on the detector center with some padding
       VoxelSize: [0.3,0.3,0.3]
-      CryostatList: [0,0,0,0,1,1,1,1]
-      TPCList: [0,1,2,3,0,1,2,3]
+      UseFixedBBox: true
+      CryostatList: [0,0]
+      TPCList: [0,1]
     }
 
     SuperaSimEnergyDeposit: {
-      Verbosity: 1
+      Verbosity: 2
       #LArSimEnergyDepositProducer: "largeant TPCActive"
       LArSimEnergyDepositLiteProducer: "sedlite"
       LArMCShowerProducer: "mcreco"
@@ -130,8 +137,8 @@ ProcessDriver: {
       StoreDiffTime: false
       StoreAbsTime: true
       StoreDEDX: false
-      TPCList: [0,1,2,3,0,1,2,3]
-      CryostatList: [0,0,0,0,1,1,1,1]
+      TPCList: [0,1]
+      CryostatList: [0,0]
     }
 
     ParticleCorrector: {
@@ -151,11 +158,11 @@ ProcessDriver: {
       FixedPIList: [0.,0.]
     }
 
-    SuperaSpacePointCryoW: {
+    SuperaSpacePoint: {
       Verbosity: 2
-      SpacePointProducers: ["cluster3DCryoW"]
-      OutputLabel:        "reco_cryoW"
-      DropOutput: ["hit_amp","hit_time","hit_rms","hit_mult","nhits","occupancy"]
+      SpacePointProducers: ["cluster3d"]
+      OutputLabel:        "reco"
+      DropOutput: ["hit_amp","hit_rms","hit_mult"]
       StoreWireInfo: true
       RecoChargeRange: [-1000, 50000]
     }

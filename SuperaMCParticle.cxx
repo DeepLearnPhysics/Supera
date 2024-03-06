@@ -55,6 +55,7 @@ namespace larcv {
 
   bool SuperaMCParticle::process(IOManager& mgr)
   {
+    LARCV_DEBUG() << "****---- process MCParticle" <<std::endl;
     SuperaBase::process(mgr);
 
     auto const& part_v = LArData<supera::LArMCParticle_t>();
@@ -68,8 +69,9 @@ namespace larcv {
       if( abs(p.PdgCode()) != 11) continue;
       if( p.Process() != "muIoni" ) continue;
       if( track_ids[p.Mother()] != 13 ) continue;
-      std::cout<<"LOGME "<<p.E()*1000.<<std::endl;
+      LARCV_DEBUG() <<"LOGME "<<p.E()*1000.<<std::endl;
     }
+    
     return true;
     larcv::Voxel3DMeta meta;
     if(!_ref_meta3d_cluster3d.empty()) {
@@ -126,7 +128,7 @@ namespace larcv {
       // at this point we decided to store primary. create one
       //_part_v.resize(_part_v.size() + 1);
       //auto& pri_part = _part_v.back();
-
+      LARCV_DEBUG() << "****---- pri_part" << std::endl;
       auto pri_part = MakeParticle(primary,meta);
       _part_v.push_back(std::move(pri_part));
 
@@ -158,6 +160,7 @@ namespace larcv {
         }
         larcv::Particle sec_part;
         try {
+    LARCV_DEBUG() << "****---- sec_part" << std::endl;      
 	  sec_part = MakeParticle(daughter,meta);
 	} catch (const larcv::larbys& err) {
           LARCV_NORMAL() << "Skipping a secondary (PDG,TrackID) = ("
@@ -222,13 +225,16 @@ namespace larcv {
   larcv::Particle SuperaMCParticle::MakeParticle(const supera::MCNode & node,
 						 const larcv::Voxel3DMeta& meta) const
   {
+    LARCV_DEBUG()<<"***--- SuperaMCParticle::MakeParticle" << std::endl;
     larcv::Particle res;
     if (node.source_type == supera::MCNode::SourceType_t::kMCTrack) {
+      LARCV_DEBUG() << "**-- supera::MCNode::SourceType_t::kMCTrack" <<std::endl;
       auto const& mctrack = LArData<supera::LArMCTrack_t>().at(node.source_index);
       res = _mcpart_maker.MakeParticle(mctrack,meta);
       res.mcst_index(node.source_index);
     }
     else if (node.source_type == supera::MCNode::SourceType_t::kMCShower) {
+      LARCV_DEBUG() << "**-- supera::MCNode::SourceType_t::kMCTrack" <<std::endl;
       auto const& mcshower = LArData<supera::LArMCShower_t>().at(node.source_index);
       res = _mcpart_maker.MakeParticle(mcshower);
       res.mcst_index(node.source_index);

@@ -167,6 +167,7 @@ namespace larcv {
   std::map<int, supera::ParticleGroup> 
   SuperaMCParticleCluster::CreateParticleGroups()
   {
+    LARCV_DEBUG() << "****---- CreateParticleGroups" << std::endl;
     const larcv::Particle invalid_part;
     auto const& larmcp_v = LArData<supera::LArMCParticle_t>();
     auto const& parent_pdg_v = _mcpl.ParentPdgCode();
@@ -186,6 +187,7 @@ namespace larcv {
       if(pdg_code > 1000000) continue;
 
       supera::ParticleGroup grp(_valid_nplanes);
+      LARCV_DEBUG() << "grp.part make particle" << std::endl;
       grp.part = this->MakeParticle(mcpart);
 
       if(mother_index >= 0)
@@ -464,7 +466,7 @@ namespace larcv {
           pt.x = x_pos;
           pt.y = edep.y;
           pt.z = edep.z;
-          pt.e = edep.energy;
+          pt.e = edep.energy/3.; // accounting for up to x3 overestimation due to looping over 3 planes
 
           if(_use_true_pos)
             pt.x = edep.x;
@@ -1137,6 +1139,7 @@ namespace larcv {
     _meta2d_v.resize(_valid_nplanes);
     for(size_t cryo_id=0; cryo_id < _scan.size(); cryo_id++) {
       for(size_t tpc_id=0; tpc_id < _scan[cryo_id].size(); tpc_id++) {
+        LARCV_DEBUG() << "***--- cryo, tpc " << cryo_id << ", " << tpc_id <<std::endl;
         for(size_t plane_id=0; plane_id < _scan[cryo_id][tpc_id].size(); ++plane_id) {
           auto meta2d_idx = _scan[cryo_id][tpc_id][plane_id];
           if(meta2d_idx < 0) continue;
@@ -1155,6 +1158,7 @@ namespace larcv {
     // Build MCParticle List
     auto const& larmcp_v = LArData<supera::LArMCParticle_t>();
     LARCV_DEBUG() << "larmcp_v size = " << larmcp_v.size() << std::endl;
+
     auto const *ev = GetEvent();
     _mcpl.Update(larmcp_v,ev->id().run(),ev->id().event());
 
@@ -1413,9 +1417,13 @@ namespace larcv {
     // loop over MCTrack to assign parent/ancestor information
     auto const& mct_v = LArData<supera::LArMCTrack_t>();
     LARCV_INFO() << "Processing MCTrack array: " << mct_v.size() << std::endl;
+    //for (auto const& out_id : trackid2output){
+    //  LARCV_DEBUG() << "***--- out_id " << out_id << std::endl;
+    //}
     for(auto const& mct : mct_v) {
       int track_id  = mct.TrackID();
       int output_id = trackid2output[track_id];
+
       //int group_id  = -1;
       int group_id  = output_id;
       LARCV_DEBUG() << "*****----- track ancestor before output id: "<< output_id << " -- " << "track id " << track_id << 
@@ -1460,6 +1468,21 @@ namespace larcv {
         grp.part.ancestor_track_id(mct.AncestorTrackID());
         grp.part.ancestor_pdg_code(mct.AncestorPdgCode());
         grp.part.ancestor_creation_process(mct.AncestorProcess());
+        /* for showers
+                  grp.part.first_step(mcs.DetProfile().X(),mcs.DetProfile().Y(),mcs.DetProfile().Z(),mcs.DetProfile().T());
+        grp.part.parent_position(mcs.MotherStart().X(),
+               mcs.MotherStart().Y(),
+               mcs.MotherStart().Z(),
+               mcs.MotherStart().T());
+        grp.part.parent_creation_process(mcs.MotherProcess());
+        grp.part.ancestor_position(mcs.AncestorStart().X(),
+                 mcs.AncestorStart().Y(),
+                 mcs.AncestorStart().Z(),
+                 mcs.AncestorStart().T());
+        grp.part.ancestor_track_id(mcs.AncestorTrackID());
+        grp.part.ancestor_pdg_code(mcs.AncestorPdgCode());
+        grp.part.ancestor_creation_process(mcs.AncestorProcess());
+        */
       }
       for(size_t output_index=0; output_index<output2trackid.size(); ++output_index) {
         int output_trackid = output2trackid[output_index];

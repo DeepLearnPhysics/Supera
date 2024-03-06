@@ -1,0 +1,83 @@
+#B. Carlson
+#bcarlson1@ufl.edu
+
+#include "cluster_sbnd.fcl"
+#include "services_sbnd.fcl"
+#include "simulationservices_sbnd.fcl"
+#include "rootoutput_sbnd.fcl"
+#include "simplemerge.fcl" 
+
+process_name: supera
+
+services:
+{
+  @table::sbnd_services
+  @table::sbnd_random_services
+}
+
+source:
+{
+  module_type: RootInput
+}
+
+physics:
+{
+
+ producers:
+ {
+   rns:      { module_type: "RandomNumberSaver" }
+   cluster3d: @local::standard_cluster3d
+   simplemerge: @local::simplemerge
+ }
+ analyzers:
+ { supera: {
+            module_type:     "LArSoftSuperaDriver"
+            supera_params:   "supera_sbnd_mpvmpr.fcl"
+            out_filename:    "larcv.root"
+            unique_filename: false
+            stream:          "mc"
+            StrictDataLoading: false
+            }
+ }
+
+ simulate: [ rns, simplemerge, cluster3d] # you DO want to run cluster3d            
+ analyze:  [ supera ] # that's ok
+ stream:  [ out1 ]
+ trigger_paths: [ simulate ]
+ end_paths:     [analyze, stream] # get both larcv and larsoft output
+}
+
+outputs:
+{
+ out1:
+ {
+   @table::sbnd_rootoutput
+   dataTier:    "supera"
+   fastCloning: false
+ }
+}
+
+services.TFileService.fileName: "ana.root"
+
+# 
+# MCParticle Merger
+#
+
+physics.producers.simplemerge.InputSourcesLabels: ["largeant","largeant:droppedMCParticles"]
+
+services.message.destinations :
+{
+  STDCOUT:
+  {
+     type:      "cout"      #tells the message service to output this destination to cout
+     threshold: "INFO"      #tells the message service that this destination applies to WARNING and higher level messages
+     categories:
+     {
+       default:
+       {
+         limit:       1000  #don't print anything at the infomsg level except the explicitly named categories
+         reportEvery: 1
+       }
+     }
+  }
+}
