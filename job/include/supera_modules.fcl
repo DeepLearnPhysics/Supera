@@ -146,7 +146,7 @@ icarus_supera_cosmgen: {
 }
 
 # Cosmgen only / Both cryostats / PMT+CRT included
-icarus_supera_cosmgen_cryoE_PMT_CRT: {
+icarus_supera_cosmgen_all_cryo_PMT_CRT: {
   @table::icarus_supera_MC_all_cryo
   supera_params: "supera_icarus_cosmgen_all_cryo_PMT_CRT.fcl"
   out_filename: "larcv.root"
