@@ -152,4 +152,14 @@ icarus_supera_cosmgen_all_cryo_PMT_CRT: {
   out_filename: "larcv.root"
 }
 
+# ------------------------------------------------------------
+# 4. For MPVMPR, expect generator + rain + rain2
+# ------------------------------------------------------------
+
+icarus_supera_MC_MPVMPR_cryoE_PMT_CRT: {
+  @table::icarus_supera_MC_all_cryo
+  supera_params: "supera_icarus_MC_MPVMPR_cryoE_PMT_CRT.fcl"
+}
+
+
 END_PROLOG
