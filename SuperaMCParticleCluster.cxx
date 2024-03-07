@@ -1172,6 +1172,8 @@ namespace larcv {
       }
     } else {
       this->AnalyzeSimChannel(meta3d, part_grp_v, mgr);
+      // run AnalyzeFirstLastStep after AnalyzeSimChannel
+      this->AnalyzeFirstLastStep<supera::LArSimEnergyDepositLite_t>(meta3d, part_grp_v);
     }
     // Define particle first/last points based on SED
     LARCV_INFO() << "Analyzing First Step" << std::endl;
@@ -1182,10 +1184,7 @@ namespace larcv {
         this->AnalyzeFirstLastStep<supera::LArSimEnergyDeposit_t>(meta3d, part_grp_v);
       }
     }
-    else{
-      // Try running this function after AnalyzeSimChannel
-      this->AnalyzeFirstLastStep<supera::LArSimEnergyDepositLite_t>(meta3d, part_grp_v);
-    }
+
     /*
     std::cout<< "Listing non-zero voxel particles..." << std::endl;
     for(auto const& grp : part_grp_v) {
