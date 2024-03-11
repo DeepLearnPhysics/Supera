@@ -50,6 +50,10 @@ namespace larcv {
     _use_sed = cfg.get<bool>("UseSimEnergyDeposit", true);
     _use_sed_lite = cfg.get<bool>("UseSimEnergyDepositLite", false);
 
+    _use_sed_for_firstlast = cfg.get<bool>("UseSimEnergyDeposit_for_FirstLastStep", false);
+    _use_sedlite_for_firstlast = cfg.get<bool>("UseSimEnergyDepositLite_for_FirstLastStep", true);
+
+
     _use_sed_points = cfg.get<bool>("UseSimEnergyDepositPoints");
     _store_dedx = cfg.get<bool>("StoreDEDX",false);
     _use_true_pos = cfg.get<bool>("UseTruePosition",true);
@@ -1173,7 +1177,13 @@ namespace larcv {
     } else {
       this->AnalyzeSimChannel(meta3d, part_grp_v, mgr);
       // run AnalyzeFirstLastStep after AnalyzeSimChannel
-      this->AnalyzeFirstLastStep<supera::LArSimEnergyDepositLite_t>(meta3d, part_grp_v);
+      if (_use_sedlite_for_firstlast) {
+	
+	this->AnalyzeFirstLastStep<supera::LArSimEnergyDepositLite_t>(meta3d, part_grp_v);
+      }
+      else if (_use_sed_for_firstlast){
+	this->AnalyzeFirstLastStep<supera::LArSimEnergyDeposit_t>(meta3d, part_grp_v);
+      }
     }
     // Define particle first/last points based on SED
     LARCV_INFO() << "Analyzing First Step" << std::endl;
