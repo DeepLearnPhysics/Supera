@@ -103,6 +103,8 @@ namespace larcv {
     bool _use_true_pos;
     bool _use_sed;
 		bool _use_sed_lite;
+		bool _use_sedlite_for_firstlast;
+		bool _use_sed_for_firstlast;
     bool _check_particle_validity;
     int  _projection_id;
     bool _merge_shower_delta;
