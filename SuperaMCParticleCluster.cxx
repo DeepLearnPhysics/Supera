@@ -1613,14 +1613,14 @@ namespace larcv {
       for(auto const& child_id : root.part.children_id()) {
         auto& child = part_grp_v[output2trackid[child_id]];
         if(!child.valid) continue;
-        assert(child.part.group_id() == larcv::kINVALID_INSTANCEID || child.part.group_id() == root_id);
+        assert(child.part.group_id() == larcv::kINVALID_INSTANCEID || ((int)(child.part.group_id())) == root_id);
         child.part.group_id(root_id);
       }
       // Set the group ID for THIS + intermediate particles
       for(auto const& child_trackid : intermediate_trackid_v) {
         auto& child = part_grp_v[child_trackid];
         if(!child.valid) continue;
-        assert(child.part.group_id() == larcv::kINVALID_INSTANCEID || child.part.group_id() == root_id);
+        assert(child.part.group_id() == larcv::kINVALID_INSTANCEID || ((int)(child.part.group_id())) == root_id);
         child.part.group_id(root_id);
       }
 
