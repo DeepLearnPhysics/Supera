@@ -14,8 +14,8 @@ namespace supera {
 
   ::geo::WireID ChannelToWireID(unsigned int ch)
   {
-      auto const* geom = ::lar::providerFrom<geo::Geometry>();
-      return geom->ChannelToWire(ch).front();
+      auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
+      return wireReadout.ChannelToWire(ch).front();
   }
 
   double ChannelToImageX(unsigned int ch)
@@ -47,8 +47,8 @@ namespace supera {
 
   unsigned int Nchannels()
   {
-    auto const* geom = ::lar::providerFrom<geo::Geometry>();
-    return geom->Nchannels();
+    auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
+    return wireReadout.Nchannels();
   }
   /*
   unsigned int Nplanes()
@@ -175,7 +175,7 @@ namespace supera {
 
   double PlaneTickOffset(size_t plane0, size_t plane1)
   {
-    static double pitch = ::lar::providerFrom<geo::Geometry>()->PlanePitch(geo::TPCID{0, 0});
+    static double pitch = art::ServiceHandle<geo::WireReadout>()->Get().PlanePitch(geo::TPCID{0, 0});
     static double tick_period = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob().TPCClock().TickPeriod();
     return (plane1 - plane0) * pitch / DriftVelocity() / tick_period;
   }

@@ -94,14 +94,13 @@ namespace larcv {
 
     _scan.clear();
     _scan.resize(geop->Ncryostats());
-    for(size_t c=0; c<_scan.size(); ++c) {
-      auto const& cryostat = geop->Cryostat(geo::CryostatID(c));
-      auto& scan_cryo = _scan[c];
+    auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
+    for(geo::CryostatGeo const& cryostat : geop->Iterate<geo::CryostatGeo>()) {
+      auto& scan_cryo = _scan[cryostat.ID().Cryostat];
       scan_cryo.resize(cryostat.NTPC());
-      for(size_t tpcid=0; tpcid<scan_cryo.size(); ++tpcid) {
-        auto const& tpc = cryostat.TPC(tpcid);
-        auto& scan_tpc = scan_cryo[tpcid];
-        scan_tpc.resize(tpc.Nplanes(),-1);
+      for(geo::TPCID const& tpcid : geop->Iterate<geo::TPCID>(cryostat.ID())) {
+        auto& scan_tpc = scan_cryo[tpcid.TPC];
+        scan_tpc.resize(wireReadout.Nplanes(tpcid),-1);
       }
     }
     //for(size_t cryo_id=0; cryo_id<_scan.size(); ++cryo_id){
@@ -118,7 +117,7 @@ namespace larcv {
           throw larbys();
         }
         auto const& tpc = cryostat.TPC(t);
-        if(!tpc.HasPlane(p)) {
+        if(!wireReadout.HasPlane({tpc.ID(), p})) {
           LARCV_CRITICAL() << "Invalid TPCList: cryostat " << c << " TPC " << t
                << " does not contain plane " << p << std::endl;
           throw larbys();
@@ -168,7 +167,7 @@ namespace larcv {
     return _scan[cryo_id][tpc_id][plane_id];
   }
 
-  std::map<int, supera::ParticleGroup> 
+  std::map<int, supera::ParticleGroup>
   SuperaMCParticleCluster::CreateParticleGroups()
   {
     LARCV_DEBUG() << "****---- CreateParticleGroups" << std::endl;
@@ -237,7 +236,7 @@ namespace larcv {
       LARCV_DEBUG() << "***--- first_step in for loop " << grp.part.first_step().x() <<
       "Track ID " << grp.part.track_id() << " PDG " << grp.part.pdg_code() << " " << grp.part.creation_process()
          <<" ... parent Track ID " << grp.part.parent_track_id() << " PDG " << grp.part.parent_pdg_code() << std::endl;
-      
+
     }
 
     // fill parentage information
@@ -407,7 +406,7 @@ namespace larcv {
   {
     //std::set<size_t> ctr_a, ctr_b;
 
-    auto geop = lar::providerFrom<geo::Geometry>();
+    auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
     auto const& sch_v = LArData<supera::LArSimCh_t>();
     LARCV_INFO() << "Processing SimChannel array: " << sch_v.size() << std::endl;
 
@@ -444,7 +443,7 @@ namespace larcv {
       // Check if should use this channel (3d)
       analyze3d = (_projection_id < 0 || _projection_id == (int)(::supera::ChannelToProjectionID(ch)));
       // Check if should use this channel (2d)
-      auto wid_v = geop->ChannelToWire(ch);
+      auto wid_v = wireReadout.ChannelToWire(ch);
       assert(wid_v.size() == 1);
       auto const& wid = wid_v[0];
       auto vs2d_idx = this->plane_index(wid.Cryostat,wid.TPC,wid.Plane);
@@ -1280,7 +1279,7 @@ namespace larcv {
       }
       else{ // Fix this by setting UseOrigTrackID: false in superaMCParticleCluster fcl
         //LARCV_DEBUG() << "***--- Laura debug " << grp.part.track_id() << " " << grp.valid << " " << grp.size_all() << " " << grp.shape() << " " << larcv::kShapeLEScatter << trackid << std::endl;
-        
+
         if(!grp.valid) continue;
         if(grp.size_all()<1) continue;
         if(grp.shape() == larcv::kShapeLEScatter) continue;
@@ -1366,7 +1365,7 @@ namespace larcv {
         }
         */
         // see if first step is not set yet
-        LARCV_DEBUG() << "*****----- shower ancestor before output id: "<< output_id << " -- " << "track id " << track_id << 
+        LARCV_DEBUG() << "*****----- shower ancestor before output id: "<< output_id << " -- " << "track id " << track_id <<
       " mother information " << mcs.MotherStart().X() <<" , "<<
                mcs.MotherStart().Y() << " , " <<
                mcs.MotherStart().Z() << " , " <<
@@ -1438,7 +1437,7 @@ namespace larcv {
 
       //int group_id  = -1;
       int group_id  = output_id;
-      LARCV_DEBUG() << "*****----- track ancestor before output id: "<< output_id << " -- " << "track id " << track_id << 
+      LARCV_DEBUG() << "*****----- track ancestor before output id: "<< output_id << " -- " << "track id " << track_id <<
       " mother information " << mct.MotherStart().X() <<" , "<<
                mct.MotherStart().Y() << " , " <<
                mct.MotherStart().Z() << " , " <<

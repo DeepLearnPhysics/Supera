@@ -315,7 +315,7 @@ namespace larcv {
         if (_drop_output.count(name) == 1) return;
         //auto &tensor = reinterpret_cast<larcv::EventSparseTensor3D>(
         std::string label = _output_label;
-	      if(!name.empty()) label = label + "_" + name;
+              if(!name.empty()) label = label + "_" + name;
         auto &tensor = mgr.get_data<larcv::EventSparseTensor3D>(label);
         tensor.emplace(std::move(vset), meta);
     };

@@ -4,6 +4,7 @@
 #include "SuperaWire.h"
 #include "larcv/core/DataFormat/EventVoxel2D.h"
 #include "larcv/core/DataFormat/EventVoxel3D.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
 
 namespace larcv {
 
@@ -45,15 +46,14 @@ namespace larcv {
     auto plane_v      = cfg.get<std::vector<unsigned short> >("PlaneList");
 
     auto geop = lar::providerFrom<geo::Geometry>();
+    auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
     _scan.resize(geop->Ncryostats());
-    for(size_t cryoid=0; cryoid<_scan.size(); ++cryoid) {
-      auto const& cryostat = geop->Cryostat(geo::CryostatID(cryoid));
-      auto& scan_cryo = _scan[cryoid];
+    for(geo::CryostatGeo const& cryostat : geop->Iterate<geo::CryostatGeo>()) {
+      auto& scan_cryo = _scan[cryostat.ID().Cryostat];
       scan_cryo.resize(cryostat.NTPC());
-      for(size_t tpcid=0; tpcid<scan_cryo.size(); ++tpcid) {
-	auto const& tpc = cryostat.TPC(tpcid);
-	auto& scan_tpc = scan_cryo[tpcid];
-	scan_tpc.resize(tpc.Nplanes(),-1);
+      for(geo::TPCID const& tpcid : geop->Iterate<geo::TPCID>(cryostat.ID())) {
+        auto& scan_tpc = scan_cryo[tpcid.TPC];
+        scan_tpc.resize(wireReadout.Nplanes(tpcid),-1);
       }
     }
 
@@ -64,11 +64,10 @@ namespace larcv {
 	_scan.resize(cryo_id+1);
       for(auto const& tpc_id : tpc_v) {
 	if(!cryostat.HasTPC(tpc_id)) continue;
-	auto const& tpc = cryostat.TPC(tpc_id);
 	if(_scan[cryo_id].size() <= tpc_id)
 	  _scan[cryo_id].resize(tpc_id+1);
 	for(auto const& plane_id : plane_v) {
-	  if(!tpc.HasPlane(plane_id)) continue;
+          if(!wireReadout.HasPlane({cryo_id, tpc_id, plane_id})) continue;
 	  if(_scan[cryo_id][tpc_id].size()<=plane_id)
 	    _scan[cryo_id][tpc_id].resize(plane_id+1);
 	  _scan[cryo_id][tpc_id][plane_id] = _valid_nplanes;
@@ -81,16 +80,18 @@ namespace larcv {
   void SuperaWire::initialize()
   { SuperaBase::initialize(); }
 
-  std::pair<size_t,size_t> SuperaWire::time_range(const geo::TPCGeo& tpc_geo,
+  std::pair<size_t,size_t> SuperaWire::time_range(const geo::TPCID& tpc_id,
 						  const double x_min,
 						  const double x_max)
   {
     LARCV_INFO() << "(xmin,xmax) = (" << x_min << "," << x_max << ")" << std::endl;
-    auto pt = tpc_geo.ReferencePlane().GetCenter();
-    pt.SetXYZ(x_min,pt.Y(),pt.Z());
-    double dist_min = tpc_geo.DistanceFromReferencePlane(pt);
-    pt.SetXYZ(x_max,pt.Y(),pt.Z());
-    double dist_max = tpc_geo.DistanceFromReferencePlane(pt);
+    auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
+    auto const& reference_plane = wireReadout.Plane({tpc_id, 0});
+    auto pt = reference_plane.GetCenter();
+    pt.SetX(x_min);
+    double dist_min = reference_plane.DistanceFromPlane(pt);
+    pt.SetX(x_max);
+    double dist_max = reference_plane.DistanceFromPlane(pt);
     if(dist_min > dist_max) std::swap(dist_min,dist_max);
 
     double min_time = (dist_min/supera::DriftVelocity() - supera::TriggerOffsetTPC()) / supera::TPCTickPeriod();
@@ -221,7 +222,7 @@ namespace larcv {
     std::vector<larcv::ImageMeta> meta2d_v(_valid_nplanes);
 
     // First loop over configured planes and set the valid meta2d attributes (i.e. data)
-    auto geop = lar::providerFrom<geo::Geometry>();
+    auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
     for(unsigned int cryo_id=0; cryo_id<_scan.size(); ++cryo_id) {
       auto const& tpcs =  _scan.at(cryo_id);
       for(unsigned int tpc_id=0; tpc_id<tpcs.size(); ++tpc_id) {
@@ -232,15 +233,14 @@ namespace larcv {
 	  // get the meta
 	  auto& meta2d = meta2d_v.at(planes.at(plane_id));
 	  // look up yz boundary
-          auto const& plane_geo = geop->Plane({cryo_id, tpc_id, plane_id});
+          auto const& plane_geo = wireReadout.Plane({cryo_id, tpc_id, plane_id});
 	  geo::Point_t min_pt3d, max_pt3d;
 	  min_pt3d.SetXYZ(meta3d.bottom_left().x,meta3d.bottom_left().y,meta3d.bottom_left().z);
 	  max_pt3d.SetXYZ(meta3d.top_right().x,meta3d.top_right().y,meta3d.top_right().z);
 	  // Find the wire range
 	  auto wrange = this->wire_range(plane_geo,min_pt3d,max_pt3d);
 	  // Next look up x boundary
-          auto const& tpc_geo = geop->TPC({cryo_id, tpc_id});
-	  auto trange = this->time_range(tpc_geo,min_pt3d.X(),max_pt3d.X());
+          auto trange = this->time_range({cryo_id, tpc_id},min_pt3d.X(),max_pt3d.X());
 	  // Now you have x (wire) and y (time) range to store. Record in meta2d
 	  meta2d = ImageMeta(wrange.first, trange.first, wrange.second+1, trange.second+1,
 			     _npx_rows, _npx_columns, cryo_id*100+tpc_id*10+plane_id, larcv::kUnitCM);	  
@@ -256,7 +256,7 @@ namespace larcv {
       // Need ID info (cryo,tpc,wire num) to find relevant meta & voxelset
       auto ch  = wire.Channel();
       // To live with dumb detectors that use multiplex readout 
-      auto wid_v = geop->ChannelToWire(ch);
+      auto wid_v = wireReadout.ChannelToWire(ch);
       assert(wid_v.size() == 1);
       auto const& wid = wid_v[0];
       // Check to whether or not to store this

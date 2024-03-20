@@ -52,8 +52,8 @@ outputs:
 }
 
 services.TFileService.fileName: "ana.root"
-services.Geometry:               @local::icarus_single_induction_nooverburden_geometry
-services.ExptGeoHelperInterface: @local::icarus_single_induction_geometry_helper
+services.Geometry:    @local::icarus_single_induction_nooverburden_geometry
+services.WireReadout: @local::icarus_single_induction_wire_readout
 
 services.message.destinations :
 {

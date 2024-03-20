@@ -95,8 +95,8 @@ physics.producers.daq1.TPC:              1
 #physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane1.roiLeadTrailPad:  [30,30]
 #physics.producers.decon1DroiTPC1.ROIFinderToolVec.ROIFinderToolPlane2.roiLeadTrailPad:  [30,30]
 
-services.Geometry:               @local::icarus_single_induction_nooverburden_geometry
-services.ExptGeoHelperInterface: @local::icarus_single_induction_geometry_helper
+services.Geometry:    @local::icarus_single_induction_nooverburden_geometry
+services.WireReadout: @local::icarus_single_induction_wire_readout
 physics.producers.cluster3DCryo0.Hit3DBuilderAlg:                        @local::standard_snippethit3dbuilder
 physics.producers.cluster3DCryo0.Hit3DBuilderAlg.HitFinderTagVec:        ["gaushitTPC0", "gaushitTPC1"]
 physics.producers.cluster3DCryo0.Hit3DBuilderAlg.HitWidthScaleFactor:    3.0

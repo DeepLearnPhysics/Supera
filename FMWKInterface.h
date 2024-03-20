@@ -3,6 +3,7 @@
 
 //#include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
 #include "larcore/Geometry/Geometry.h"
+#include "larcore/Geometry/WireReadout.h"
 //#include "fhiclcpp/ParameterSet.h"
 #include "larcv/core/Base/PSet.h"
 #include "larcv/core/DataFormat/DataFormatTypes.h"
