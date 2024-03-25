@@ -62,8 +62,8 @@ ProcessDriver: {
       Meta2DFromTensor2D:  ""
       Verbosity: 2
       UseSimEnergyDeposit: false #AnalyzeSimEnergyDeposit if true, else AnalyzeFirstLastStep - default false
-      UseSimEnergyDepositLite: true 
-      UseSimEnergyDepositPoints: true
+      UseSimEnergyDepositLite: false 
+      UseSimEnergyDepositPoints: false
       UseOrigTrackID: true
       CryostatList: [0,0]
       TPCList: [0,1]
