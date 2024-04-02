@@ -15,8 +15,8 @@
 #define __SUPERAMCTRUTH_H__
 //#ifndef __CINT__
 //#ifndef __CLING__
-#include "SuperaBase.h"
 #include "FMWKInterface.h"
+#include "SuperaBase.h"
 
 namespace larcv {
 
@@ -28,7 +28,6 @@ namespace larcv {
   class SuperaMCTruth : public SuperaBase {
 
   public:
-
     /// Default constructor
     SuperaMCTruth(const std::string name = "SuperaMCTruth");
 
@@ -44,7 +43,6 @@ namespace larcv {
     void finalize();
 
   private:
-
     unsigned short _pass_origin;
     std::string _output_label;
     std::vector<std::string> _producer_labels;
@@ -61,7 +59,10 @@ namespace larcv {
     /// dtor
     ~SuperaMCTruthProcessFactory() {}
     /// creation method
-    ProcessBase* create(const std::string instance_name) { return new SuperaMCTruth(instance_name); }
+    ProcessBase* create(const std::string instance_name)
+    {
+      return new SuperaMCTruth(instance_name);
+    }
   };
 
 }
@@ -69,4 +70,3 @@ namespace larcv {
 //#endif
 #endif
 /** @} */ // end of doxygen group
-

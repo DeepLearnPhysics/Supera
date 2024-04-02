@@ -76,10 +76,10 @@ ProcessDriver: {
       LArSimEnergyDepositLiteProducer: "sedlite"
       Meta3DFromCluster3D: "mcst"
       Meta2DFromTensor2D:  ""
-      Verbosity: 1
-      UseSimEnergyDeposit: true
-      UseSimEnergyDepositLite: true
-      UseSimEnergyDepositPoints: true
+      Verbosity: 2
+      UseSimEnergyDeposit: false #true
+      UseSimEnergyDepositLite: false #true
+      UseSimEnergyDepositPoints: false #true
       UseOrigTrackID: true
       CryostatList: [0,0,0,0,1,1,1,1]
       TPCList: [0,1,2,3,0,1,2,3]
@@ -89,9 +89,10 @@ ProcessDriver: {
 
       SuperaTrue2RecoVoxel3D: {
         DebugMode: false
-        Verbosity: 1
+        Verbosity: 2
         Meta3DFromCluster3D: "pcluster"
-        LArSimChProducer: "largeant"
+        #LArSimChProducer: "largeant"
+	LArSimChProducer: "daq simpleSC"
         LArSpacePointProducers: ["cluster3DCryoE","cluster3DCryoW"]
         TwofoldMatching: true
         UseTruePosition: true
@@ -108,7 +109,7 @@ ProcessDriver: {
     }
 
     MultiPartVrtx: {
-      Verbosity: 0
+      Verbosity: 2
       #LArMCTruthProducer: "generator"
       MCTruthProducers: ["generator","cosmgen"]
       OutParticleLabel: "mpv"
@@ -139,7 +140,7 @@ ProcessDriver: {
     }
 
     SuperaSimEnergyDeposit: {
-      Verbosity: 1
+      Verbosity: 2
       #LArSimEnergyDepositProducer: "largeant TPCActive"
       LArSimEnergyDepositLiteProducer: "sedlite"
       LArMCShowerProducer: "mcreco"
@@ -177,7 +178,7 @@ ProcessDriver: {
       Verbosity: 2
       SpacePointProducers: ["cluster3DCryoE"]
       OutputLabel:        "reco_cryoE"
-      DropOutput: ["hit_amp","hit_time","hit_rms","hit_mult","tpc","cryo","nhits","occupancy"]
+      DropOutput: ["hit_amp","hit_time","hit_rms","hit_mult","nhits","occupancy"]
       StoreWireInfo: true
       RecoChargeRange: [-1000, 50000]
     }
@@ -186,7 +187,7 @@ ProcessDriver: {
       Verbosity: 2
       SpacePointProducers: ["cluster3DCryoW"]
       OutputLabel:        "reco_cryoW"
-      DropOutput: ["hit_amp","hit_time","hit_rms","hit_mult","tpc","cryo","nhits","occupancy"]
+      DropOutput: ["hit_amp","hit_time","hit_rms","hit_mult","nhits","occupancy"]
       StoreWireInfo: true
       RecoChargeRange: [-1000, 50000]
     }

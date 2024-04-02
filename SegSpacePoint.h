@@ -28,7 +28,6 @@ namespace larcv {
   class SegSpacePoint : public ProcessBase {
 
   public:
-
     /// Default constructor
     SegSpacePoint(const std::string name = "SegSpacePoint");
 
@@ -44,9 +43,8 @@ namespace larcv {
     void finalize();
 
   private:
-
     std::string _output_label, _data_label;
-		float _distance_threshold;
+    float _distance_threshold;
   };
 
   /**
@@ -60,7 +58,10 @@ namespace larcv {
     /// dtor
     ~SegSpacePointProcessFactory() {}
     /// creation method
-    ProcessBase* create(const std::string instance_name) { return new SegSpacePoint(instance_name); }
+    ProcessBase* create(const std::string instance_name)
+    {
+      return new SegSpacePoint(instance_name);
+    }
   };
 
 }
@@ -68,4 +69,3 @@ namespace larcv {
 //#endif
 #endif
 /** @} */ // end of doxygen group
-

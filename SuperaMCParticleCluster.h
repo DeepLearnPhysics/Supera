@@ -15,14 +15,14 @@
 #define __SUPERAMCPARTICLECLUSTER_H__
 //#ifndef __CINT__
 //#ifndef __CLING__
-#include "SuperaBase.h"
-#include "SuperaTrue2RecoVoxel3D.h"
 #include "FMWKInterface.h"
 #include "MCParticleList.h"
-#include "larcv/core/DataFormat/Voxel3DMeta.h"
-#include "larcv/core/DataFormat/Voxel.h"
-#include "larcv/core/DataFormat/Particle.h"
+#include "SuperaBase.h"
 #include "SuperaMCParticleClusterData.h"
+#include "SuperaTrue2RecoVoxel3D.h"
+#include "larcv/core/DataFormat/Particle.h"
+#include "larcv/core/DataFormat/Voxel.h"
+#include "larcv/core/DataFormat/Voxel3DMeta.h"
 namespace larcv {
 
   /**
@@ -33,7 +33,6 @@ namespace larcv {
   class SuperaMCParticleCluster : public SuperaBase {
 
   public:
-
     /// Default constructor
     SuperaMCParticleCluster(const std::string name = "SuperaMCParticleCluster");
 
@@ -56,35 +55,44 @@ namespace larcv {
     //std::map<int, supera::ParticleGroup> CreateParticleGroups();
     std::map<int, supera::ParticleGroup> CreateParticleGroups();
 
-    template<typename sed_type> void AnalyzeSimEnergyDeposit(const larcv::Voxel3DMeta& meta,
-				 std::map<int, supera::ParticleGroup>& part_grp_v,
-         larcv::IOManager& mgr);
+    template <typename sed_type>
+    void AnalyzeSimEnergyDeposit(const larcv::Voxel3DMeta& meta,
+                                 std::map<int, supera::ParticleGroup>& part_grp_v,
+                                 larcv::IOManager& mgr);
     void AnalyzeSimChannel(const larcv::Voxel3DMeta& meta,
-			   std::map<int, supera::ParticleGroup>& part_grp_v,
-			   larcv::IOManager& mgr);
-    template<typename sed_type> void AnalyzeFirstLastStep(const larcv::Voxel3DMeta& meta,
-			      std::map<int, supera::ParticleGroup>& part_grp_v);
+                           std::map<int, supera::ParticleGroup>& part_grp_v,
+                           larcv::IOManager& mgr);
+    template <typename sed_type>
+    void AnalyzeFirstLastStep(const larcv::Voxel3DMeta& meta,
+                              std::map<int, supera::ParticleGroup>& part_grp_v);
     void MergeShowerTouchingLEScatter(const larcv::Voxel3DMeta& meta,
-				      std::map<int, supera::ParticleGroup>& part_grp_v);
+                                      std::map<int, supera::ParticleGroup>& part_grp_v);
     void MergeShowerIonizations(std::map<int, supera::ParticleGroup>& part_grp_v);
     void ApplyEnergyThreshold(std::map<int, supera::ParticleGroup>& part_grp_v);
     void MergeShowerConversion(std::map<int, supera::ParticleGroup>& part_grp_v);
     void MergeShowerFamilyTouching(const larcv::Voxel3DMeta& meta,
-				   std::map<int, supera::ParticleGroup>& part_grp_v);
+                                   std::map<int, supera::ParticleGroup>& part_grp_v);
     void MergeShowerTouching(const larcv::Voxel3DMeta& meta,
-			     std::map<int, supera::ParticleGroup>& part_grp_v);
+                             std::map<int, supera::ParticleGroup>& part_grp_v);
     void MergeShowerTouching2D(std::map<int, supera::ParticleGroup>& part_grp_v);
     void MergeShowerDeltas(std::map<int, supera::ParticleGroup>& part_grp_v);
     void DumpHierarchy(size_t trackid,
-		       const std::map<int, supera::ParticleGroup>& part_grp_v) const;
+                       const std::map<int, supera::ParticleGroup>& part_grp_v) const;
     std::vector<unsigned int> ParentTrackIDs(size_t trackid) const;
-    std::vector<unsigned int> ParentShowerTrackIDs(size_t trackid,
-						   const std::map<int, supera::ParticleGroup>& part_grp_v,
-						   bool include_lescatter=false) const;
+    std::vector<unsigned int> ParentShowerTrackIDs(
+      size_t trackid,
+      const std::map<int, supera::ParticleGroup>& part_grp_v,
+      bool include_lescatter = false) const;
+    void SetParticleAncestory(const larcv::Voxel3DMeta& meta3d,
+                              std::map<int, supera::ParticleGroup>& part_grp_v,
+                              std::vector<int>& trackid2output,
+                              std::vector<int>& trackid2output2d,
+                              std::set<unsigned int>& mcs_trackid_s);
+
   private:
     int plane_index(unsigned int cryo_id, unsigned int tpc_id, unsigned int plane_id);
     size_t SemanticPriority(size_t a, size_t b) const;
-    size_t _touch_threshold,_touch_threshold2d;
+    size_t _touch_threshold, _touch_threshold2d;
     supera::MCParticleList _mcpl;
     SuperaTrue2RecoVoxel3D* _true2reco;
     std::string _ref_meta3d_cluster3d;
@@ -102,16 +110,19 @@ namespace larcv {
     double _edep_threshold;
     bool _use_true_pos;
     bool _use_sed;
-		bool _use_sed_lite;
+    bool _use_sed_lite;
+    bool _use_sedlite_for_firstlast;
+    bool _use_sed_for_firstlast;
     bool _check_particle_validity;
-    int  _projection_id;
+    int _projection_id;
     bool _merge_shower_delta;
     larcv::BBox3D _world_bounds;
-    std::vector<std::vector<std::vector<int> > > _scan;
+    std::vector<std::vector<std::vector<int>>> _scan;
     std::vector<size_t> _semantic_priority;
     size_t _valid_nplanes;
     std::vector<larcv::ImageMeta> _meta2d_v;
-    bool _useOrigTrackID; ///< Whether to use origTrackID or trackID from SimChannel/SimEnergyDeposit
+    bool
+      _useOrigTrackID; ///< Whether to use origTrackID or trackID from SimChannel/SimEnergyDeposit
   };
 
   /**
@@ -121,11 +132,17 @@ namespace larcv {
   class SuperaMCParticleClusterProcessFactory : public ProcessFactoryBase {
   public:
     /// ctor
-    SuperaMCParticleClusterProcessFactory() { ProcessFactory::get().add_factory("SuperaMCParticleCluster", this); }
+    SuperaMCParticleClusterProcessFactory()
+    {
+      ProcessFactory::get().add_factory("SuperaMCParticleCluster", this);
+    }
     /// dtor
     ~SuperaMCParticleClusterProcessFactory() {}
     /// creation method
-    ProcessBase* create(const std::string instance_name) { return new SuperaMCParticleCluster(instance_name); }
+    ProcessBase* create(const std::string instance_name)
+    {
+      return new SuperaMCParticleCluster(instance_name);
+    }
   };
 
 }

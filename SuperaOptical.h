@@ -43,7 +43,6 @@ namespace larcv {
   private:
     std::vector<std::string> _opflash_producer_label_v;
     std::vector<std::string> _opflash_output_label_v;
-
   };
 
   /**
@@ -53,13 +52,14 @@ namespace larcv {
   class SuperaOpticalProcessFactory : public ProcessFactoryBase {
   public:
     /// ctor
-    SuperaOpticalProcessFactory() {
-        ProcessFactory::get().add_factory("SuperaOptical", this);
-    }
+    SuperaOpticalProcessFactory() { ProcessFactory::get().add_factory("SuperaOptical", this); }
     /// dtor
     ~SuperaOpticalProcessFactory() {}
     /// creation method
-    ProcessBase* create(const std::string instance_name) { return new SuperaOptical(instance_name); }
+    ProcessBase* create(const std::string instance_name)
+    {
+      return new SuperaOptical(instance_name);
+    }
   };
 
 }

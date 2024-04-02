@@ -9,15 +9,17 @@ namespace supera {
 
   double GenRandom::Flat(double min, double max)
   {
-    if(!_flatRandom) {
+    if (!_flatRandom) {
       std::cerr << "CLHEP::RandFlat pointer is not yet set!" << std::endl;
       throw std::exception();
     }
-    return _flatRandom->fire(min,max);
+    return _flatRandom->fire(min, max);
   }
 
   void GenRandom::SetFlatGen(CLHEP::RandFlat* ptr)
-  { _flatRandom = ptr; }
+  {
+    _flatRandom = ptr;
+  }
 
 }
 

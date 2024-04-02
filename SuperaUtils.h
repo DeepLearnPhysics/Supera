@@ -9,13 +9,11 @@
 #ifndef __SUPERAUTILS__
 #define __SUPERAUTILS__
 
-#include <set>
 #include "larcv/core/DataFormat/Voxel.h"
+#include <set>
 
-namespace supera
-{
-  namespace utils
-  {
+namespace supera {
+  namespace utils {
 
     /**
      * @brief A faster implementation of larcv::VoxelSet.
@@ -39,55 +37,52 @@ namespace supera
      * of a large number of voxels. The final
      * product is coverted to larcv::VoxelSet.
      */
-    class FastVoxelSet{
-      public:
-        FastVoxelSet() {;}
+    class FastVoxelSet {
+    public:
+      FastVoxelSet() { ; }
 
-         
-        /**
+      /**
          * @brief Insert a voxel to the set
          *
          * @param id Voxel id, usually produced by larcv::Meta
          * @param value value of the voxel
-         * @param add if true, add value to the exisiting voxel 
+         * @param add if true, add value to the exisiting voxel
          */
-        void emplace(larcv::VoxelID_t id, float value, bool add) 
-        {
-          larcv::Voxel v(id, value);
-          auto itr = _voxel_set.find(v);
-          if (add && itr != _voxel_set.end()) {
-            v += itr->value();
-            _voxel_set.erase(itr);
-          }
-          _voxel_set.insert(std::move(v));
+      void emplace(larcv::VoxelID_t id, float value, bool add)
+      {
+        larcv::Voxel v(id, value);
+        auto itr = _voxel_set.find(v);
+        if (add && itr != _voxel_set.end()) {
+          v += itr->value();
+          _voxel_set.erase(itr);
         }
-        
-        /**
+        _voxel_set.insert(std::move(v));
+      }
+
+      /**
          * @brief Move all contents to a larcv::VoxelSet
          *
          * @param v_set Target larcv::VoxelSet
          */
-        void move_to(larcv::VoxelSet& v_set) 
-        {
-          size_t n = _voxel_set.size();
-          v_set.reserve(n);
-          for (auto& v : _voxel_set) {
-            v_set.insert(v);
-          }
-          _voxel_set.clear();
+      void move_to(larcv::VoxelSet& v_set)
+      {
+        size_t n = _voxel_set.size();
+        v_set.reserve(n);
+        for (auto& v : _voxel_set) {
+          v_set.insert(v);
         }
-        
-        /**
+        _voxel_set.clear();
+      }
+
+      /**
          * @brief size of voxel set
          *
          * @return size_t
          */
-        size_t size() const 
-        {
-          return _voxel_set.size();
-        }
-      private:
-        std::set<larcv::Voxel> _voxel_set;
+      size_t size() const { return _voxel_set.size(); }
+
+    private:
+      std::set<larcv::Voxel> _voxel_set;
     };
   }
 }

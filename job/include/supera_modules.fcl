@@ -17,7 +17,7 @@ icarus_supera_data: {
   module_type: "LArSoftSuperaDriver"
   supera_params: "icarus_supera_data_all_cryo.fcl"
   out_filename: "larcv.root"
-  unique_filename: false
+  unique_filename: true
   stream: "data"
   Verbosity: 2
   StrictDataLoading: false
@@ -73,7 +73,7 @@ icarus_supera_MC_all_cryo: {
   module_type: "LArSoftSuperaDriver"
   supera_params: "supera_icarus_MC_all_cryo.fcl"
   out_filename: "larcv.root"
-  unique_filename: false
+  unique_filename: true
   stream: "mc"
   Verbosity: 2
   StrictDataLoading: false
@@ -146,10 +146,20 @@ icarus_supera_cosmgen: {
 }
 
 # Cosmgen only / Both cryostats / PMT+CRT included
-icarus_supera_cosmgen_cryoE_PMT_CRT: {
+icarus_supera_cosmgen_all_cryo_PMT_CRT: {
   @table::icarus_supera_MC_all_cryo
   supera_params: "supera_icarus_cosmgen_all_cryo_PMT_CRT.fcl"
   out_filename: "larcv.root"
 }
+
+# ------------------------------------------------------------
+# 4. For MPVMPR, expect generator + rain + rain2
+# ------------------------------------------------------------
+
+icarus_supera_MC_MPVMPR_cryoE_PMT_CRT: {
+  @table::icarus_supera_MC_all_cryo
+  supera_params: "supera_icarus_MC_MPVMPR_cryoE_PMT_CRT.fcl"
+}
+
 
 END_PROLOG

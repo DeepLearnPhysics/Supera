@@ -27,7 +27,6 @@ namespace larcv {
   class SuperaSpacePoint : public SuperaBase {
 
   public:
-
     /// Default constructor
     SuperaSpacePoint(const std::string name = "SuperaSpacePoint");
 
@@ -50,7 +49,7 @@ namespace larcv {
     std::string _output_label;
     size_t _max_debug_dropping = 0; // Max debug message for dropping space points
     unsigned short _n_planes = 3;
-		float _shift_x = 0.;
+    float _shift_x = 0.;
     bool _store_wire_info = false;
     std::unordered_set<std::string> _drop_output;
     std::vector<double> _reco_charge_range;
@@ -63,13 +62,17 @@ namespace larcv {
   class SuperaSpacePointProcessFactory : public ProcessFactoryBase {
   public:
     /// ctor
-    SuperaSpacePointProcessFactory() {
-        ProcessFactory::get().add_factory("SuperaSpacePoint", this);
+    SuperaSpacePointProcessFactory()
+    {
+      ProcessFactory::get().add_factory("SuperaSpacePoint", this);
     }
     /// dtor
     ~SuperaSpacePointProcessFactory() {}
     /// creation method
-    ProcessBase* create(const std::string instance_name) { return new SuperaSpacePoint(instance_name); }
+    ProcessBase* create(const std::string instance_name)
+    {
+      return new SuperaSpacePoint(instance_name);
+    }
   };
 
 }
@@ -77,4 +80,3 @@ namespace larcv {
 //#endif
 #endif
 /** @} */ // end of doxygen group
-

@@ -2,7 +2,7 @@
  * \file SegLabelGhost.h
  *
  * \ingroup Supera
- * 
+ *
  * \brief Class def header for a class SegLabelGhost
  *
  * @author kvtsang
@@ -26,12 +26,11 @@ namespace larcv {
   class SegLabelGhost : public ProcessBase {
 
   public:
-    
     /// Default constructor
-    SegLabelGhost(const std::string name="SegLabelGhost");
-    
+    SegLabelGhost(const std::string name = "SegLabelGhost");
+
     /// Default destructor
-    ~SegLabelGhost(){}
+    ~SegLabelGhost() {}
 
     void configure(const PSet&);
 
@@ -55,15 +54,17 @@ namespace larcv {
   class SegLabelGhostProcessFactory : public ProcessFactoryBase {
   public:
     /// ctor
-    SegLabelGhostProcessFactory() { ProcessFactory::get().add_factory("SegLabelGhost",this); }
+    SegLabelGhostProcessFactory() { ProcessFactory::get().add_factory("SegLabelGhost", this); }
     /// dtor
     ~SegLabelGhostProcessFactory() {}
     /// creation method
-    ProcessBase* create(const std::string instance_name) { return new SegLabelGhost(instance_name); }
+    ProcessBase* create(const std::string instance_name)
+    {
+      return new SegLabelGhost(instance_name);
+    }
   };
 
 }
 
 #endif
-/** @} */ // end of doxygen group 
-
+/** @} */ // end of doxygen group
