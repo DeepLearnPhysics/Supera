@@ -94,14 +94,13 @@ namespace larcv {
 
     _scan.clear();
     _scan.resize(geop->Ncryostats());
-    for (size_t c = 0; c < _scan.size(); ++c) {
-      auto const& cryostat = geop->Cryostat(geo::CryostatID(c));
-      auto& scan_cryo = _scan[c];
+    auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
+    for (geo::CryostatGeo const& cryostat : geop->Iterate<geo::CryostatGeo>()) {
+      auto& scan_cryo = _scan[cryostat.ID().Cryostat];
       scan_cryo.resize(cryostat.NTPC());
-      for (size_t tpcid = 0; tpcid < scan_cryo.size(); ++tpcid) {
-        auto const& tpc = cryostat.TPC(tpcid);
-        auto& scan_tpc = scan_cryo[tpcid];
-        scan_tpc.resize(tpc.Nplanes(), -1);
+      for (geo::TPCID const& tpcid : geop->Iterate<geo::TPCID>(cryostat.ID())) {
+        auto& scan_tpc = scan_cryo[tpcid.TPC];
+        scan_tpc.resize(wireReadout.Nplanes(tpcid), -1);
       }
     }
     //for(size_t cryo_id=0; cryo_id<_scan.size(); ++cryo_id){
@@ -118,7 +117,7 @@ namespace larcv {
           throw larbys();
         }
         auto const& tpc = cryostat.TPC(t);
-        if (!tpc.HasPlane(p)) {
+        if (!wireReadout.HasPlane({tpc.ID(), p})) {
           LARCV_CRITICAL() << "Invalid TPCList: cryostat " << c << " TPC " << t
                            << " does not contain plane " << p << std::endl;
           throw larbys();
@@ -410,7 +409,7 @@ namespace larcv {
   {
     //std::set<size_t> ctr_a, ctr_b;
 
-    auto geop = lar::providerFrom<geo::Geometry>();
+    auto const& wireReadout = art::ServiceHandle<geo::WireReadout>()->Get();
     auto const& sch_v = LArData<supera::LArSimCh_t>();
     LARCV_INFO() << "Processing SimChannel array: " << sch_v.size() << std::endl;
 
@@ -449,7 +448,7 @@ namespace larcv {
       analyze3d =
         (_projection_id < 0 || _projection_id == (int)(::supera::ChannelToProjectionID(ch)));
       // Check if should use this channel (2d)
-      auto wid_v = geop->ChannelToWire(ch);
+      auto wid_v = wireReadout.ChannelToWire(ch);
       assert(wid_v.size() == 1);
       auto const& wid = wid_v[0];
       auto vs2d_idx = this->plane_index(wid.Cryostat, wid.TPC, wid.Plane);
@@ -632,10 +631,10 @@ namespace larcv {
           if (skipped2d || skipped3d) {
 
             LARCV_DEBUG() << "Skipped 2d/3d " << (skipped2d ? "1" : "0") << "/"
-                         << (skipped3d ? "1" : "0") << " TrackID " << edep.trackID << " pos ("
-                         << pt.x << "," << pt.y << "," << pt.z << ")"
-                         << " ... TDC " << tick_ides.first << " => Tick " << time_pos << "... Wire "
-                         << wid.Wire << std::endl;
+                          << (skipped3d ? "1" : "0") << " TrackID " << edep.trackID << " pos ("
+                          << pt.x << "," << pt.y << "," << pt.z << ")"
+                          << " ... TDC " << tick_ides.first << " => Tick " << time_pos
+                          << "... Wire " << wid.Wire << std::endl;
           }
         }
       }
@@ -1147,11 +1146,12 @@ namespace larcv {
     }
   }
 
-  void SuperaMCParticleCluster::SetParticleAncestory(const larcv::Voxel3DMeta& meta3d,
-                                                     std::map<int, supera::ParticleGroup>& part_grp_v,
-                                                     std::vector<int>& trackid2output,
-                                                     std::vector<int>& output2trackid,
-                                                     std::set<unsigned int>& mcs_trackid_s)
+  void SuperaMCParticleCluster::SetParticleAncestory(
+    const larcv::Voxel3DMeta& meta3d,
+    std::map<int, supera::ParticleGroup>& part_grp_v,
+    std::vector<int>& trackid2output,
+    std::vector<int>& output2trackid,
+    std::set<unsigned int>& mcs_trackid_s)
   {
     // loop over MCShower to assign parent/ancestor information
     auto const& mcs_v = LArData<supera::LArMCShower_t>();
@@ -1184,8 +1184,7 @@ namespace larcv {
                       << mcs.AncestorPdgCode() << " , "
                       << " track " << mcs.Start().X() << " , " << mcs.Start().Y() << " , "
                       << mcs.Start().Z() << " , " << mcs.TrackID() << " , " << mcs.PdgCode()
-                      << " , " 
-                      << std::endl;
+                      << " , " << std::endl;
         if (grp.first_pt.t == larcv::kINVALID_DOUBLE)
           grp.part.first_step(
             mcs.DetProfile().X(), mcs.DetProfile().Y(), mcs.DetProfile().Z(), mcs.DetProfile().T());
@@ -1248,17 +1247,18 @@ namespace larcv {
         LARCV_DEBUG() << "*****----- track ancestor " << mct.AncestorStart().X() << ", "
                       << mct.AncestorStart().Y() << ", " << mct.AncestorStart().Z() << std::endl;
         // Fill first/last step accounting for detector edges
-        if (meta3d.empty()){ //need voxel information
+        if (meta3d.empty()) { //need voxel information
           LARCV_CRITICAL() << "Voxel3DMeta is empty. Cannot set first/last step." << std::endl;
           throw larbys();
         }
-        if (grp.last_pt.t == larcv::kINVALID_DOUBLE && grp.first_pt.t == larcv::kINVALID_DOUBLE && mct.size()){
+        if (grp.last_pt.t == larcv::kINVALID_DOUBLE && grp.first_pt.t == larcv::kINVALID_DOUBLE &&
+            mct.size()) {
           double xyz[3] = {larcv::kINVALID_DOUBLE};
           int first_step = -1;
-          for(size_t i=0; i<mct.size(); ++i) {
+          for (size_t i = 0; i < mct.size(); ++i) {
             auto const& step = mct[i];
-            auto id = meta3d.id(step.X(),step.Y(),step.Z());
-            if(id == larcv::kINVALID_VOXELID) continue;
+            auto id = meta3d.id(step.X(), step.Y(), step.Z());
+            if (id == larcv::kINVALID_VOXELID) continue;
             xyz[0] = step.X();
             xyz[1] = step.Y();
             xyz[2] = step.Z();
@@ -1266,10 +1266,10 @@ namespace larcv {
             first_step = i;
             break;
           }
-          for(size_t i=first_step; i<mct.size(); ++i) {
+          for (size_t i = first_step; i < mct.size(); ++i) {
             auto const& step = mct[i];
-            auto id = meta3d.id(step.X(),step.Y(),step.Z());
-            if(id == larcv::kINVALID_VOXELID) break;
+            auto id = meta3d.id(step.X(), step.Y(), step.Z());
+            if (id == larcv::kINVALID_VOXELID) break;
             xyz[0] = step.X();
             xyz[1] = step.Y();
             xyz[2] = step.Z();
@@ -1277,14 +1277,14 @@ namespace larcv {
           }
           //grp.part.last_step(mct.back().X(), mct.back().Y(), mct.back().Z(), mct.back().T());
         }
-        LARCV_DEBUG() << "last_step: "
-        << grp.last_pt.x << ", " << grp.last_pt.y << ", " << grp.last_pt.z << ", " << grp.last_pt.t
-        << std::endl;
-        for(size_t i = 0; i < mct.size(); ++i) {
+        LARCV_DEBUG() << "last_step: " << grp.last_pt.x << ", " << grp.last_pt.y << ", "
+                      << grp.last_pt.z << ", " << grp.last_pt.t << std::endl;
+        for (size_t i = 0; i < mct.size(); ++i) {
           auto const& step = mct[i];
           auto id = meta3d.id(step.X(), step.Y(), step.Z());
-          if(id == larcv::kINVALID_VOXELID) break;
-          LARCV_DEBUG() << "mct[" << i << "]: " << mct[i].X() << ", " << mct[i].Y() << ", " << mct[i].Z() << ", " << mct[i].T() << std::endl;
+          if (id == larcv::kINVALID_VOXELID) break;
+          LARCV_DEBUG() << "mct[" << i << "]: " << mct[i].X() << ", " << mct[i].Y() << ", "
+                        << mct[i].Z() << ", " << mct[i].T() << std::endl;
         }
         grp.part.parent_position(mct.MotherStart().X(),
                                  mct.MotherStart().Y(),
@@ -1393,7 +1393,7 @@ namespace larcv {
     LARCV_DEBUG() << "Creating ParticleGroups" << std::endl;
     auto part_grp_v = this->CreateParticleGroups();
     // Fill Voxel Information
-    std::cout<<"Filling voxel information..."<<std::endl;
+    std::cout << "Filling voxel information..." << std::endl;
     LARCV_INFO() << "Analyzing SimChannel/SimEnergyDeposit" << std::endl;
     if (_use_sed) {
       if (_use_sed_lite) {
@@ -1488,7 +1488,9 @@ namespace larcv {
     // For particles in MCShower/MCTrack collection, make sure to keep them
     std::set<unsigned int> mcs_trackid_s;
     auto const& mcs_v = LArData<supera::LArMCShower_t>();
-    for(auto const& mcs : mcs_v) {mcs_trackid_s.insert(mcs.TrackID());}
+    for (auto const& mcs : mcs_v) {
+      mcs_trackid_s.insert(mcs.TrackID());
+    }
     std::vector<int> trackid2output(trackid2index.size(), -1);
     std::vector<int> output2trackid;
     output2trackid.reserve(trackid2index.size());
@@ -2665,11 +2667,10 @@ namespace larcv {
     // ancestor track id
     // ancestor position
     LARCV_DEBUG() << "***---- track_id " << larmcp.TrackId() << " mother " << larmcp.Mother()
-                  << " first_step ParticleCluster "
-                  << larmcp.Vx() << " , " << larmcp.Vy() << " , " << larmcp.Vz() << ","
-                  << "last_step ParticleCluster "
-                  << larmcp.EndX() << " , " << larmcp.EndY() << " , " << larmcp.EndZ() << ","
-                  << std::endl;
+                  << " first_step ParticleCluster " << larmcp.Vx() << " , " << larmcp.Vy() << " , "
+                  << larmcp.Vz() << ","
+                  << "last_step ParticleCluster " << larmcp.EndX() << " , " << larmcp.EndY()
+                  << " , " << larmcp.EndZ() << "," << std::endl;
     return res;
   }
 
