@@ -11,7 +11,6 @@ process_name: supera
 
 services:
 {
-  TFileService: { fileName: "larcv.root" }
   @table::sbnd_services
   @table::sbnd_random_services
   @table::sbnd_simulation_services # load simulation services in bulk
@@ -34,7 +33,7 @@ physics:
  { supera: {
             module_type:     "LArSoftSuperaDriver"
             supera_params:   "supera_sbnd_corsika.fcl"
-            out_filename:    "larcv.root"
+            out_filename:    "%larcv_ifb_%p-%tc.root"
             unique_filename: false
             stream:          "mc"
             StrictDataLoading: false
