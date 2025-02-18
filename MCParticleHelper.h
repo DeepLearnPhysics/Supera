@@ -11,26 +11,24 @@
 //#include "SimulationBase/MCParticle.h"
 
 // LArCV
+#include "FMWKInterface.h"
 #include "larcv/core/Base/larcv_base.h"
 #include "larcv/core/DataFormat/Particle.h"
 #include "larcv/core/DataFormat/Voxel3DMeta.h"
-#include "FMWKInterface.h"
 namespace supera {
 
   class MCParticleHelper : public ::larcv::larcv_base {
 
   public:
-
-    MCParticleHelper() : larcv::larcv_base("MCParticleHelper")
-    {}
+    MCParticleHelper() : larcv::larcv_base("MCParticleHelper") {}
 
     virtual ~MCParticleHelper() {}
 
     void configure(const supera::Config_t& cfg);
-    ::larcv::Particle MakeParticle( const supera::LArMCTrack_t& mct,
-				    const larcv::Voxel3DMeta& meta) const;
+    ::larcv::Particle MakeParticle(const supera::LArMCTrack_t& mct,
+                                   const larcv::Voxel3DMeta& meta) const;
 
-    ::larcv::Particle MakeParticle( const supera::LArMCShower_t& mcs) const;
+    ::larcv::Particle MakeParticle(const supera::LArMCShower_t& mcs) const;
 
   private:
     bool _apply_sce;

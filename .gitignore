@@ -44,3 +44,5 @@ app/Supera/APILArSoft/supera.fcl
 .DS_Store
 *.pdf
 *.o
+*.dff
+SBND_notes.md

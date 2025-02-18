@@ -27,7 +27,6 @@ namespace larcv {
   class SuperaBBoxInteraction : public SuperaBase {
 
   public:
-
     /// Default constructor
     SuperaBBoxInteraction(const std::string name = "SuperaBBoxInteraction");
 
@@ -38,15 +37,15 @@ namespace larcv {
 
     void initialize();
 
-		template <class T> void AdaptBBoxToSED(std::vector<T> const& sedep_v, larcv::BBox3D& bbox);
+    template <class T>
+    void AdaptBBoxToSED(std::vector<T> const& sedep_v, larcv::BBox3D& bbox);
 
     bool process(IOManager& mgr);
 
     void finalize();
 
   private:
-
-		bool _use_sed_lite; ///< whether to use sim::SimEnergyDeposit or sim::SimEnergyDepositLite
+    bool _use_sed_lite; ///< whether to use sim::SimEnergyDeposit or sim::SimEnergyDepositLite
     unsigned short _origin;
     double _xlen, _ylen, _zlen;
     double _xvox, _yvox, _zvox;
@@ -69,11 +68,17 @@ namespace larcv {
   class SuperaBBoxInteractionProcessFactory : public ProcessFactoryBase {
   public:
     /// ctor
-    SuperaBBoxInteractionProcessFactory() { ProcessFactory::get().add_factory("SuperaBBoxInteraction", this); }
+    SuperaBBoxInteractionProcessFactory()
+    {
+      ProcessFactory::get().add_factory("SuperaBBoxInteraction", this);
+    }
     /// dtor
     ~SuperaBBoxInteractionProcessFactory() {}
     /// creation method
-    ProcessBase* create(const std::string instance_name) { return new SuperaBBoxInteraction(instance_name); }
+    ProcessBase* create(const std::string instance_name)
+    {
+      return new SuperaBBoxInteraction(instance_name);
+    }
   };
 
 }
@@ -81,4 +86,3 @@ namespace larcv {
 //#endif
 #endif
 /** @} */ // end of doxygen group
-

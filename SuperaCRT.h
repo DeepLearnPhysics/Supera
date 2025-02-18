@@ -25,12 +25,12 @@ namespace larcv {
   */
   class SuperaCRT : public SuperaBase {
 
-	public:
-		/// Default constructor
-		SuperaCRT(const std::string name = "SuperaCRT");
+  public:
+    /// Default constructor
+    SuperaCRT(const std::string name = "SuperaCRT");
 
-		/// Default destructor
-		~SuperaCRT() {}
+    /// Default destructor
+    ~SuperaCRT() {}
 
     void configure(const PSet&);
 
@@ -40,11 +40,10 @@ namespace larcv {
 
     void finalize();
 
-	private:
-		std::vector<std::string> _crthit_producer_label_v;
-		std::vector<std::string> _crthit_output_label_v;
-
-	};
+  private:
+    std::vector<std::string> _crthit_producer_label_v;
+    std::vector<std::string> _crthit_output_label_v;
+  };
 
   /**
      \class larcv::SuperaCRTFactory
@@ -53,9 +52,7 @@ namespace larcv {
   class SuperaCRTProcessFactory : public ProcessFactoryBase {
   public:
     /// ctor
-    SuperaCRTProcessFactory() {
-        ProcessFactory::get().add_factory("SuperaCRT", this);
-    }
+    SuperaCRTProcessFactory() { ProcessFactory::get().add_factory("SuperaCRT", this); }
     /// dtor
     ~SuperaCRTProcessFactory() {}
     /// creation method

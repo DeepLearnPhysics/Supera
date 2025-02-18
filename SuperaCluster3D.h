@@ -27,7 +27,6 @@ namespace larcv {
   class SuperaCluster3D : public SuperaBase {
 
   public:
-
     /// Default constructor
     SuperaCluster3D(const std::string name = "SuperaCluster3D");
 
@@ -43,7 +42,6 @@ namespace larcv {
     void finalize();
 
   private:
-
     std::string _output_label;
   };
 
@@ -58,7 +56,10 @@ namespace larcv {
     /// dtor
     ~SuperaCluster3DProcessFactory() {}
     /// creation method
-    ProcessBase* create(const std::string instance_name) { return new SuperaCluster3D(instance_name); }
+    ProcessBase* create(const std::string instance_name)
+    {
+      return new SuperaCluster3D(instance_name);
+    }
   };
 
 }
@@ -66,4 +67,3 @@ namespace larcv {
 //#endif
 #endif
 /** @} */ // end of doxygen group
-

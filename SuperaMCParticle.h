@@ -15,10 +15,10 @@
 #define __SUPERAMCPARTICLE_H__
 //#ifndef __CINT__
 //#ifndef __CLING__
-#include "SuperaBase.h"
 #include "FMWKInterface.h"
-#include "MCParticleTree.h"
 #include "MCParticleHelper.h"
+#include "MCParticleTree.h"
+#include "SuperaBase.h"
 #include "larcv/core/DataFormat/Voxel3DMeta.h"
 namespace larcv {
 
@@ -30,7 +30,6 @@ namespace larcv {
   class SuperaMCParticle : public SuperaBase {
 
   public:
-
     /// Default constructor
     SuperaMCParticle(const std::string name = "SuperaMCParticle");
 
@@ -57,14 +56,13 @@ namespace larcv {
     const supera::MCParticleTree& ParticleTree() const { return _mcpt; }
 
   private:
-
     //bool _store_part;
     //bool _store_g4_primary_part;
     //bool _store_g4_secondary_part;
     //bool _store_pixel2d;
     //bool _store_voxel3d;
     std::vector<larcv::Particle> _part_v;
-    supera::MCParticleTree  _mcpt;
+    supera::MCParticleTree _mcpt;
     supera::MCParticleHelper _mcpart_maker;
     //std::vector<std::vector<std::pair<size_t, size_t> > > _part2mcnode_vv;
 
@@ -87,8 +85,7 @@ namespace larcv {
     //size_t _filter_min_rows;
 
     bool FilterNode(const supera::MCNode& node) const;
-    larcv::Particle MakeParticle(const supera::MCNode& node,
-				 const larcv::Voxel3DMeta& meta) const;
+    larcv::Particle MakeParticle(const supera::MCNode& node, const larcv::Voxel3DMeta& meta) const;
   };
 
   /**
@@ -98,11 +95,17 @@ namespace larcv {
   class SuperaMCParticleProcessFactory : public ProcessFactoryBase {
   public:
     /// ctor
-    SuperaMCParticleProcessFactory() { ProcessFactory::get().add_factory("SuperaMCParticle", this); }
+    SuperaMCParticleProcessFactory()
+    {
+      ProcessFactory::get().add_factory("SuperaMCParticle", this);
+    }
     /// dtor
     ~SuperaMCParticleProcessFactory() {}
     /// creation method
-    ProcessBase* create(const std::string instance_name) { return new SuperaMCParticle(instance_name); }
+    ProcessBase* create(const std::string instance_name)
+    {
+      return new SuperaMCParticle(instance_name);
+    }
   };
 
 }
@@ -110,4 +113,3 @@ namespace larcv {
 //#endif
 #endif
 /** @} */ // end of doxygen group
-

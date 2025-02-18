@@ -5,15 +5,14 @@
 
 namespace larcv {
 
-  LArCVSuperaDriver::LArCVSuperaDriver()
-    : _driver("ProcessDriver")
-  {}
+  LArCVSuperaDriver::LArCVSuperaDriver() : _driver("ProcessDriver") {}
 
   void LArCVSuperaDriver::SetCSV(std::string proc_name, std::string fname)
   {
     auto const pid = _driver.process_id(proc_name);
-    if(pid >= _driver.process_names().size()) {
-      LARCV_CRITICAL() << "Invalid process name (" << proc_name << ") to set CSV file for..." << std::endl;
+    if (pid >= _driver.process_names().size()) {
+      LARCV_CRITICAL() << "Invalid process name (" << proc_name << ") to set CSV file for..."
+                       << std::endl;
       throw larbys();
     }
     ((SuperaBase*)(_driver.process_ptr(pid)))->SetCSV(fname);
@@ -23,7 +22,7 @@ namespace larcv {
   {
     _driver.configure(cfg_file);
   }
-  
+
   void LArCVSuperaDriver::configure(const larcv::PSet& cfg)
   {
     _driver.configure(cfg);
@@ -33,7 +32,7 @@ namespace larcv {
   {
     _driver.override_input_file(flist);
   }
-  
+
   void LArCVSuperaDriver::override_output_file(const std::string fname)
   {
     _driver.override_output_file(fname);
@@ -43,43 +42,48 @@ namespace larcv {
   {
     static std::set<std::string> empty_string;
     auto iter = _data_request_m.find(type);
-    if(iter == _data_request_m.end()) return empty_string;
+    if (iter == _data_request_m.end()) return empty_string;
     return (*iter).second;
   }
 
-  void LArCVSuperaDriver::initialize() {
+  void LArCVSuperaDriver::initialize()
+  {
 
     _driver.initialize();
     _supera_idx_v.clear();
 
-    for(size_t idx=0; idx<_driver.process_names().size(); ++idx) {
+    for (size_t idx = 0; idx < _driver.process_names().size(); ++idx) {
 
       auto proc_ptr = _driver.process_ptr(idx);
 
-      if(proc_ptr->is("SuperaMetaMaker") && idx) {
-	LARCV_CRITICAL() << "SuperaMetaMaker must be the first module!" << std::endl;
-	throw larbys();
-      }
-      
-      if(proc_ptr->is("Supera") || proc_ptr->is("SuperaMetaMaker")) {
-	_supera_idx_v.push_back(idx);
-	for(size_t data_type=0; data_type<(size_t)(supera::LArDataType_t::kLArDataTypeMax); ++data_type) {
-	  auto const& label = ((SuperaBase*)proc_ptr)->LArDataLabel((supera::LArDataType_t)data_type);
-	  if(label.empty()) continue;
-	  _data_request_m[(supera::LArDataType_t)(data_type)].insert(label);
-	}
+      if (proc_ptr->is("SuperaMetaMaker") && idx) {
+        LARCV_CRITICAL() << "SuperaMetaMaker must be the first module!" << std::endl;
+        throw larbys();
       }
 
+      if (proc_ptr->is("Supera") || proc_ptr->is("SuperaMetaMaker")) {
+        _supera_idx_v.push_back(idx);
+        for (size_t data_type = 0; data_type < (size_t)(supera::LArDataType_t::kLArDataTypeMax);
+             ++data_type) {
+          auto const& label =
+            ((SuperaBase*)proc_ptr)->LArDataLabel((supera::LArDataType_t)data_type);
+          if (label.empty()) continue;
+          _data_request_m[(supera::LArDataType_t)(data_type)].insert(label);
+        }
+      }
     }
   }
 
-  bool LArCVSuperaDriver::process(size_t run, size_t subrun, size_t event) 
+  bool LArCVSuperaDriver::process(size_t run, size_t subrun, size_t event)
   {
-    _driver.set_id(run,subrun,event);
+    _driver.set_id(run, subrun, event);
     return _driver.process_entry();
   }
 
-  void LArCVSuperaDriver::finalize() { _driver.finalize(); }
+  void LArCVSuperaDriver::finalize()
+  {
+    _driver.finalize();
+  }
 
 }
 #endif
