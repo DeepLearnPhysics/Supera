@@ -1,0 +1,55 @@
+#B. Carlson
+#bcarlson1@ufl.edu
+
+ProcessDriver: {
+
+  Verbosity:    2
+  EnableFilter: true
+  RandomAccess: false
+  ProcessType:  ["SuperaBBoxInteraction","SuperaSpacePoint"]#,"SuperaOptical"]
+  ProcessName:  ["SuperaBBoxInteraction","SuperaSpacePoint"]#,"SuperaOptical"]
+
+  IOManager: {
+    Verbosity:   2
+    Name:        "IOManager"
+    IOMode:      1
+    OutFileName: "out_test.root"
+    InputFiles:  []
+    InputDirs:   []
+    StoreOnlyType: []
+    StoreOnlyName: []
+  }
+
+  ProcessList: {
+    SuperaBBoxInteraction: {
+      Verbosity: 2
+      LArMCTruthProducer: "generator"
+      #LArSimEnergyDepositProducer: "largeant TPCActive"
+      LArSimEnergyDepositLiteProducer: "sedlite"
+			UseSEDLite: true
+      Origin: 0
+      Cluster3DLabels: ["mcst","pcluster","sed","masked_true2reco"]
+      Tensor3DLabels:  ["reco","pcluster_index","masked_true"]
+      BBoxSize: [614.4, 614.4, 614.4] # 2048 pixels of 0.3 mm
+      BBoxBottom: [-307.2, -307.2, -57.4] # centered on the detector center with some padding
+      VoxelSize: [0.3,0.3,0.3]
+      UseFixedBBox: true
+      CryostatList: [0,0]
+      TPCList: [0,1]
+    }
+    
+    SuperaSpacePoint: {
+      Verbosity: 2
+      SpacePointProducers: ["cluster3d"]
+      OutputLabel:        "reco"
+      DropOutput: ["hit_amp","hit_rms","hit_mult","hit_time"]
+      StoreWireInfo: true
+      RecoChargeRange: [-1000, 50000]
+    }
+    SuperaOptical: {
+		  OpFlashProducers: ["opflashtpc0xarapuca","opflashtpc1xarapuca","opflashtpc0","opflashtpc1"]
+			OpFlashOutputs: ["tpc0xa","tpc1xa","tpc0","tpc1"]
+		}
+
+  }
+}
