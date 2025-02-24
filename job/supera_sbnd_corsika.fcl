@@ -82,14 +82,14 @@ ProcessDriver: {
         OutputCluster3D: "masked_true2reco"
         TwofoldMatching: true
         UseTruePosition: true
-        HitThresholdNe: 175
-        HitWindowTicks: 5 #15
+        HitThresholdNe: 100
+        HitWindowTicks: 10
         HitPeakFinding: false
         PostAveraging: true
-        PostAveragingThreshold_cm: 0.425
+        PostAveragingThreshold_cm: 0.7
         DumpToCSV: false
         RecoChargeRange: [-1000,50000]
-				VoxelDistanceThreshold: 1. #3
+				VoxelDistanceThreshold: 2.
       }
     }
 
