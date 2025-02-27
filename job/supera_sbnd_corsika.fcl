@@ -70,6 +70,7 @@ ProcessDriver: {
       PlaneList: []
       SemanticPriority: [1,2,0,3,4] # 0-4 for shower track michel delta LE-scattering
       CheckParticleValidity: false #set false, but this needs to be checked later
+      AssertParentTrackID: false #Labels are not 100% correct
       SuperaTrue2RecoVoxel3D: {
         UseOrigTrackID: true
         DebugMode: true
