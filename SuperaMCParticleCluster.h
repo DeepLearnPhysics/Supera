@@ -123,6 +123,7 @@ namespace larcv {
     std::vector<larcv::ImageMeta> _meta2d_v;
     bool
       _useOrigTrackID; ///< Whether to use origTrackID or trackID from SimChannel/SimEnergyDeposit
+    bool _assert_parent_trackid; ///< Whether to assert that parent track IDs are found in the map
   };
 
   /**

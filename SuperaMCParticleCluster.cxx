@@ -59,7 +59,7 @@ namespace larcv {
     _use_true_pos = cfg.get<bool>("UseTruePosition", true);
     _check_particle_validity = cfg.get<bool>("CheckParticleValidity", true);
     _merge_shower_delta = cfg.get<bool>("MergeShowerDelta", true);
-
+    _assert_parent_trackid = cfg.get<bool>("AssertParentTrackID", true);
     _useOrigTrackID = cfg.get<bool>("UseOrigTrackID", false);
 
     auto cryostat_v = cfg.get<std::vector<unsigned short>>("CryostatList");
@@ -955,7 +955,6 @@ namespace larcv {
             if (parent_list_a.find(parent_trackid) != parent_list_a.end()) merge = true;
             if (merge) break;
           }
-
           if (merge && this->IsTouching(meta, grp_a.vs, grp_b.vs)) {
             if (grp_a.vs.size() < grp_b.vs.size())
               grp_b.Merge(grp_a);
@@ -2591,18 +2590,38 @@ namespace larcv {
     result.reserve(parents.size());
 
     for (auto const& parent_id : parents) {
+        auto it = part_grp_v.find(parent_id);
+        if (it == part_grp_v.end()) {
+            /*
+            2025-02-27: This assertion ensures the parent is found, and the labels will be assigned correctly.
+            Otherwise, the labels will be assigned incorrectly, so you will want this assertion to be true for 
+            training samples. For other MC samples, it's quite rare so it should be fine.
 
-      if (parent_id >= part_grp_v.size()) continue;
+            See https://github.com/SBNSoftware/sbndcode/issues/665 for more details.
+            */
+            if (_assert_parent_trackid){
+              LARCV_CRITICAL() << "Parent track id " << parent_id << " not found in part_grp_v map." << std::endl;
+              LARCV_CRITICAL() << "PDG code: " << part_grp_v.at(trackid).part.pdg_code() << std::endl;
+              LARCV_CRITICAL() << "Track ID " << trackid << " has parents: " << parents.size() << std::endl;
+              throw larbys();
+            }
+            else{
+              LARCV_DEBUG() << "Parent track id " << parent_id << " not found in part_grp_v map." << std::endl;
+              LARCV_DEBUG() << "PDG code: " << part_grp_v.at(trackid).part.pdg_code() << std::endl;
+              LARCV_DEBUG() << "Track ID " << trackid << " has parents: " << parents.size() << std::endl;
+              continue;
+            }
+        }
 
-      auto const& grp = part_grp_v.at(parent_id);
-      if (!grp.valid) continue;
+        auto const& grp = it->second;
+        if (!grp.valid) continue;
 
-      if (grp.shape() == larcv::kShapeTrack || grp.shape() == larcv::kShapeUnknown) break;
+        if (grp.shape() == larcv::kShapeTrack || grp.shape() == larcv::kShapeUnknown) break;
 
-      if (grp.shape() == larcv::kShapeMichel || grp.shape() == larcv::kShapeShower ||
-          grp.shape() == larcv::kShapeDelta ||
-          (grp.shape() == larcv::kShapeLEScatter && include_lescatter))
-        result.push_back(parent_id);
+        if (grp.shape() == larcv::kShapeMichel || grp.shape() == larcv::kShapeShower ||
+            grp.shape() == larcv::kShapeDelta ||
+            (grp.shape() == larcv::kShapeLEScatter && include_lescatter))
+            result.push_back(parent_id);
     }
     return result;
   }
