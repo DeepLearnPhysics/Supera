@@ -20,6 +20,7 @@ namespace supera {
     kDecay,         // attach high E
     kOtherShower,   // anything else (low E)
     kOtherShowerHE, // anything else (high E)
+    kNuclear,       // Nucleus particle
     kInvalidProcess
   };
 

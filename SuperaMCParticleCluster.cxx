@@ -170,7 +170,7 @@ namespace larcv {
 
   std::map<int, supera::ParticleGroup> SuperaMCParticleCluster::CreateParticleGroups()
   {
-    LARCV_DEBUG() << "****---- CreateParticleGroups" << std::endl;
+    LARCV_DEBUG() << "****---- CreateParticleGroups DOING THIS" << std::endl;
     const larcv::Particle invalid_part;
     auto const& larmcp_v = LArData<supera::LArMCParticle_t>();
     auto const& parent_pdg_v = _mcpl.ParentPdgCode();
@@ -187,7 +187,10 @@ namespace larcv {
         mother_index = trackid2index[mcpart.Mother()];
 
       //if(pdg_code != -11 && pdg_code != 11 && pdg_code != 22) continue;
-      if (pdg_code > 1000000) continue;
+      // if (pdg_code > 1000000){
+      //   LARCV_DEBUG() << "Skipping PDG code " << pdg_code << " track id " << track_id << std::endl;
+      //   continue;
+      // }
 
       supera::ParticleGroup grp(_valid_nplanes);
       LARCV_DEBUG() << "grp.part make particle" << std::endl;
@@ -229,6 +232,7 @@ namespace larcv {
       else {
         grp.type = supera::kTrack;
         if (grp.part.pdg_code() == 2112) grp.type = supera::kNeutron;
+        if (grp.part.pdg_code() > 1000000) grp.type = supera::kNuclear;
         result[track_id] = grp;
       }
       LARCV_DEBUG() << "***--- first_step in for loop " << grp.part.first_step().x() << "Track ID "
@@ -656,6 +660,10 @@ namespace larcv {
                         << " Recorded: " << recorded_xrange2d.first << " => "
                         << recorded_xrange2d.second << " ... T range: " << recorded_trange2d.first
                         << " => " << recorded_trange2d.second << std::endl;
+      }
+      LARCV_DEBUG() << "Missing track IDs: " << std::endl;
+      for (auto const& tid : missing_trackid) {
+        LARCV_DEBUG() << " " << tid << std::endl;
       }
     }
   }
