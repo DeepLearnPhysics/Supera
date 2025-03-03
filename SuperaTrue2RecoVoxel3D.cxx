@@ -152,10 +152,10 @@ namespace larcv {
     _voxel_size_factor = cfg.get<double>("VoxelSizeFactor", 1.);
     _voxel_distance_threshold = cfg.get<double>("VoxelDistanceThreshold", -1.);
 
-    std::cout << "HitThresholdNe: " << _hit_threshold_ne << std::endl;
-    std::cout << "HitWindowTicks: " << _hit_window_ticks << std::endl;
-    std::cout << "PostAveragingThreshold_cm: " << _post_averaging_threshold << std::endl;
-    std::cout << "VoxelDistanceThreshold: " << _voxel_distance_threshold << std::endl;
+    LARCV_INFO() << "HitThresholdNe: " << _hit_threshold_ne << std::endl;
+    LARCV_INFO() << "HitWindowTicks: " << _hit_window_ticks << std::endl;
+    LARCV_INFO() << "PostAveragingThreshold_cm: " << _post_averaging_threshold << std::endl;
+    LARCV_INFO() << "VoxelDistanceThreshold: " << _voxel_distance_threshold << std::endl;
   }
 
   void SuperaTrue2RecoVoxel3D::initialize()

@@ -170,7 +170,7 @@ namespace larcv {
 
   std::map<int, supera::ParticleGroup> SuperaMCParticleCluster::CreateParticleGroups()
   {
-    LARCV_DEBUG() << "****---- CreateParticleGroups DOING THIS" << std::endl;
+    LARCV_DEBUG() << "****---- CreateParticleGroups" << std::endl;
     const larcv::Particle invalid_part;
     auto const& larmcp_v = LArData<supera::LArMCParticle_t>();
     auto const& parent_pdg_v = _mcpl.ParentPdgCode();
@@ -185,12 +185,6 @@ namespace larcv {
       int track_id = mcpart.TrackId();
       if (mcpart.Mother() < ((int)(trackid2index.size())))
         mother_index = trackid2index[mcpart.Mother()];
-
-      //if(pdg_code != -11 && pdg_code != 11 && pdg_code != 22) continue;
-      // if (pdg_code > 1000000){
-      //   LARCV_DEBUG() << "Skipping PDG code " << pdg_code << " track id " << track_id << std::endl;
-      //   continue;
-      // }
 
       supera::ParticleGroup grp(_valid_nplanes);
       LARCV_DEBUG() << "grp.part make particle" << std::endl;
