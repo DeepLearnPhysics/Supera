@@ -168,77 +168,108 @@ namespace larcv {
     return _scan[cryo_id][tpc_id][plane_id];
   }
 
+  void SuperaMCParticleCluster::SetParticleGroupType(supera::ParticleGroup& grp, const supera::LArMCParticle_t& mcpart, const larcv::Particle& invalid_part) const
+  {
+      int pdg_code = abs(mcpart.PdgCode());
+      if (pdg_code == 22 || pdg_code == 11) {
+          if (pdg_code == 22) {
+              grp.type = supera::kPhoton;
+              grp.part.first_step(invalid_part.first_step());
+              grp.part.last_step(invalid_part.last_step());
+              grp.part.end_position(invalid_part.end_position());
+          } else if (pdg_code == 11) {
+              std::string prc = mcpart.Process();
+              if (prc == "muIoni" || prc == "hIoni" || prc == "muPairProd")
+                  grp.type = supera::kDelta;
+              else if (prc == "muMinusCaptureAtRest" || prc == "muPlusCaptureAtRest" || prc == "Decay")
+                  grp.type = supera::kDecay;
+              else if (prc == "compt")
+                  grp.type = supera::kCompton;
+              else if (prc == "phot")
+                  grp.type = supera::kPhotoElectron;
+              else if (prc == "eIoni")
+                  grp.type = supera::kIonization;
+              else if (prc == "conv")
+                  grp.type = supera::kConversion;
+              else if (prc == "primary")
+                  grp.type = supera::kPrimary;
+              else
+                  grp.type = supera::kOtherShower;
+          }
+      } else {
+          grp.type = supera::kTrack;
+          if (grp.part.pdg_code() == 2112) grp.type = supera::kNeutron;
+          if (grp.part.pdg_code() > 1000000) grp.type = supera::kNuclear;
+      }
+  }
+
   std::map<int, supera::ParticleGroup> SuperaMCParticleCluster::CreateParticleGroups()
   {
-    LARCV_DEBUG() << "****---- CreateParticleGroups" << std::endl;
-    const larcv::Particle invalid_part;
-    auto const& larmcp_v = LArData<supera::LArMCParticle_t>();
-    auto const& parent_pdg_v = _mcpl.ParentPdgCode();
-    auto const& trackid2index = _mcpl.TrackIdToIndex();
-    std::map<int, supera::ParticleGroup> result;
-    //result.reserve(larmcp_v.size());
-    for (size_t index = 0; index < larmcp_v.size(); ++index) {
+      LARCV_DEBUG() << "****---- CreateParticleGroups" << std::endl;
+      const larcv::Particle invalid_part;
+      auto const& larmcp_v = LArData<supera::LArMCParticle_t>();
+      auto const& parent_pdg_v = _mcpl.ParentPdgCode();
+      auto const& trackid2index = _mcpl.TrackIdToIndex();
+      std::map<int, supera::ParticleGroup> result;
 
-      auto const& mcpart = larmcp_v[index];
-      int pdg_code = abs(mcpart.PdgCode());
-      int mother_index = -1;
-      int track_id = mcpart.TrackId();
-      if (mcpart.Mother() < ((int)(trackid2index.size())))
-        mother_index = trackid2index[mcpart.Mother()];
+      // First pass: create particle groups for relevant particles
+      for (size_t index = 0; index < larmcp_v.size(); ++index) {
+          auto const& mcpart = larmcp_v[index];
+          int pdg_code = abs(mcpart.PdgCode());
+          int mother_index = -1;
+          int track_id = mcpart.TrackId();
+          if (mcpart.Mother() < ((int)(trackid2index.size())))
+              mother_index = trackid2index[mcpart.Mother()];
 
-      supera::ParticleGroup grp(_valid_nplanes);
-      LARCV_DEBUG() << "grp.part make particle" << std::endl;
-      grp.part = this->MakeParticle(mcpart);
+          if (pdg_code > 1000000) {
+              // Skip nucleus with no daughters
+              LARCV_DEBUG() << "Skipping nucleus " << pdg_code << " track id "
+                            << track_id << std::endl;
+              continue;
+          }
 
-      if (mother_index >= 0) grp.part.parent_pdg_code(parent_pdg_v[index]);
-      grp.valid = true;
+          supera::ParticleGroup grp(_valid_nplanes);
+          LARCV_DEBUG() << "grp.part make particle" << std::endl;
+          grp.part = this->MakeParticle(mcpart);
 
-      if (pdg_code == 22 || pdg_code == 11) {
-        if (pdg_code == 22) {
-          // photon ... reset first, last, and end position
-          grp.type = supera::kPhoton;
-          grp.part.first_step(invalid_part.first_step());
-          grp.part.last_step(invalid_part.last_step());
-          grp.part.end_position(invalid_part.end_position());
-        }
-        else if (pdg_code == 11) {
+          if (mother_index >= 0) grp.part.parent_pdg_code(parent_pdg_v[index]);
+          grp.valid = true;
 
-          std::string prc = mcpart.Process();
-          if (prc == "muIoni" || prc == "hIoni" || prc == "muPairProd")
-            grp.type = supera::kDelta;
-          else if (prc == "muMinusCaptureAtRest" || prc == "muPlusCaptureAtRest" || prc == "Decay")
-            grp.type = supera::kDecay;
-          else if (prc == "compt")
-            grp.type = supera::kCompton;
-          else if (prc == "phot")
-            grp.type = supera::kPhotoElectron;
-          else if (prc == "eIoni")
-            grp.type = supera::kIonization;
-          else if (prc == "conv")
-            grp.type = supera::kConversion;
-          else if (prc == "primary")
-            grp.type = supera::kPrimary;
-          else
-            grp.type = supera::kOtherShower;
-        }
-        result[track_id] = grp;
+          // Use the helper function to set the type
+          SetParticleGroupType(grp, mcpart, invalid_part);
+
+          result[track_id] = grp;
+          LARCV_DEBUG() << "***--- first_step in for loop " << grp.part.first_step().x() << "Track ID "
+                        << grp.part.track_id() << " PDG " << grp.part.pdg_code() << " "
+                        << grp.part.creation_process() << " ... parent Track ID "
+                        << grp.part.parent_track_id() << " PDG " << grp.part.parent_pdg_code()
+                        << std::endl;
       }
-      else {
-        grp.type = supera::kTrack;
-        if (grp.part.pdg_code() == 2112) grp.type = supera::kNeutron;
-        if (grp.part.pdg_code() > 1000000) grp.type = supera::kNuclear;
-        result[track_id] = grp;
+      if (_assert_parent_trackid) {
+        // Second pass: check for missing parent particles
+        for (auto const& [track_id, grp] : result) {
+          int parent_track_id = grp.part.parent_track_id();
+          if (parent_track_id != static_cast<int>(larcv::kINVALID_UINT) && result.find(parent_track_id) == result.end()) {
+              // Parent is missing, add it to the result
+              if (parent_track_id < static_cast<int>(trackid2index.size())) {
+                  int parent_index = trackid2index[parent_track_id];
+                  if (parent_index >= 0 && parent_index < static_cast<int>(larmcp_v.size())) {
+                      auto const& parent_mcpart = larmcp_v[parent_index];
+                      supera::ParticleGroup parent_grp(_valid_nplanes);
+                      parent_grp.part = this->MakeParticle(parent_mcpart);
+                      parent_grp.valid = true;
+
+                      // Use the helper function to set the type
+                      SetParticleGroupType(parent_grp, parent_mcpart, invalid_part);
+
+                      result[parent_track_id] = parent_grp;
+                      LARCV_DEBUG() << "Added missing parent track ID " << parent_track_id << std::endl;
+                  }
+              }
+          }
+        }
       }
-      LARCV_DEBUG() << "***--- first_step in for loop " << grp.part.first_step().x() << "Track ID "
-                    << grp.part.track_id() << " PDG " << grp.part.pdg_code() << " "
-                    << grp.part.creation_process() << " ... parent Track ID "
-                    << grp.part.parent_track_id() << " PDG " << grp.part.parent_pdg_code()
-                    << std::endl;
-    }
-
-    // fill parentage information
-
-    return result;
+      return result;
   }
 
   template <typename sed_type>
