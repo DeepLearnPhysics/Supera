@@ -6,8 +6,8 @@ ProcessDriver: {
   Verbosity:    2
   EnableFilter: true
   RandomAccess: false
-  ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaOptical","Tensor3DFromCluster3D","CombineTensor3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D"]
-  ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaOptical","Tensor3DFromCluster3D","CombineTensor3DGhost","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D"]
+  ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaOptical","SuperaCRT","Tensor3DFromCluster3D","CombineTensor3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D"]
+  ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaOptical","SuperaCRT","Tensor3DFromCluster3D","CombineTensor3DGhost","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D"]
 
   IOManager: {
     Verbosity:   2
@@ -171,6 +171,11 @@ ProcessDriver: {
 		  OpFlashProducers: ["opflashtpc0xarapuca","opflashtpc1xarapuca","opflashtpc0","opflashtpc1"]
 			OpFlashOutputs: ["tpc0xa","tpc1xa","tpc0","tpc1"]
 		}
+    SuperaCRT: {
+      CRTHitProducers: ["crtspacepoints"]
+      CRTHitOutputs: ["crthit"]
+      UseCRTSpacePoint: true
+    }
 
   }
 }

@@ -23,6 +23,7 @@ art_make_library(
         icarus_LArCVImageMaker
             LIBRARIES
 		sbnobj::Common_CRT
+		sbnobj::SBND_CRT
 		nurandom::RandomUtils_NuRandomService_service
 		larcore::Geometry_Geometry_service
 		lardataalg::DetectorInfo

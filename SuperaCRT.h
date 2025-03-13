@@ -43,6 +43,7 @@ namespace larcv {
   private:
     std::vector<std::string> _crthit_producer_label_v;
     std::vector<std::string> _crthit_output_label_v;
+    bool _use_crtsp;
   };
 
   /**

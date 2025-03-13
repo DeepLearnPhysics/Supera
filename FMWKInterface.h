@@ -40,6 +40,7 @@ namespace supera {
   typedef sim::SimEnergyDepositLite LArSimEnergyDepositLite_t;
   typedef recob::SpacePoint LArSpacePoint_t;
   typedef recob::OpFlash LArOpFlash_t;
+  typedef sbnd::crt::CRTSpacePoint LArCRTSpacePoint_t;
 }
 //
 // Utility functions (geometry, lar properties, etc.)
