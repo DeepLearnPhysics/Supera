@@ -51,8 +51,9 @@ ProcessDriver: {
 			OpFlashOutputs: ["tpc0xa","tpc1xa","tpc0","tpc1"]
 		}
     SuperaCRT: {
-      CRTHitProducers: ["crthit"]
+      CRTHitProducers: ["crtspacepoints"]
       CRTHitOutputs: ["crthit"]
+      UseCRTSpacePoint: true
     }
 
   }
