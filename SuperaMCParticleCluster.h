@@ -54,6 +54,7 @@ namespace larcv {
 
     //std::map<int, supera::ParticleGroup> CreateParticleGroups();
     std::map<int, supera::ParticleGroup> CreateParticleGroups();
+    void SetParticleGroupType(supera::ParticleGroup& grp, const supera::LArMCParticle_t& mcpart, const larcv::Particle& invalid_part) const;
 
     template <typename sed_type>
     void AnalyzeSimEnergyDeposit(const larcv::Voxel3DMeta& meta,
@@ -123,6 +124,7 @@ namespace larcv {
     std::vector<larcv::ImageMeta> _meta2d_v;
     bool
       _useOrigTrackID; ///< Whether to use origTrackID or trackID from SimChannel/SimEnergyDeposit
+    bool _assert_parent_trackid; ///< Whether to assert that parent track IDs are found in the map
   };
 
   /**
