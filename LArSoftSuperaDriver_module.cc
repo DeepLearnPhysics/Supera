@@ -202,8 +202,10 @@ void LArSoftSuperaDriver::analyze(art::Event const & e)
   get_label<recob::OpFlash>(e, ::supera::LArDataType_t::kLArOpFlash_t);
 
   // CRTHit
-  if(_verbosity==0) std::cout << "Checking OpFlash data request" << std::endl;
   get_label<sbn::crt::CRTHit>(e, ::supera::LArDataType_t::kLArCRTHit_t);
+
+  // CRTSpacePoint
+  get_label<sbnd::crt::CRTSpacePoint>(e, ::supera::LArDataType_t::kLArCRTSpacePoint_t);
 
   /*
   // chstatus

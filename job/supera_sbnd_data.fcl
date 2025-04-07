@@ -6,8 +6,8 @@ ProcessDriver: {
   Verbosity:    2
   EnableFilter: true
   RandomAccess: false
-  ProcessType:  ["SuperaBBoxInteraction","SuperaSpacePoint","SuperaOptical"]
-  ProcessName:  ["SuperaBBoxInteraction","SuperaSpacePoint","SuperaOptical"]
+  ProcessType:  ["SuperaBBoxInteraction","SuperaSpacePoint","SuperaOptical","SuperaCRT"]
+  ProcessName:  ["SuperaBBoxInteraction","SuperaSpacePoint","SuperaOptical","SuperaCRT"]
 
   IOManager: {
     Verbosity:   2
@@ -50,6 +50,11 @@ ProcessDriver: {
 		  OpFlashProducers: ["opflashtpc0","opflashtpc1"] #add in XA later
 		  OpFlashOutputs: ["tpc0","tpc1"] #add in XA later
 		}
+    SuperaCRT: {
+      CRTHitProducers: ["crtspacepoints"]
+      CRTHitOutputs: ["crthit"]
+      UseCRTSpacePoint: true
+    }
 
   }
 }
