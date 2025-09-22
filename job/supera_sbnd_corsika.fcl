@@ -168,8 +168,8 @@ ProcessDriver: {
       RecoChargeRange: [-1000, 50000]
     }
     SuperaOptical: {
-		  OpFlashProducers: ["opflashtpc0xarapuca","opflashtpc1xarapuca","opflashtpc0","opflashtpc1"]
-			OpFlashOutputs: ["tpc0xa","tpc1xa","tpc0","tpc1"]
+		  OpFlashProducers: ["opflashtpc0","opflashtpc1"] # Add XA products when valid
+		  OpFlashOutputs:   ["tpc0","tpc1"]               # Add XA products when valid
 		}
     SuperaCRT: {
       CRTHitProducers: ["crtspacepoints"]
