@@ -1,0 +1,79 @@
+#include "services_dune.fcl"
+#include "tools_dune.fcl"
+
+process_name: supera
+
+
+services:
+{
+  @table::dunefd_1x2x6_reco_services
+  # Load the service that manages root files for histograms where the CAF info will be saved.
+  TFileService: { fileName: "caf.root" }
+}
+
+
+source:
+{
+  module_type: RootInput
+}
+
+physics:
+{
+
+ producers:
+ {
+   rns:      { module_type: "RandomNumberSaver" }
+ }
+ analyzers:
+ { 
+  supera: 
+          {
+            module_type:       "LArSoftSuperaDriver"
+            supera_params:     "supera_dunefdhd_mc.fcl"
+            out_filename:      "larcv.root"
+            unique_filename:   false
+            stream:            "mc"
+            StrictDataLoading: false
+            Verbosity: 1
+          }
+ }
+
+ simulate:      [ rns ]      
+ analyze:       [ supera ] # that's ok
+#  stream:        [ ]
+ stream:        [ out1 ]
+ trigger_paths: [ simulate ]
+#  end_paths:     [ analyze ] # get larcv output
+ end_paths:     [ analyze, stream ] # get both larcv and larsoft output
+}
+
+outputs:
+{
+ out1:
+ {
+   module_type: RootOutput
+   fileName:    "supera_output.root"
+   dataTier:    "supera"
+   saveMemoryObjectThreshold: 0
+   compressionLevel: 1
+   fastCloning: false
+ }
+}
+
+services.RandomNumberGenerator: {}
+services.message.destinations :
+{
+  STDCOUT:
+  {
+     type:      "cout"      #tells the message service to output this destination to cout
+     threshold: "INFO"      #tells the message service that this destination applies to WARNING and higher level messages
+     categories:
+     {
+       default:
+       {
+         limit:       1000  #don't print anything at the infomsg level except the explicitly named categories
+         reportEvery: 1
+       }
+     }
+  }
+}
