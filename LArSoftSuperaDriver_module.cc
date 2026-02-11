@@ -58,6 +58,7 @@ private:
   unsigned int _verbosity;
   CLHEP::HepRandomEngine& fFlatEngine;
   bool _strictDataLoading;
+  bool missinglabels;
 };
 
 
@@ -127,20 +128,24 @@ void LArSoftSuperaDriver::beginJob()
 template <class LArSoftDataType> void LArSoftSuperaDriver::get_label(const art::Event& e, ::supera::LArDataType_t SuperaDataType, bool checkLength) {
   for(auto const& label : _supera.DataLabels(SuperaDataType)) {
     if(label.empty()) continue;
+    
     art::Handle<std::vector<LArSoftDataType> > data_h;
     if(label.find(" ")<label.size()) {
       e.getByLabel(label.substr(0,label.find(" ")),
        label.substr(label.find(" ")+1,label.size()-label.find(" ")-1),
        data_h);
-    }else{ e.getByLabel(label, data_h); }
+    }
+    else{ e.getByLabel(label, data_h); }
+    
     if(!data_h.isValid() || (checkLength ? data_h->empty() : false)) {
       std::cerr<< "Attempted to load data: " << label << std::endl;
+      missinglabels = true;
+
       if(_strictDataLoading)
         throw ::larcv::larbys("Could not locate data!");
-      else
-        return;
     }
-    _supera.SetDataPointer(*data_h,label);
+    else
+      _supera.SetDataPointer(*data_h,label);
   }
 }
 
@@ -148,6 +153,7 @@ void LArSoftSuperaDriver::analyze(art::Event const & e)
 {
   // FIXME(kvtsang) Temporary solution to access associations
   _supera.SetEvent(&e);
+  missinglabels = false;
 
   //
   // set data pointers
@@ -204,6 +210,9 @@ void LArSoftSuperaDriver::analyze(art::Event const & e)
   // CRTHit
   if(_verbosity==0) std::cout << "Checking OpFlash data request" << std::endl;
   get_label<dune::crt::CRTHit>(e, ::supera::LArDataType_t::kLArCRTHit_t);
+
+  // If label/product was found to be missing, jump to next event
+  if(missinglabels) return;
 
   /*
   // chstatus
