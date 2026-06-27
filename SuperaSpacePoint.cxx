@@ -6,35 +6,54 @@
 
 #include "canvas/Persistency/Common/FindManyP.h"
 
-#include <set>
+#include <algorithm>
+#include <unordered_map>
+#include <vector>
 class MyVoxelSet {
 public:
   MyVoxelSet() { ; }
   void emplace(larcv::VoxelID_t id, float value, bool add)
   {
-    larcv::Voxel v(id, value);
-    auto itr = _voxel_set.find(v);
-    if (itr != _voxel_set.end()) {
-      if (add) { v += itr->value(); }
-      _voxel_set.erase(itr);
+    auto itr = _voxel_map.find(id);
+    if (itr != _voxel_map.end()) {
+      if (add) {
+        itr->second += value;
+      }
+      else {
+        itr->second = value;
+      }
+      return;
     }
-    _voxel_set.insert(std::move(v));
+    _voxel_map.emplace(id, value);
   }
   void move_to(larcv::VoxelSet& v_set)
   {
-    size_t n = _voxel_set.size();
-    v_set.reserve(n);
-    for (auto& v : _voxel_set) {
-      v_set.insert(v);
+    std::vector<std::pair<larcv::VoxelID_t, float>> ordered_voxels;
+    ordered_voxels.reserve(_voxel_map.size());
+    for (auto const& id_value : _voxel_map) {
+      ordered_voxels.emplace_back(id_value.first, id_value.second);
     }
-    _voxel_set.clear();
+    std::sort(ordered_voxels.begin(),
+              ordered_voxels.end(),
+              [](auto const& lhs, auto const& rhs) { return lhs.first < rhs.first; });
+
+    v_set.clear_data();
+    v_set.reserve(ordered_voxels.size());
+    for (auto const& id_value : ordered_voxels) {
+      v_set.emplace(id_value.first, id_value.second, false);
+    }
+    _voxel_map.clear();
   }
-  std::set<larcv::Voxel>::iterator find(larcv::Voxel v) { return _voxel_set.find(v); }
-  std::set<larcv::Voxel>::iterator end() { return _voxel_set.end(); }
-  size_t size() { return _voxel_set.size(); }
+  const float* find_value(larcv::VoxelID_t id) const
+  {
+    auto itr = _voxel_map.find(id);
+    if (itr == _voxel_map.end()) return nullptr;
+    return &(itr->second);
+  }
+  size_t size() { return _voxel_map.size(); }
 
 private:
-  std::set<larcv::Voxel> _voxel_set;
+  std::unordered_map<larcv::VoxelID_t, float> _voxel_map;
 };
 
 namespace larcv {
@@ -85,8 +104,6 @@ namespace larcv {
     /* TODO(kvtsang) implement number of clusters
      * Now consider whole event as a single cluster
      */
-
-    std::set<larcv::Voxel> _vset;
 
     //larcv::VoxelSet v_occupancy;
     //larcv::VoxelSet v_charge;
@@ -162,6 +179,14 @@ namespace larcv {
     }
     //std::cout << ">>> Going through SuperaSpacePoint.cxx" << std::endl;
 
+    const bool fill_occupancy = (_drop_output.count("occupancy") == 0);
+    const bool fill_hit_charge = (_drop_output.count("hit_charge") == 0);
+    const bool fill_hit_amp = (_drop_output.count("hit_amp") == 0);
+    const bool fill_hit_time = (_drop_output.count("hit_time") == 0);
+    const bool fill_hit_rms = (_drop_output.count("hit_rms") == 0);
+    const bool fill_hit_mult = (_drop_output.count("hit_mult") == 0);
+    const bool fill_hit_key = (_drop_output.count("hit_key") == 0);
+
     for (auto const& label : _producer_labels) {
       //std::cout << "LABEL: " << label << std::endl;
       auto handle = ev->getValidHandle<std::vector<recob::SpacePoint>>(label);
@@ -196,22 +221,20 @@ namespace larcv {
           continue;
         }
 
-        // Find the hits associated with the space point
-        std::vector<art::Ptr<recob::Hit>> hits;
-        find_hits.get(i_pt, hits);
+        // Find the hits associated with the space point.
+        auto const& hits = find_hits.at(i_pt);
 
-        v_occupancy.emplace(vox_id, 1, true);
+        if (fill_occupancy) v_occupancy.emplace(vox_id, 1, true);
 
         // Check if the voxel the space point falls into already exists.
         // If it does, select the most suited space point to represent the voxel
-        larcv::Voxel v(vox_id, charge);
-        auto itr_charge = v_charge.find(v);
-        auto itr_nhits = v_nhits.find(v);
-        if (itr_charge != v_charge.end()) {
+        auto const* prev_charge = v_charge.find_value(vox_id);
+        auto const* prev_nhits = v_nhits.find_value(vox_id);
+        if (prev_charge) {
           // If the new SP is a doublet and the exisiting SP is a triplet, skip
-          if (hits.size() < itr_nhits->value()) { continue; }
+          if (prev_nhits && hits.size() < *prev_nhits) { continue; }
           // If the new SP is composed of the same number of hits and has smaller charge, skip
-          if (hits.size() == itr_nhits->value() && charge < itr_charge->value()) { continue; }
+          if (prev_nhits && hits.size() == *prev_nhits && charge < *prev_charge) { continue; }
         }
 
         //if (!(v_chi2.find(vox_id) == larcv::kINVALID_VOXEL))
@@ -245,14 +268,14 @@ namespace larcv {
             planes.push_back(plane);
 
             size_t hit_id = offsets[label] + hit.key();
-            v_hit_charge[plane].emplace(vox_id, hit->Integral(), !replace);
-            v_hit_amp[plane].emplace(vox_id, hit->PeakAmplitude(), !replace);
-            v_hit_time[plane].emplace(vox_id, hit->PeakTime(), !replace);
-            v_hit_rms[plane].emplace(vox_id, hit->RMS(), !replace);
-            v_hit_mult[plane].emplace(vox_id, hit->Multiplicity(), !replace);
+            if (fill_hit_charge) v_hit_charge[plane].emplace(vox_id, hit->Integral(), !replace);
+            if (fill_hit_amp) v_hit_amp[plane].emplace(vox_id, hit->PeakAmplitude(), !replace);
+            if (fill_hit_time) v_hit_time[plane].emplace(vox_id, hit->PeakTime(), !replace);
+            if (fill_hit_rms) v_hit_rms[plane].emplace(vox_id, hit->RMS(), !replace);
+            if (fill_hit_mult) v_hit_mult[plane].emplace(vox_id, hit->Multiplicity(), !replace);
             //v_hit_cryo  [plane].emplace(vox_id, hit->WireID().Cryostat, !replace);
             //v_hit_tpc   [plane].emplace(vox_id, hit->WireID().TPC,      !replace);
-            v_hit_key[plane].emplace(vox_id, hit_id, !replace);
+            if (fill_hit_key) v_hit_key[plane].emplace(vox_id, hit_id, !replace);
           }
 
           //std::cout << "Vector sizes before: " << v_hit_charge[0].size() << "  "
@@ -268,14 +291,14 @@ namespace larcv {
               //std::cout << "Exists ? " << k << "  " << exists << std::endl;
               if (!exists) {
                 //std::cout << "Adding missing plane" << std::endl;
-                v_hit_charge[k].emplace(vox_id, -1, !replace);
-                v_hit_amp[k].emplace(vox_id, -1, !replace);
-                v_hit_time[k].emplace(vox_id, -1, !replace);
-                v_hit_rms[k].emplace(vox_id, -1, !replace);
-                v_hit_mult[k].emplace(vox_id, -1, !replace);
+                if (fill_hit_charge) v_hit_charge[k].emplace(vox_id, -1, !replace);
+                if (fill_hit_amp) v_hit_amp[k].emplace(vox_id, -1, !replace);
+                if (fill_hit_time) v_hit_time[k].emplace(vox_id, -1, !replace);
+                if (fill_hit_rms) v_hit_rms[k].emplace(vox_id, -1, !replace);
+                if (fill_hit_mult) v_hit_mult[k].emplace(vox_id, -1, !replace);
                 //v_hit_cryo  [k].emplace(vox_id, -1, !replace);
                 //v_hit_tpc   [k].emplace(vox_id, -1, !replace);
-                v_hit_key[k].emplace(vox_id, -1, !replace);
+                if (fill_hit_key) v_hit_key[k].emplace(vox_id, -1, !replace);
               }
             }
           }
