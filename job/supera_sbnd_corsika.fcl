@@ -6,8 +6,8 @@ ProcessDriver: {
   Verbosity:    2
   EnableFilter: true
   RandomAccess: false
-  ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaOptical","Tensor3DFromCluster3D","CombineTensor3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D"]
-  ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaOptical","Tensor3DFromCluster3D","CombineTensor3DGhost","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D"]
+  ProcessType:  ["SuperaMCTruth","SuperaMCTruth","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaOptical","SuperaCRT","Tensor3DFromCluster3D","CombineTensor3D","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D"]
+  ProcessName:  ["MultiPartVrtx","MultiPartRain","SuperaBBoxInteraction","SuperaMCParticleCluster","SuperaSimEnergyDeposit","SuperaSpacePoint","SuperaOptical","SuperaCRT","Tensor3DFromCluster3D","CombineTensor3DGhost","ThresholdTensor3D","CombineTensor3D","ParticleCorrector","EmptyTensorFilter","RescaleChargeTensor3D"]
 
   IOManager: {
     Verbosity:   2
@@ -83,14 +83,14 @@ ProcessDriver: {
         OutputCluster3D: "masked_true2reco"
         TwofoldMatching: true
         UseTruePosition: true
-        HitThresholdNe: 175 #doublets 175, triplets 100 v10_04_03
-        HitWindowTicks: 15 #doublets 15, triplets 10 v10_04_03
+        HitThresholdNe: 75 # Updated SBND Fall 2025 Production
+        HitWindowTicks: 10.0 # Updated SBND Fall 2025 Production
         HitPeakFinding: false
         PostAveraging: true
-        PostAveragingThreshold_cm: 0.7 # doublets 0.7, triplets 0.7 v10_04_03
+        PostAveragingThreshold_cm: 0.50 # Updated SBND Fall 2025 Production
         DumpToCSV: false
         RecoChargeRange: [-1000,50000]
-				VoxelDistanceThreshold: 3. #2. triplets, 3. doublets v10_04_03
+	VoxelDistanceThreshold: 2.0 # Updated SBND Fall 2025 Production
       }
     }
 
@@ -168,9 +168,14 @@ ProcessDriver: {
       RecoChargeRange: [-1000, 50000]
     }
     SuperaOptical: {
-		  OpFlashProducers: ["opflashtpc0xarapuca","opflashtpc1xarapuca","opflashtpc0","opflashtpc1"]
-			OpFlashOutputs: ["tpc0xa","tpc1xa","tpc0","tpc1"]
+		  OpFlashProducers: ["opflashtpc0","opflashtpc1"] # Add XA products when valid
+		  OpFlashOutputs:   ["tpc0","tpc1"]               # Add XA products when valid
 		}
+    SuperaCRT: {
+      CRTHitProducers: ["crtspacepoints"]
+      CRTHitOutputs: ["crthit"]
+      UseCRTSpacePoint: true
+    }
 
   }
 }

@@ -42,6 +42,7 @@ namespace larcv {
     auto producer_sps = cfg.get<std::string>("LArSpacePoint", "");
     auto producer_opflash = cfg.get<std::string>("LArOpFlashProducer", "");
     auto producer_crthit = cfg.get<std::string>("LArCRTHitProducer", "");
+    auto producer_crtsp = cfg.get<std::string>("LArCRTSpacePointProducer", "");
 
     if (!producer_wire.empty()) {
       LARCV_INFO() << "Requesting Wire data product by " << producer_wire << std::endl;
@@ -114,6 +115,11 @@ namespace larcv {
       LARCV_INFO() << "Requesting CRTHit data product by " << producer_crthit << std::endl;
       Request(supera::LArDataType_t::kLArCRTHit_t, producer_crthit);
     }
+
+    if (!producer_crtsp.empty()) {
+      LARCV_INFO() << "Requesting CRTSpacePoint data product by " << producer_crtsp << std::endl;
+      Request(supera::LArDataType_t::kLArCRTSpacePoint_t, producer_crtsp);
+    }
   }
 
   void SuperaBase::initialize()
@@ -152,7 +158,7 @@ namespace larcv {
     _ptr_simedep_lite_v = nullptr;
     _ptr_opflash_v = nullptr;
     _ptr_crthit_v = nullptr;
-
+    _ptr_crtsp_v = nullptr;
     // FIXME(kvtsang) Temporary solution to access associations
     _event = nullptr;
   }
@@ -352,6 +358,12 @@ namespace larcv {
   void SuperaBase::LArData(const std::vector<supera::LArCRTHit_t>& data_v)
   {
     _ptr_crthit_v = (std::vector<supera::LArCRTHit_t>*)(&data_v);
+  }
+
+  template <>
+  void SuperaBase::LArData(const std::vector<supera::LArCRTSpacePoint_t>& data_v)
+  {
+    _ptr_crtsp_v = (std::vector<supera::LArCRTSpacePoint_t>*)(&data_v);
   }
 }
 

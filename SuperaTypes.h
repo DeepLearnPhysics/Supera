@@ -21,6 +21,7 @@ namespace supera {
     kLArSpacePoint_t,           ///< simb::SpacePoint
     kLArOpFlash_t,              ///< recob::OpFlash
     kLArCRTHit_t,               ///< sbn::crt::CRTHit
+    kLArCRTSpacePoint_t,        ///< sbnd::crt::CRTSpacePoint
     kLArDataTypeMax
   };
 
@@ -55,6 +56,8 @@ namespace supera {
   LArDataType_t LArDataType<supera::LArOpFlash_t>();
   template <>
   LArDataType_t LArDataType<supera::LArCRTHit_t>();
+  template <>
+  LArDataType_t LArDataType<supera::LArCRTSpacePoint_t>();
 
   class RSEID {
   public:

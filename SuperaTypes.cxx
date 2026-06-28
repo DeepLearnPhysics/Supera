@@ -73,5 +73,10 @@ namespace supera {
   {
     return LArDataType_t::kLArCRTHit_t;
   }
+  template <>
+  LArDataType_t LArDataType<supera::LArCRTSpacePoint_t>()
+  {
+    return LArDataType_t::kLArCRTSpacePoint_t;
+  }
 }
 #endif

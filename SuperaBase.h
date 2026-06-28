@@ -95,6 +95,7 @@ namespace larcv {
     std::vector<supera::LArSpacePoint_t>* _ptr_spacepoint_v;
     std::vector<supera::LArOpFlash_t>* _ptr_opflash_v;
     std::vector<supera::LArCRTHit_t>* _ptr_crthit_v;
+    std::vector<supera::LArCRTSpacePoint_t>* _ptr_crtsp_v;
     std::string _csv_fname;
 
     // FIXME(kvtsang) Temporary solution to access associations
@@ -187,6 +188,10 @@ namespace larcv {
 
   template <>
   void SuperaBase::LArData(const std::vector<supera::LArCRTHit_t>& data_v);
+
+  template <>
+  void SuperaBase::LArData(const std::vector<supera::LArCRTSpacePoint_t>& data_v);
+
   /**
      \class larcv::SuperaBaseFactory
      \brief A concrete factory class for larcv::SuperaBase
