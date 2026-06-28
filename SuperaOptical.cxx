@@ -61,6 +61,7 @@ namespace larcv {
                                  flash.AbsTime(),
                                  flash.Frame(),
                                  flash.PEs(),
+                                 larcv::kINVALID_UINT,
                                  flash.InBeamFrame(),
                                  flash.OnBeamTime(),
                                  flash.FastToTotal(),
