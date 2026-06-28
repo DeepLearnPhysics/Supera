@@ -11,8 +11,8 @@
 /** \addtogroup Package_Name
 
     @{*/
-#ifndef __SUPERAOPTICAL_H__
-#define __SUPERAOPTICAL_H__
+#ifndef __SUPERACRT_H__
+#define __SUPERACRT_H__
 #include "SuperaBase.h"
 #include <vector>
 
