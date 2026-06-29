@@ -2,6 +2,12 @@
 
 All notable changes to Supera will be documented in this file.
 
+## [1.0.1] - 2026-06-29
+
+### Changed
+- Restored SBND Fall 2025 production FHiCL settings.
+- Removed SBND X-ARAPUCA products from the affected SBND FHiCL configurations.
+
 ## [1.0.0] - 2026-06-28
 
 ### Added
