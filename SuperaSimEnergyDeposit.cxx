@@ -54,7 +54,7 @@ namespace larcv {
   }
 
   void SuperaSimEnergyDeposit::fill_sedep_v(const std::vector<larcv::Particle> mcp_v,
-                                            std::vector<int>& part_idx_v,
+                                            const std::unordered_map<int, int>& part_idx_v,
                                             larcv::Voxel3DMeta meta,
                                             larcv::EventClusterVoxel3D& event_de_v)
   {
@@ -77,8 +77,8 @@ namespace larcv {
       LARCV_DEBUG() << "Recording sedep from track id " << track_id << " E=" << sedep.Energy()
                     << std::endl;
       size_t cluster_idx = mcp_v.size();
-      if (track_id < (int)(part_idx_v.size()) && part_idx_v.at(track_id) >= 0)
-        cluster_idx = part_idx_v.at(track_id);
+      auto const part_idx_it = part_idx_v.find(track_id);
+      if (part_idx_it != part_idx_v.end() && part_idx_it->second >= 0) cluster_idx = part_idx_it->second;
       assert(cluster_idx == event_de_v.as_vector().size());
       LARCV_DEBUG() << "Cluster index: " << cluster_idx << " / " << event_de_v.as_vector().size()
                     << std::endl;
@@ -91,7 +91,7 @@ namespace larcv {
   }
 
   void SuperaSimEnergyDeposit::fill_sedep_v(const std::vector<larcv::Particle> mcp_v,
-                                            std::vector<int>& part_idx_v,
+                                            const std::unordered_map<int, int>& part_idx_v,
                                             larcv::Voxel3DMeta meta,
                                             larcv::EventClusterVoxel3D& event_de_v,
                                             larcv::EventClusterVoxel3D* event_dq_v,
@@ -119,8 +119,8 @@ namespace larcv {
       LARCV_DEBUG() << "Recording sedep from track id " << track_id << " E=" << sedep.Energy()
                     << std::endl;
       size_t cluster_idx = mcp_v.size();
-      if (track_id < (int)(part_idx_v.size()) && part_idx_v.at(track_id) >= 0)
-        cluster_idx = part_idx_v.at(track_id);
+      auto const part_idx_it = part_idx_v.find(track_id);
+      if (part_idx_it != part_idx_v.end() && part_idx_it->second >= 0) cluster_idx = part_idx_it->second;
       assert(cluster_idx == event_de_v.as_vector().size());
       LARCV_DEBUG() << "Cluster index: " << cluster_idx << " / " << event_de_v.as_vector().size()
                     << std::endl;
@@ -193,8 +193,8 @@ namespace larcv {
     std::vector<larcv::VoxelSet> cluster_dedx_v;
     */
     // List particles to be stored
-    static std::vector<int> part_idx_v(1e6, -1);
-    std::fill(part_idx_v.begin(), part_idx_v.end(), -1);
+    // keyed by track ID: track IDs carry large offsets, so a vector indexed by them was 160 MB
+    std::unordered_map<int, int> part_idx_v;
     auto const& mcp_v = mgr.get_data<larcv::EventParticle>(_particle_label).as_vector();
     LARCV_INFO() << "Processing larcv::EventParticle array: " << mcp_v.size() << std::endl;
     auto const& mcshower_v = LArData<supera::LArMCShower_t>();
@@ -203,14 +203,12 @@ namespace larcv {
       auto const track_id = mcp.track_id();
       LARCV_INFO() << "Recording MCParticle track ID " << track_id << " PDG " << mcp.pdg_code()
                    << std::endl;
-      if (part_idx_v.size() <= track_id) part_idx_v.resize(track_id + 1, -1);
-      part_idx_v.at(track_id) = idx;
+      part_idx_v[track_id] = idx;
       // If this is shower, look for a corresponding shower
       for (auto const& mcshower : mcshower_v) {
         if (mcshower.TrackID() != track_id) continue;
         for (auto const& daughter_id : mcshower.DaughterTrackID()) {
-          if (part_idx_v.size() <= daughter_id) part_idx_v.resize(daughter_id + 1, -1);
-          part_idx_v.at(daughter_id) = idx;
+          part_idx_v[daughter_id] = idx;
         }
         break;
       }
