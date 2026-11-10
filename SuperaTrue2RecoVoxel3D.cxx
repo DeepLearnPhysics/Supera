@@ -778,12 +778,11 @@ namespace larcv {
     return reco2true;
   }
 
-  std::vector<std::map<VoxelID_t, std::unordered_set<VoxelID_t>>>
+  std::unordered_map<int, std::map<VoxelID_t, std::unordered_set<VoxelID_t>>>
   SuperaTrue2RecoVoxel3D::contract_true2reco_bytrack() const
   {
-    std::vector<std::map<VoxelID_t, std::unordered_set<VoxelID_t>>> result;
+    std::unordered_map<int, std::map<VoxelID_t, std::unordered_set<VoxelID_t>>> result;
     for (auto& [true_pt, reco_pts] : _true2reco) {
-      result.resize(std::max(result.size(), (size_t)(abs(true_pt.track_id) + 1)));
       auto& target = result[abs(true_pt.track_id)];
       for (auto& reco_pt : reco_pts) {
         insert_one_to_many(target, true_pt.voxel_id, reco_pt.get_id());

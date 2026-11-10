@@ -20,6 +20,7 @@
 #include "SuperaBase.h"
 #include "larcv/core/DataFormat/Voxel3DMeta.h"
 #include <functional>
+#include <unordered_map>
 
 namespace larcv {
 
@@ -133,7 +134,7 @@ namespace larcv {
     // build a map of reco_id <-> true_id, ignoring track_id
     std::map<VoxelID_t, std::unordered_set<VoxelID_t>> contract_true2reco();
     std::map<VoxelID_t, std::unordered_set<VoxelID_t>> contract_reco2true();
-    std::vector<std::map<VoxelID_t, std::unordered_set<VoxelID_t>>> contract_true2reco_bytrack()
+    std::unordered_map<int, std::map<VoxelID_t, std::unordered_set<VoxelID_t>>> contract_true2reco_bytrack()
       const;
   };
 

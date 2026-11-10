@@ -282,7 +282,7 @@ namespace larcv {
     auto const& sedep_v = LArData<sed_type>();
     auto const& trackid2index = _mcpl.TrackIdToIndex();
 
-    std::vector<std::map<VoxelID_t, std::unordered_set<VoxelID_t>>> true2reco_v;
+    std::unordered_map<int, std::map<VoxelID_t, std::unordered_set<VoxelID_t>>> true2reco_v;
     bool use_true2reco = !(_true2reco == nullptr);
     if (use_true2reco) true2reco_v = _true2reco->get_true2reco_bytrack();
 
@@ -336,13 +336,13 @@ namespace larcv {
         if (_store_dedx) grp.dedx.emplace(vox_id, pt.dedx, true);
         grp.AddEDep(pt);
       }
-      else if (track_id >= (int)(true2reco_v.size()) || true2reco_v[track_id].empty()) {
+      else if (true2reco_v.find(track_id) == true2reco_v.end() || true2reco_v.at(track_id).empty()) {
         // translation doesn't exist for this voxel
         ++bad_sedep_counter;
         ++bad_sedep_counter2;
       }
       else {
-        auto const& true2reco_m = true2reco_v[track_id];
+        auto const& true2reco_m = true2reco_v.at(track_id);
         auto true2reco_iter = true2reco_m.find(vox_id);
         if (true2reco_iter == true2reco_m.end() || true2reco_iter->second.empty()) {
           // translation doesn't exist for this voxel
@@ -444,7 +444,7 @@ namespace larcv {
 
     auto const& trackid2index = _mcpl.TrackIdToIndex();
 
-    std::vector<std::map<VoxelID_t, std::unordered_set<VoxelID_t>>> true2reco_v;
+    std::unordered_map<int, std::map<VoxelID_t, std::unordered_set<VoxelID_t>>> true2reco_v;
     bool use_true2reco = !(_true2reco == nullptr);
     if (use_true2reco) true2reco_v = _true2reco->get_true2reco_bytrack();
 
@@ -579,13 +579,13 @@ namespace larcv {
                 grp.vs.emplace(vox_id, pt.e, true);
                 grp.AddEDep(pt);
               }
-              else if (track_id >= (int)(true2reco_v.size()) || true2reco_v[track_id].empty()) {
+              else if (true2reco_v.find(track_id) == true2reco_v.end() || true2reco_v.at(track_id).empty()) {
                 // translation doesn't exist for this voxel
                 skipped3d = true;
                 ++ctr_invalid_3d;
               }
               else {
-                auto const& true2reco_m = true2reco_v[track_id];
+                auto const& true2reco_m = true2reco_v.at(track_id);
                 auto true2reco_iter = true2reco_m.find(vox_id);
                 if (true2reco_iter == true2reco_m.end() || true2reco_iter->second.empty()) {
                   // translation doesn't exist for this voxel
