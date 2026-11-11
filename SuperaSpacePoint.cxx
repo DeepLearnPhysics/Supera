@@ -4,7 +4,7 @@
 #include "SuperaSpacePoint.h"
 #include "larcv/core/DataFormat/EventVoxel3D.h"
 
-#include "canvas/Persistency/Common/FindManyP.h"
+#include "SpacePointHits.h"
 
 #include <algorithm>
 #include <unordered_map>
@@ -193,7 +193,7 @@ namespace larcv {
       auto const& points = *handle;
 
       art::InputTag const producer_tag(label);
-      art::FindManyP<recob::Hit> find_hits(handle, *ev, producer_tag);
+      supera::utils::SpacePointHits find_hits(handle, *ev, producer_tag);
 
       size_t n_dropped = 0;
       for (size_t i_pt = 0; i_pt < points.size(); ++i_pt) {

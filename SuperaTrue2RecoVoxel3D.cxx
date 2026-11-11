@@ -2,7 +2,7 @@
 #define __SuperaTrue2RecoVoxel3D_CXX__
 
 #include "SuperaTrue2RecoVoxel3D.h"
-#include "canvas/Persistency/Common/FindManyP.h"
+#include "SpacePointHits.h"
 #include "larcv/core/DataFormat/EventVoxel3D.h"
 #include <algorithm>
 #include <fstream>
@@ -296,7 +296,7 @@ namespace larcv {
       // TODO(2020-03-20 kvtsang)  No space point, warnning?
       if (!space_pts.isValid()) continue;
       //art::InputTag const producer_tag(_sps_producer);
-      art::FindManyP<recob::Hit> hit_finder(space_pts, *ev, _sps_producer);
+      supera::utils::SpacePointHits hit_finder(space_pts, *ev, _sps_producer);
       LARCV_DEBUG() << _sps_producer << " " << space_pts->size() << std::endl;
       //space_pts.reserve(space_pts.size() + distance(space_pts_part->begin(), space_pts_part->end()));
       //space_pts.insert(space_pts.end(), space_pts_part->begin(), space_pts_part->end());
