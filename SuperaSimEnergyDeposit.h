@@ -16,6 +16,7 @@
 //#ifndef __CINT__
 //#ifndef __CLING__
 #include "SuperaBase.h"
+#include <unordered_map>
 #include "larcv/core/DataFormat/BBox.h"
 #include "larcv/core/DataFormat/EventParticle.h"
 #include "larcv/core/DataFormat/EventVoxel3D.h"
@@ -40,12 +41,12 @@ namespace larcv {
     void initialize();
 
     void fill_sedep_v(const std::vector<larcv::Particle> mcp_v,
-                      std::vector<int>& part_idx_v,
+                      const std::unordered_map<int, int>& part_idx_v,
                       larcv::Voxel3DMeta meta,
                       larcv::EventClusterVoxel3D& event_de_v);
 
     void fill_sedep_v(const std::vector<larcv::Particle> mcp_v,
-                      std::vector<int>& part_idx_v,
+                      const std::unordered_map<int, int>& part_idx_v,
                       larcv::Voxel3DMeta meta,
                       larcv::EventClusterVoxel3D& event_de_v,
                       larcv::EventClusterVoxel3D* event_dq_v,
